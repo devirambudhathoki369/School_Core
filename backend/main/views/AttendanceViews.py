@@ -249,6 +249,21 @@ class ClassAttendanceView(SecuredAPIView):
                 absent_ids.append(student_id)
         notify_attendance_marked(school_id, present_ids, absent_ids)
 
+    # The columns a correction may set. Rows used to be built with
+    # `StudentAttendance(**attd)` for every key the client sent, so a payload
+    # could re-point a new row at another school's roll call
+    # (`class_attendance_id`) or student (`student_id`). The roll call and the
+    # student are now always the server-resolved ones. An update saves exactly
+    # the columns its bulk_update always saved.
+    ATTENDANCE_CREATE_FIELDS = (
+        "status",
+        "reason",
+        "checked_in_at",
+        "checked_out_at",
+        "is_active",
+    )
+    ATTENDANCE_EDITABLE_FIELDS = ("status", "reason")
+
     @swagger_auto_schema(
         tags=["student attendance"],
         request_body=AttendanceUpdateBodySerializer,
@@ -256,27 +271,44 @@ class ClassAttendanceView(SecuredAPIView):
     def put(self, request):
         class_info_id = request.data.pop("class_info", None)
         class_attendance_id = request.data.pop("class_attendance", None)
-        if class_info_id and class_attendance_id:
+        attendances = request.data.pop("attendances", None)
+        if class_info_id and class_attendance_id and isinstance(attendances, list):
+            # The roll call being corrected must belong to one of the caller's
+            # own schools — the id is the client's to choose, and the old
+            # `ClassAttendance.objects.get(id=...)` let any school edit any
+            # other school's attendance.
+            class_attendance = self.scope_to_caller(
+                ClassAttendance.objects.filter(id=class_attendance_id), request
+            ).first()
+            if not class_attendance:
+                return self.RESPONSE__NOT_FOUND
             students = {
-                std.id: std for std in Student.objects.filter(class_info=class_info_id)
+                std.id: std
+                for std in Student.objects.filter(
+                    class_info=class_info_id,
+                    class_info__school=class_attendance.school_id,
+                )
             }
-            attendances = request.data.pop("attendances")
             for_create, for_update, updates = [], [], {}
             for attd in attendances:
-                std_id = attd.get("student")
-                student = students.get(std_id)
-                if student:
-                    attd["student"] = student
-                    attd_id = attd.get("id")
-                    if not attd_id:
-                        for_create.append(attd)
-                    else:
-                        for_update.append(attd)
-                        updates[attd_id] = attd
-            # print(for_create)
-            # print(for_update)
-            #
-            class_attendance = ClassAttendance.objects.get(id=class_attendance_id)
+                if not isinstance(attd, dict):
+                    return self.RESPONSE__INVALID_REQUEST
+                student = students.get(attd.get("student"))
+                if not student:
+                    continue
+                attd_id = attd.get("id")
+                fields = (
+                    self.ATTENDANCE_EDITABLE_FIELDS
+                    if attd_id
+                    else self.ATTENDANCE_CREATE_FIELDS
+                )
+                clean = {k: attd[k] for k in fields if k in attd}
+                clean["student"] = student
+                if not attd_id:
+                    for_create.append(clean)
+                else:
+                    for_update.append(clean)
+                    updates[attd_id] = clean
             with transaction.atomic():
                 if len(for_create) > 0:
                     # creates;
@@ -290,13 +322,14 @@ class ClassAttendanceView(SecuredAPIView):
                     updated_at = timezone.now()
                     update_ids = updates.keys()
                     instances = StudentAttendance.objects.filter(
-                        id__in=update_ids
+                        id__in=update_ids, class_attendance=class_attendance
                     ).select_for_update()
                     for instance in instances:
                         ins_id = instance.id
                         update = updates.get(ins_id) or {}
-                        for field, value in update.items():
-                            setattr(instance, field, value)
+                        for field in self.ATTENDANCE_EDITABLE_FIELDS:
+                            if field in update:
+                                setattr(instance, field, update[field])
                         setattr(instance, "updated_at", updated_at)
                     StudentAttendance.objects.bulk_update(
                         instances, ("status", "reason", "updated_at")
