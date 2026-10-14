@@ -1,0 +1,1157 @@
+/* ==========================================================================
+   THE PUBLIC WEBSITE ( /, /features, /who-its-for, /why-centeducation,
+   /about, /contact )
+
+   Modules, not a block in globals.css: they are loaded by these pages only, so
+   the stylesheet every signed-in screen shares does not change by a byte.
+
+   Three things about the app's global CSS shape how these files are written.
+
+   · `* { font-size: .9rem; line-height: 1rem; font-family: … }` (and, on
+     screen, `:root * { font-family: var(--font-app) }`) put type on EVERY
+     element directly, so nothing inherits. `div.root *` hands inheritance back
+     inside the site; it must outrank `:root *`, and every rule that sets type
+     must outrank IT. That is why each selector starts with the site's root
+     class: `.lp`, a plain global name, so the four module files can share it.
+   · The root font size is .9rem (14.4px), so a rem here is not 16px. Every
+     size on the site is a whole number of pixels, type and leading included.
+   · Type is multiplied by `--k` (body) or `--kd` (headings): 1 unless the
+     visitor has asked for larger text in the accessibility panel.
+   ========================================================================== */
+
+.root {
+    /* ---- colour: pine, marigold and paper ---- */
+    --ink: #0b1f1c;
+    --ink-2: #3b4b47;
+    --ink-3: #5c6b66;
+    --paper: #faf6ee;
+    --paper-2: #f1ebdd;
+    --card: #ffffff;
+    --line: #e4dccb;
+    --line-2: #cdc3ac;
+    --pine: #0a3833;
+    --pine-2: #114a43;
+    --pine-deep: #062925;
+    --teal: #0f766e;
+    --teal-ink: #0b5d57;
+    --mint: #d6efe8;
+    --mint-2: #ecf7f3;
+    --mint-line: #bcdcd3;
+    --sun: #f7941d;
+    --sun-hi: #ffab45;
+    --sun-tint: #fdebd0;
+    --sun-ink: #8a4703;
+    --brick: #c2410c;
+    --on-dark: #fbf8f1;
+    --on-dark-2: #c5d6d1;
+    --on-dark-3: #9bb3ac;
+    --line-dark: #1f524b;
+    --shadow: 6, 41, 37;
+
+    /* what a component reads; a dark band re-points these (see .onDark) */
+    --fg: var(--ink);
+    --fg-2: var(--ink-2);
+    --fg-3: var(--ink-3);
+    --rule: var(--line);
+    --rule-2: var(--line-2);
+    --accent: var(--teal-ink);
+    --focus: var(--teal-ink);
+
+    /* ---- type ---- */
+    --f-display: var(--lp-font-display), "Segoe UI", system-ui, sans-serif;
+    --f-body: var(--font-app, "Plus Jakarta Sans"), "Segoe UI", system-ui, sans-serif;
+    --f-mono: var(--lp-font-mono), ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    --f-deva: var(--lp-font-deva), "Noto Sans Devanagari", sans-serif;
+
+    --k: 1;
+    --kd: 1;
+    --kl: 1;
+    --fs-cap: calc(12px * var(--k));
+    --lh-cap: calc(16px * var(--k) * var(--kl));
+    --fs-xs: calc(13px * var(--k));
+    --lh-xs: calc(19px * var(--k) * var(--kl));
+    --fs-sm: calc(15px * var(--k));
+    --lh-sm: calc(23px * var(--k) * var(--kl));
+    --fs-md: calc(17px * var(--k));
+    --lh-md: calc(27px * var(--k) * var(--kl));
+    --fs-lg: calc(19px * var(--k));
+    --lh-lg: calc(30px * var(--k) * var(--kl));
+    --fs-xl: calc(22px * var(--k));
+    --lh-xl: calc(32px * var(--k) * var(--kl));
+    --fs-h3: calc(24px * var(--kd));
+    --lh-h3: calc(30px * var(--kd) * var(--kl));
+    --fs-h2: calc(34px * var(--kd));
+    --lh-h2: calc(38px * var(--kd) * var(--kl));
+    --fs-h1: calc(42px * var(--kd));
+    --lh-h1: calc(44px * var(--kd) * var(--kl));
+
+    --gutter: 20px;
+    --bar: 68px;
+
+    min-height: 100vh;
+    background: var(--paper);
+    color: var(--fg);
+    font-family: var(--f-body);
+    font-size: var(--fs-md);
+    line-height: var(--lh-md);
+    -webkit-font-smoothing: antialiased;
+    overflow-wrap: break-word;
+}
+
+div.root * {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+/* ---- what the accessibility panel changes ------------------------------ */
+
+.root[data-text="1"] { --k: 1.1; --kd: 1.04; }
+.root[data-text="2"] { --k: 1.2; --kd: 1.08; }
+.root[data-text="3"] { --k: 1.3; --kd: 1.12; }
+
+.root[data-space="on"] {
+    --kl: 1.18;
+    letter-spacing: .04em;
+    word-spacing: .12em;
+}
+
+.root[data-font="plain"] {
+    --f-display: var(--lp-font-plain), Verdana, Tahoma, sans-serif;
+    --f-body: var(--lp-font-plain), Verdana, Tahoma, sans-serif;
+    --f-mono: var(--lp-font-plain), Verdana, Tahoma, sans-serif;
+}
+
+/* high contrast: black on white, white on black, one yellow */
+.root[data-tone="high"] {
+    --ink: #000000;
+    --ink-2: #000000;
+    --ink-3: #1c1c1c;
+    --paper: #ffffff;
+    --paper-2: #ffffff;
+    --card: #ffffff;
+    --line: #000000;
+    --line-2: #000000;
+    --pine: #000000;
+    --pine-2: #000000;
+    --pine-deep: #000000;
+    --teal: #004a44;
+    --teal-ink: #003b36;
+    --mint: #ffffff;
+    --mint-2: #ffffff;
+    --mint-line: #000000;
+    --sun: #ffd60a;
+    --sun-hi: #ffe45c;
+    --sun-tint: #ffffff;
+    --sun-ink: #000000;
+    --brick: #8a1c00;
+    --on-dark: #ffffff;
+    --on-dark-2: #ffffff;
+    --on-dark-3: #f2f2f2;
+    --line-dark: #ffffff;
+    --shadow: 0, 0, 0;
+}
+
+/* dark: the same page with the lights down */
+.root[data-tone="dark"] {
+    --ink: #f3efe6;
+    --ink-2: #c3d2cd;
+    --ink-3: #9eb2ab;
+    --paper: #071c19;
+    --paper-2: #0b2623;
+    --card: #0e2e2a;
+    --line: #1c4640;
+    --line-2: #2b5a53;
+    --pine: #0a332e;
+    --pine-2: #114a43;
+    --pine-deep: #041512;
+    --teal: #2fb5a8;
+    --teal-ink: #6fd6c9;
+    --mint: #123f39;
+    --mint-2: #0e322d;
+    --mint-line: #24564e;
+    --sun-tint: #3a2a12;
+    --sun-ink: #ffc170;
+    --brick: #ff9a6b;
+    --shadow: 0, 0, 0;
+}
+
+.root[data-links="on"] :is(main, footer) a {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+}
+
+.root[data-motion="off"] *,
+.root[data-motion="off"] *::before,
+.root[data-motion="off"] *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .root *,
+    .root *::before,
+    .root *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ---- focus, skip link --------------------------------------------------- */
+
+/* Two pixels, close to the element. At three and three it boxed a menu link
+   in a frame heavier than the link itself. */
+.root :is(a, button, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+:global(.lp) .skip {
+    position: absolute;
+    left: 12px;
+    top: -80px;
+    z-index: 90;
+    padding: 12px 18px;
+    border-radius: 10px;
+    background: var(--sun);
+    color: #0b1f1c;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+:global(.lp) .skip:focus { top: 12px; }
+
+/* reached from the skip link: it stops below the bar, and shows no ring */
+.root > main {
+    scroll-margin-top: var(--bar);
+    outline: none;
+}
+
+/* ---- shared pieces ------------------------------------------------------ */
+
+:global(.lp) .wrap {
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+}
+
+:global(.lp) .band { padding: 64px 0; }
+:global(.lp) .bandPaper { background: var(--paper); }
+:global(.lp) .bandSand { background: var(--paper-2); }
+:global(.lp) .bandCard { background: var(--card); }
+:global(.lp) .bandMint { background: var(--mint-2); }
+:global(.lp) .bandPine { background: var(--pine); }
+:global(.lp) .bandSun { background: var(--sun); }
+:global(.lp) .bandRule { border-top: 1px solid var(--rule); }
+
+/* on pine: every shared piece below reads these, so it turns over by itself */
+:global(.lp) .onDark {
+    --fg: var(--on-dark);
+    --fg-2: var(--on-dark-2);
+    --fg-3: var(--on-dark-3);
+    --rule: var(--line-dark);
+    --rule-2: var(--line-dark);
+    --accent: var(--sun);
+    --focus: #ffd08a;
+    color: var(--fg);
+}
+
+/* on marigold: ink only */
+:global(.lp) .onSun {
+    --fg: #0b1f1c;
+    --fg-2: #2c2410;
+    --fg-3: #3d3115;
+    --rule: rgba(11, 31, 28, .28);
+    --rule-2: rgba(11, 31, 28, .4);
+    --accent: #0b1f1c;
+    --focus: #0b1f1c;
+    color: var(--fg);
+}
+
+:global(.lp) .kicker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--accent);
+    font-family: var(--f-mono);
+    font-size: var(--fs-cap);
+    line-height: var(--lh-cap);
+    font-weight: 500;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+}
+
+:global(.lp) .kickerMark {
+    width: 8px;
+    height: 8px;
+    flex: none;
+    background: var(--sun);
+}
+
+:global(.lp) .onSun .kickerMark { background: var(--fg); }
+
+:global(.lp) .h2 {
+    color: var(--fg);
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: var(--fs-h2);
+    line-height: var(--lh-h2);
+    letter-spacing: -0.8px;
+    text-wrap: balance;
+}
+
+:global(.lp) .h3 {
+    color: var(--fg);
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: var(--fs-h3);
+    line-height: var(--lh-h3);
+    letter-spacing: -0.3px;
+}
+
+:global(.lp) .lede {
+    color: var(--fg-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+}
+
+:global(.lp) .head { max-width: 760px; }
+:global(.lp) .head .h2 { margin-top: 14px; }
+:global(.lp) .head .lede { margin-top: 16px; }
+
+/* a heading on the left, its note on the right */
+:global(.lp) .headSplit {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+}
+
+:global(.lp) .headSplit .h2 { margin-top: 14px; }
+
+/* the button: a pill with its arrow in a disc that turns to point the way */
+:global(.lp) .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    min-height: 52px;
+    padding: 6px 8px 6px 24px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--sun);
+    color: #0b1f1c;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color .18s ease;
+}
+
+:global(.lp) .btn:hover { background: var(--sun-hi); }
+
+:global(.lp) .btnDisc {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex: none;
+    border-radius: 50%;
+    background: #0b1f1c;
+    color: var(--sun);
+}
+
+:global(.lp) .btnDisc svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.4;
+    transform: rotate(-45deg);
+    transition: transform .22s ease;
+}
+
+:global(.lp) .btn:hover .btnDisc svg { transform: rotate(0deg); }
+
+:global(.lp) .btnPlain { padding: 6px 24px; }
+
+:global(.lp) .btnSm {
+    min-height: 42px;
+    padding: 4px 6px 4px 18px;
+    gap: 10px;
+    font-size: 15px;
+    line-height: 22px;
+}
+
+:global(.lp) .btnSm .btnDisc {
+    width: 30px;
+    height: 30px;
+}
+
+:global(.lp) .btnSm .btnDisc svg {
+    width: 15px;
+    height: 15px;
+}
+
+/* the same pill in ink, for a marigold or paper ground */
+:global(.lp) .btnInk {
+    background: var(--pine);
+    color: var(--on-dark);
+}
+
+:global(.lp) .btnInk:hover { background: var(--pine-2); }
+
+:global(.lp) .btnInk .btnDisc {
+    background: var(--sun);
+    color: #0b1f1c;
+}
+
+/* the quiet second action: an outline */
+:global(.lp) .btnLine {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 6px 24px;
+    border: 1.5px solid var(--rule-2);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--fg);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color .18s ease, background-color .18s ease;
+}
+
+:global(.lp) .onDark .btnLine { border-color: #4d7770; }
+:global(.lp) .btnLine:hover { border-color: var(--fg); }
+
+:global(.lp) .btnLine svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    stroke-width: 2.2;
+}
+
+:global(.lp) .textLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    color: var(--fg);
+    font-size: var(--fs-md);
+    line-height: var(--lh-md);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-color: var(--sun);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+}
+
+:global(.lp) .textLink svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    stroke-width: 2.4;
+    transition: transform .2s ease;
+}
+
+:global(.lp) .textLink:hover svg { transform: translateX(4px); }
+
+:global(.lp) .ticks {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: var(--fg);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+    list-style: none;
+}
+
+:global(.lp) .tick {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+:global(.lp) .tickIcon {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    margin-top: 2px;
+    color: var(--accent);
+    stroke-width: 2.6;
+}
+
+/* a small label in a box: "Replaces the fee register" */
+:global(.lp) .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    border: 1px solid var(--rule-2);
+    border-radius: 999px;
+    color: var(--fg-2);
+    font-family: var(--f-mono);
+    font-size: var(--fs-cap);
+    line-height: var(--lh-cap);
+    font-weight: 500;
+    letter-spacing: .3px;
+}
+
+/* ---- arriving on scroll -------------------------------------------------
+   Only once the page has said it can run script (`data-js`, set before the
+   first paint). Without it, and with motion turned off, everything is simply
+   there. */
+
+.root[data-js] [data-reveal] {
+    transition: opacity .6s ease, transform .6s cubic-bezier(.2, .7, .2, 1);
+    transition-delay: var(--d, 0ms);
+}
+
+.root[data-js] [data-reveal]:not([data-shown]) {
+    opacity: 0;
+    transform: translateY(18px);
+}
+
+.root[data-motion="off"] [data-reveal]:not([data-shown]) {
+    opacity: 1;
+    transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .root[data-js] [data-reveal]:not([data-shown]) {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* ---- header ------------------------------------------------------------- */
+
+:global(.lp) .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--pine-deep);
+    border-bottom: 1px solid var(--pine-deep);
+    transition: border-color .2s ease;
+}
+
+:global(.lp) .header[data-stuck] { border-bottom-color: var(--line-dark); }
+
+:global(.lp) .headerRow {
+    max-width: 1240px;
+    height: var(--bar);
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+:global(.lp) .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--on-dark);
+    text-decoration: none;
+}
+
+:global(.lp) .brandMark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    flex: none;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+:global(.lp) .brandLogo {
+    width: 32px;
+    height: 28px;
+    object-fit: contain;
+}
+
+:global(.lp) .brandText {
+    display: flex;
+    flex-direction: column;
+}
+
+:global(.lp) .brandName {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 21px;
+    line-height: 22px;
+    letter-spacing: -0.3px;
+}
+
+:global(.lp) .brandBy {
+    margin-top: 2px;
+    color: var(--on-dark-3);
+    font-family: var(--f-mono);
+    font-size: 10px;
+    line-height: 13px;
+    font-weight: 500;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+}
+
+:global(.lp) .nav { display: none; }
+
+:global(.lp) .navLink {
+    position: relative;
+    padding: 9px 13px;
+    border-radius: 9px;
+    color: var(--on-dark-2);
+    font-size: calc(15px * var(--kd));
+    line-height: 22px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color .15s ease, background-color .15s ease;
+}
+
+:global(.lp) .navLink:hover {
+    background: var(--pine-2);
+    color: var(--on-dark);
+}
+
+:global(.lp) .navLink[aria-current="page"] { color: var(--on-dark); }
+
+:global(.lp) .navLink[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    left: 13px;
+    right: 13px;
+    bottom: 3px;
+    height: 2px;
+    background: var(--sun);
+}
+
+:global(.lp) .headerActions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+:global(.lp) .signIn {
+    position: relative;
+    display: none;
+}
+
+:global(.lp) .signInButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 42px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--on-dark);
+    font-size: calc(15px * var(--kd));
+    line-height: 22px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+:global(.lp) .signInButton:hover { background: var(--pine-2); }
+
+:global(.lp) .signInButton svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.4;
+    transition: transform .18s ease;
+}
+
+:global(.lp) .signInButton[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+:global(.lp) .signInMenu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 286px;
+    padding: 8px;
+    border: 1px solid #d9d2c2;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 24px 50px -20px rgba(var(--shadow), .55);
+    --focus: #0b5d57;
+}
+
+:global(.lp) .signInItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    color: #0b1f1c;
+    text-decoration: none;
+}
+
+:global(.lp) .signInItem:hover { background: #f1ebdd; }
+
+:global(.lp) .signInName {
+    display: block;
+    font-size: 15px;
+    line-height: 22px;
+    font-weight: 700;
+}
+
+:global(.lp) .signInHint {
+    display: block;
+    color: #5c6b66;
+    font-size: 13px;
+    line-height: 18px;
+}
+
+:global(.lp) .signInItem svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    color: #0b5d57;
+    stroke-width: 2.4;
+}
+
+:global(.lp) .headerCta { display: none; }
+
+:global(.lp) .menuButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1.5px solid #4d7770;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--on-dark);
+    cursor: pointer;
+}
+
+:global(.lp) .menuIcon {
+    width: 24px;
+    height: 24px;
+}
+
+/* on a small screen the menu is a sheet under the bar */
+:global(.lp) .sheet {
+    position: fixed;
+    top: var(--bar);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 49;
+    overflow-y: auto;
+    padding: 12px var(--gutter) 96px;
+    background: var(--pine-deep);
+    color: var(--on-dark);
+    --focus: #ffd08a;
+}
+
+:global(.lp) .sheetLink {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--line-dark);
+    color: var(--on-dark);
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 26px;
+    line-height: 32px;
+    letter-spacing: -0.4px;
+    text-decoration: none;
+}
+
+:global(.lp) .sheetLink[aria-current="page"] { color: var(--sun); }
+
+:global(.lp) .sheetNo {
+    width: 24px;
+    flex: none;
+    color: var(--on-dark-3);
+    font-family: var(--f-mono);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+}
+
+:global(.lp) .sheetTitle {
+    margin-top: 28px;
+    color: var(--on-dark-3);
+    font-family: var(--f-mono);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+}
+
+:global(.lp) .sheetRoles {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+:global(.lp) .sheetRole {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1.5px solid #4d7770;
+    border-radius: 999px;
+    color: var(--on-dark);
+    font-size: 15px;
+    line-height: 22px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+:global(.lp) .sheetCta { margin-top: 28px; }
+
+/* ---- the opening of an inner page ---------------------------------------- */
+
+:global(.lp) .pageHero {
+    position: relative;
+    overflow: hidden;
+    background: var(--pine);
+    padding: 40px 0 56px;
+}
+
+/* the logo's ring, very large and very quiet, off the corner */
+:global(.lp) .pageHero::before {
+    content: "";
+    position: absolute;
+    right: -180px;
+    top: -260px;
+    width: 620px;
+    height: 620px;
+    border: 64px solid var(--pine-2);
+    border-radius: 50%;
+    opacity: .55;
+}
+
+:global(.lp) .pageHeroIn { position: relative; }
+
+:global(.lp) .crumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--on-dark-3);
+    font-family: var(--f-mono);
+    font-size: var(--fs-cap);
+    line-height: var(--lh-cap);
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    list-style: none;
+}
+
+:global(.lp) .crumbs a {
+    display: inline-block;
+    padding: 6px 0;
+    color: var(--on-dark-2);
+    text-decoration: none;
+}
+
+:global(.lp) .crumbs a:hover { color: var(--on-dark); }
+:global(.lp) .crumbNow { color: var(--sun); }
+
+:global(.lp) .pageTitle {
+    max-width: 900px;
+    margin-top: 18px;
+    color: var(--on-dark);
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: var(--fs-h1);
+    line-height: var(--lh-h1);
+    letter-spacing: -1.2px;
+    text-wrap: balance;
+}
+
+:global(.lp) .pageLede {
+    max-width: 680px;
+    margin-top: 18px;
+    color: var(--on-dark-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+}
+
+/* ---- the closing band: call us ------------------------------------------- */
+
+:global(.lp) .call {
+    position: relative;
+    overflow: hidden;
+    background: var(--sun);
+    padding: 56px 0;
+}
+
+:global(.lp) .callGrid {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 32px;
+}
+
+:global(.lp) .callTitle {
+    margin-top: 14px;
+    color: var(--fg);
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: var(--fs-h2);
+    line-height: var(--lh-h2);
+    letter-spacing: -0.8px;
+    text-wrap: balance;
+}
+
+:global(.lp) .callText {
+    max-width: 520px;
+    margin-top: 14px;
+    color: var(--fg-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+}
+
+:global(.lp) .callSide {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+:global(.lp) .callLabel {
+    color: var(--fg-2);
+    font-family: var(--f-mono);
+    font-size: var(--fs-cap);
+    line-height: var(--lh-cap);
+    font-weight: 500;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+}
+
+:global(.lp) .callNumber {
+    color: var(--fg);
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: 44px;
+    line-height: 48px;
+    letter-spacing: -0.5px;
+    font-variant-numeric: tabular-nums;
+    text-decoration: none;
+}
+
+:global(.lp) .callNumber:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+    text-underline-offset: 6px;
+}
+
+:global(.lp) .callActions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+:global(.lp) .callNote {
+    color: var(--fg-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+}
+
+/* ---- footer ------------------------------------------------------------- */
+
+:global(.lp) .footer {
+    background: var(--pine-deep);
+    padding: 56px 0 28px;
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+}
+
+:global(.lp) .footerGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+}
+
+:global(.lp) .footerBlurb {
+    max-width: 340px;
+    margin-top: 18px;
+    color: var(--fg-2);
+}
+
+:global(.lp) .footerYear {
+    margin-top: 18px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    color: var(--fg-3);
+    font-size: var(--fs-xs);
+    line-height: var(--lh-xs);
+}
+
+:global(.lp) .footerYearMark {
+    color: var(--sun);
+    font-family: var(--f-deva);
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 28px;
+}
+
+:global(.lp) .footerTitle {
+    color: var(--fg-3);
+    font-family: var(--f-mono);
+    font-size: var(--fs-cap);
+    line-height: var(--lh-cap);
+    font-weight: 500;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+}
+
+:global(.lp) .footerList {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+}
+
+/* padded, so each link is a row a thumb can find */
+:global(.lp) .footerLink {
+    display: inline-block;
+    padding: 6px 0;
+    color: var(--fg);
+    text-decoration: none;
+}
+
+:global(.lp) .footerLink:hover {
+    color: var(--sun);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+:global(.lp) .footerFact {
+    padding: 6px 0;
+    color: var(--fg-2);
+}
+
+:global(.lp) .footerBase {
+    margin-top: 44px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 28px;
+    color: var(--fg-3);
+    font-size: var(--fs-xs);
+    line-height: var(--lh-xs);
+}
+
+/* ---- from a large phone up ---------------------------------------------- */
+
+@media (min-width: 480px) {
+    :global(.lp) .headerCta { display: inline-flex; }
+}
+
+@media (min-width: 640px) {
+    .root {
+        --fs-h2: calc(40px * var(--kd));
+        --lh-h2: calc(44px * var(--kd) * var(--kl));
+        --fs-h1: calc(54px * var(--kd));
+        --lh-h1: calc(56px * var(--kd) * var(--kl));
+    }
+
+    :global(.lp) .footerGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    :global(.lp) .callNumber {
+        font-size: 56px;
+        line-height: 60px;
+    }
+}
+
+@media (min-width: 820px) {
+    .root {
+        --gutter: 32px;
+        --bar: 76px;
+    }
+
+    :global(.lp) .band { padding: 88px 0; }
+    :global(.lp) .pageHero { padding: 56px 0 76px; }
+    :global(.lp) .call { padding: 76px 0; }
+    :global(.lp) .footer { padding: 72px 0 30px; }
+
+    :global(.lp) .headSplit {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+        align-items: end;
+        gap: 56px;
+    }
+
+    :global(.lp) .callGrid {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 56px;
+    }
+}
+
+/* ---- desktop (1080): the menu opens out ----------------------------------- */
+
+@media (min-width: 1080px) {
+    :global(.lp) .nav {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+
+    :global(.lp) .signIn { display: block; }
+    :global(.lp) .menuButton { display: none; }
+    :global(.lp) .sheet { display: none; }
+
+    :global(.lp) .footerGrid {
+        grid-template-columns: minmax(0, 1fr) 170px 170px 250px;
+        gap: 48px;
+    }
+}
+
+/* Larger text, wider spacing or the readable font make the menu too long for
+   a small desktop. With any of them on, it stays a sheet until 1264px. */
+@media (min-width: 1080px) and (max-width: 1263px) {
+    .root:is([data-text="1"], [data-text="2"], [data-text="3"], [data-space="on"], [data-font="plain"]) .nav,
+    .root:is([data-text="1"], [data-text="2"], [data-text="3"], [data-space="on"], [data-font="plain"]) .signIn {
+        display: none;
+    }
+
+    .root:is([data-text="1"], [data-text="2"], [data-text="3"], [data-space="on"], [data-font="plain"]) .menuButton {
+        display: inline-flex;
+    }
+
+    .root:is([data-text="1"], [data-text="2"], [data-text="3"], [data-space="on"], [data-font="plain"]) .sheet {
+        display: block;
+    }
+}
+
+@media (min-width: 1264px) {
+    .root {
+        --fs-h2: calc(48px * var(--kd));
+        --lh-h2: calc(52px * var(--kd) * var(--kl));
+        --fs-h1: calc(66px * var(--kd));
+        --lh-h1: calc(66px * var(--kd) * var(--kl));
+    }
+
+    :global(.lp) .band { padding: 104px 0; }
+}

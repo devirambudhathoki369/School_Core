@@ -1,0 +1,29 @@
+{
+    "all_features": [
+        "Student Enrollment & Academic Year Management",
+        "Student Ledgers, Fee Billing, Reminders",
+        "Classes/Periods, Courses/Subjects and Fees Management",
+        "Transport Management (Bus Routes & Stations)",
+        "Staff Management & Payroll",
+        "Role-Based Access Control and Permissions",
+        "Exams, Schedules, Marks Entry (Web, App)",
+        "Results (Number/Letter/Combined) & Publishing",
+        "Character Certificates",
+        "Attendance Management (Web & App)",
+        "Homeworks & Submissions (App, Web)",
+        "Notices & SMS & Communication (SMS, App Notifications)",
+        "Accounting System",
+        "Multiple Reports",
+        "24x7 Technical Assistance"
+    ],
+    "recent_features": [
+        "Live Student Location Tracking (Guardian/App)",
+        "Academic Calendar (Web, App)",
+        "Homework assigning, submission & grading (App)",
+        "Academic year closing",
+        "Final and classwise results",
+        "Opening balance report",
+        "New admissions report",
+        "News/Event blogs"
+    ]
+}

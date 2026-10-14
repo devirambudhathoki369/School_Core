@@ -1,0 +1,1415 @@
+/* The drawings of the product: the portal in miniature, its screens, a
+   receipt, a parent's phone.
+
+   They are pictures, so they keep their own fixed colours and sizes whatever
+   the visitor has chosen in the accessibility panel: a larger-text setting
+   enlarges the page's words, not its illustrations, and each drawing carries
+   its description for a screen reader instead. */
+
+:global(.lp) .window,
+:global(.lp) .scene,
+:global(.lp) .receipt,
+:global(.lp) .phone {
+    --d-ink: #10201d;
+    --d-ink-2: #51625d;
+    --d-canvas: #f5f0e6;
+    --d-soft: #fbf8f1;
+    --d-line: #e4dccb;
+    --d-edge: #d9d2c2;
+    --d-track: #ebe5d8;
+    --d-teal: #0f766e;
+    --d-teal-ink: #0b5d57;
+    --d-teal-tint: #dff1ed;
+    --d-brick: #c2410c;
+    --d-sun: #f7941d;
+    --d-sun-ink: #b45309;
+    --d-sun-tint: #fdebd0;
+    --d-sage: #7fb8ae;
+    --d-rail: #0a3833;
+    --d-rail-2: #114a43;
+    color: var(--d-ink);
+    font-family: var(--font-app, "Plus Jakarta Sans"), "Segoe UI", system-ui, sans-serif;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 0;
+    word-spacing: 0;
+    text-align: left;
+}
+
+/* ---- the portal in miniature -------------------------------------------- */
+
+:global(.lp) .window {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 18px;
+    background: var(--d-canvas);
+    box-shadow: 0 44px 80px -36px rgba(0, 0, 0, .7), 0 0 0 1px rgba(255, 255, 255, .1);
+}
+
+:global(.lp) .windowBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: 44px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--d-line);
+    background: #ffffff;
+}
+
+:global(.lp) .windowSchool {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 700;
+}
+
+:global(.lp) .windowCrest {
+    width: 22px;
+    height: 22px;
+    flex: none;
+    border: 6px solid var(--d-teal);
+    border-radius: 7px;
+    background: #ffffff;
+}
+
+:global(.lp) .windowTag {
+    padding: 3px 9px;
+    border: 1px dashed #cdc3ac;
+    border-radius: 999px;
+    color: var(--d-ink-2);
+    font-family: var(--f-mono);
+    font-size: 10px;
+    line-height: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+:global(.lp) .windowBody {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+/* the portal's menu: a strip of tabs on a phone, a rail from 560px */
+:global(.lp) .rail {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 9px 10px;
+    background: var(--d-rail-2);
+    scrollbar-width: none;
+}
+
+:global(.lp) .rail::-webkit-scrollbar { display: none; }
+
+:global(.lp) .railItem {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 40px;
+    flex: none;
+    overflow: hidden;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #c5d6d1;
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+}
+
+:global(.lp) .railItem svg {
+    width: 17px;
+    height: 17px;
+    flex: none;
+    stroke-width: 1.8;
+}
+
+:global(.lp) .railItem:hover {
+    background: #1b5a52;
+    color: #ffffff;
+}
+
+:global(.lp) .railItem[aria-selected="true"] {
+    background: #ffffff;
+    color: var(--d-rail);
+}
+
+:global(.lp) .railItem:focus-visible {
+    outline: 2px solid #ffd08a;
+    outline-offset: -2px;
+    border-radius: 10px;
+}
+
+/* fills while this screen has the floor; the next one follows when it is full */
+:global(.lp) .railTimer {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--d-sun);
+    transform-origin: left center;
+    animation: railTimer 5200ms linear both;
+}
+
+@keyframes railTimer {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+:global(.lp) .stage {
+    min-width: 0;
+    padding: 12px;
+}
+
+:global(.lp) .stageIn { animation: sceneIn .42s ease both; }
+
+@keyframes sceneIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* ---- pieces every screen shares ------------------------------------------ */
+
+:global(.lp) .scene {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+:global(.lp) .tile {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--d-line);
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+:global(.lp) .tileHead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+:global(.lp) .tileTitle {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+}
+
+:global(.lp) .tileMeta {
+    color: var(--d-ink-2);
+    font-size: 11px;
+    line-height: 16px;
+}
+
+:global(.lp) .live {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--d-sun-ink);
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 700;
+}
+
+:global(.lp) .liveDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: livePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .3; }
+}
+
+/* ---- dashboard ----------------------------------------------------------- */
+
+:global(.lp) .kpis {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+:global(.lp) .kpi {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 9px 10px 10px;
+    border: 1px solid var(--d-line);
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+:global(.lp) .kpiChip {
+    width: 18px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--d-teal);
+}
+
+:global(.lp) .kpiChip[data-tone="sun"] { background: var(--d-sun); }
+:global(.lp) .kpiChip[data-tone="pine"] { background: var(--d-rail); }
+:global(.lp) .kpiChip[data-tone="sage"] { background: var(--d-sage); }
+
+:global(.lp) .kpiLabel {
+    margin-top: 7px;
+    color: var(--d-ink-2);
+    font-size: 10px;
+    line-height: 14px;
+    font-weight: 600;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+:global(.lp) .kpiFigure {
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+:global(.lp) .dashRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+}
+
+/* students by gender, busiest stations: from 560px, where the window is wide */
+:global(.lp) .dashWide { display: none; }
+
+:global(.lp) .roster {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+:global(.lp) .ring {
+    width: 42px;
+    height: 42px;
+    flex: none;
+    transform: rotate(-90deg);
+}
+
+:global(.lp) .ringTrack {
+    fill: none;
+    stroke: var(--d-track);
+    stroke-width: 4;
+}
+
+:global(.lp) .ringFill {
+    fill: none;
+    stroke: var(--d-teal);
+    stroke-width: 4;
+}
+
+:global(.lp) .ringSun { stroke: var(--d-sun); }
+
+:global(.lp) .rosterFigure {
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+:global(.lp) .rosterFigure span {
+    color: var(--d-ink-2);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+:global(.lp) .rosterNote {
+    color: var(--d-ink-2);
+    font-size: 11px;
+    line-height: 16px;
+}
+
+:global(.lp) .collected {
+    margin-top: 6px;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+:global(.lp) .collected span {
+    color: var(--d-ink-2);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+:global(.lp) .columns {
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    height: 84px;
+    margin-top: 8px;
+    border-bottom: 1px solid var(--d-line);
+}
+
+:global(.lp) .column {
+    flex: 1;
+    border-radius: 3px 3px 0 0;
+    background: #b5dad3;
+}
+
+:global(.lp) .columnNow { background: var(--d-teal); }
+
+:global(.lp) .columnEmpty {
+    height: 4px;
+    background: var(--d-track);
+}
+
+:global(.lp) .columnsFoot {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    color: var(--d-ink-2);
+    font-size: 10px;
+    line-height: 14px;
+}
+
+/* ---- the fee counter ------------------------------------------------------ */
+
+:global(.lp) .payGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+}
+
+:global(.lp) .payReceipt { display: none; }
+
+:global(.lp) .payStudent {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+:global(.lp) .avatar {
+    width: 32px;
+    height: 32px;
+    flex: none;
+    border: 9px solid var(--d-teal-tint);
+    border-radius: 50%;
+    background: var(--d-teal);
+}
+
+:global(.lp) .payName {
+    display: block;
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 700;
+}
+
+:global(.lp) .payMeta {
+    display: block;
+    color: var(--d-ink-2);
+    font-size: 11px;
+    line-height: 16px;
+}
+
+:global(.lp) .monthChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+:global(.lp) .monthChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border: 1px solid var(--d-edge);
+    border-radius: 999px;
+    background: #ffffff;
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 600;
+}
+
+:global(.lp) .monthChip svg {
+    width: 11px;
+    height: 11px;
+    stroke-width: 3;
+}
+
+:global(.lp) .monthChip[data-state="paid"] {
+    border-color: var(--d-line);
+    background: var(--d-canvas);
+    color: var(--d-ink-2);
+}
+
+:global(.lp) .monthChip[data-state="picked"] {
+    border-color: var(--d-teal);
+    background: var(--d-teal);
+    color: #ffffff;
+}
+
+:global(.lp) .billLines {
+    margin-top: 10px;
+    border-top: 1px solid var(--d-line);
+    font-variant-numeric: tabular-nums;
+}
+
+:global(.lp) .billLine {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 0;
+}
+
+:global(.lp) .billTotal {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 7px;
+    border-top: 2px solid var(--d-ink);
+    font-size: 14px;
+    line-height: 18px;
+    font-weight: 800;
+}
+
+:global(.lp) .printButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 32px;
+    margin-top: 10px;
+    padding: 0 14px;
+    border-radius: 8px;
+    background: var(--d-teal);
+    color: #ffffff;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+}
+
+:global(.lp) .printButton svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2;
+}
+
+/* ---- a fee receipt -------------------------------------------------------- */
+
+:global(.lp) .receipt {
+    position: relative;
+    width: 100%;
+    padding: 14px 14px 12px;
+    border: 1px solid #e3ddd0;
+    border-radius: 4px;
+    background: #ffffff;
+    box-shadow: 0 18px 30px -20px rgba(6, 41, 37, .5);
+    font-size: 11px;
+    line-height: 15px;
+    font-variant-numeric: tabular-nums;
+}
+
+:global(.lp) .receiptHead {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+:global(.lp) .receiptSchool {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 16px;
+    white-space: nowrap;
+}
+
+:global(.lp) .receiptMuted {
+    color: var(--d-ink-2);
+    font-size: 10px;
+    line-height: 14px;
+    font-weight: 500;
+}
+
+:global(.lp) .receiptNo {
+    font-weight: 700;
+    text-align: right;
+    white-space: nowrap;
+}
+
+:global(.lp) .receiptStudent {
+    margin-top: 9px;
+    padding: 6px 0;
+    border-top: 2px solid var(--d-ink);
+    border-bottom: 1px solid var(--d-line);
+    font-weight: 700;
+}
+
+:global(.lp) .receiptLines { padding: 3px 0 5px; }
+
+:global(.lp) .receiptLine {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 2px 0;
+}
+
+:global(.lp) .receiptSoft { color: var(--d-ink-2); }
+
+:global(.lp) .receiptTotal {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 0 3px;
+    border-top: 2px solid var(--d-ink);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 800;
+}
+
+:global(.lp) .receiptDues {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--d-ink-2);
+}
+
+:global(.lp) .receiptFoot {
+    min-height: 37px;
+    margin-top: 9px;
+    padding: 7px 72px 0 0;
+    border-top: 1px dashed #cdc3ac;
+    color: var(--d-ink-2);
+    font-size: 10px;
+    line-height: 14px;
+}
+
+/* in the foot, clear of the figures */
+:global(.lp) .stamp {
+    position: absolute;
+    right: 11px;
+    bottom: 13px;
+    padding: 0 8px;
+    border: 2px solid var(--d-brick);
+    border-radius: 4px;
+    transform: rotate(-11deg);
+    color: var(--d-brick);
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: 15px;
+    line-height: 22px;
+    letter-spacing: 2px;
+}
+
+/* ---- attendance ----------------------------------------------------------- */
+
+:global(.lp) .attGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+}
+
+:global(.lp) .seats {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 4px;
+    margin: 10px 0;
+}
+
+:global(.lp) .seat {
+    aspect-ratio: 1;
+    border-radius: 3px;
+    background: var(--d-teal);
+}
+
+/* told apart by shape as well as colour: present is filled, absent is hollow */
+:global(.lp) .seatAbsent {
+    border: 2px solid var(--d-brick);
+    background: transparent;
+}
+
+:global(.lp) .attCount {
+    display: flex;
+    gap: 10px;
+    font-weight: 700;
+}
+
+:global(.lp) .attAbsent { color: var(--d-brick); }
+
+:global(.lp) .attNote {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 9px;
+    padding-top: 9px;
+    border-top: 1px solid var(--d-line);
+    color: var(--d-ink-2);
+    font-size: 11px;
+    line-height: 16px;
+}
+
+:global(.lp) .attNote svg {
+    width: 13px;
+    height: 13px;
+    flex: none;
+    color: var(--d-teal);
+    stroke-width: 2.8;
+}
+
+:global(.lp) .taps {
+    margin-top: 6px;
+    list-style: none;
+}
+
+:global(.lp) .tap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-top: 1px solid var(--d-line);
+}
+
+:global(.lp) .tap:first-child { border-top: 0; }
+
+:global(.lp) .tapCard {
+    width: 22px;
+    height: 15px;
+    flex: none;
+    border: 1px solid #a9d3cb;
+    border-left: 6px solid var(--d-teal);
+    border-radius: 3px;
+    background: var(--d-teal-tint);
+}
+
+:global(.lp) .tapWho {
+    flex: 1;
+    font-weight: 600;
+}
+
+:global(.lp) .tapTime {
+    color: var(--d-ink-2);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---- exams ---------------------------------------------------------------- */
+
+:global(.lp) .examGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 10px;
+}
+
+:global(.lp) .marks { margin-top: 6px; }
+
+:global(.lp) .marksRow {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) 46px;
+    align-items: center;
+    padding: 5px 0;
+    border-top: 1px solid var(--d-line);
+    font-variant-numeric: tabular-nums;
+}
+
+:global(.lp) .marksHead {
+    border-top: 0;
+    color: var(--d-ink-2);
+    font-size: 10px;
+    line-height: 14px;
+    font-weight: 600;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+}
+
+:global(.lp) .marksCell {
+    width: 62px;
+    padding: 2px 9px;
+    border: 1px solid var(--d-edge);
+    border-radius: 6px;
+    background: var(--d-soft);
+    font-weight: 700;
+}
+
+:global(.lp) .grade {
+    justify-self: start;
+    min-width: 32px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: var(--d-teal-tint);
+    color: var(--d-teal-ink);
+    font-weight: 800;
+    text-align: center;
+}
+
+:global(.lp) .madeTile {
+    display: flex;
+    flex-direction: column;
+    border-color: var(--d-rail);
+    background: var(--d-rail);
+    color: #ffffff;
+}
+
+:global(.lp) .made {
+    margin-top: 8px;
+    list-style: none;
+}
+
+:global(.lp) .made li {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 0;
+}
+
+:global(.lp) .made svg {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    color: var(--d-sun);
+    stroke-width: 2.8;
+}
+
+:global(.lp) .madeFoot {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid #1f524b;
+    color: #c5d6d1;
+    font-size: 11px;
+    line-height: 16px;
+}
+
+:global(.lp) .madeFigure {
+    display: block;
+    color: #ffffff;
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: 20px;
+    line-height: 24px;
+}
+
+/* ---- the bus -------------------------------------------------------------- */
+
+:global(.lp) .busGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 10px;
+}
+
+:global(.lp) .mapTile {
+    overflow: hidden;
+    padding: 0;
+}
+
+:global(.lp) .map {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 150px;
+}
+
+:global(.lp) .mapGround { fill: #ece5d6; }
+
+:global(.lp) .mapRoad {
+    fill: none;
+    stroke: #fbf8f1;
+    stroke-width: 5;
+}
+
+:global(.lp) .mapRoadWide {
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 10;
+}
+
+:global(.lp) .mapBlock { fill: #ddd4c0; }
+
+:global(.lp) .routeDone,
+:global(.lp) .routeAhead {
+    fill: none;
+    stroke: var(--d-teal);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+:global(.lp) .routeAhead { stroke-dasharray: 1 9; }
+
+:global(.lp) .stopDone,
+:global(.lp) .stopAhead {
+    fill: #ffffff;
+    stroke: var(--d-teal);
+    stroke-width: 3;
+}
+
+:global(.lp) .stopAhead { stroke: #7fb8ae; }
+
+:global(.lp) .stopSchool {
+    fill: var(--d-rail);
+    stroke: #ffffff;
+    stroke-width: 3;
+}
+
+:global(.lp) .busHalo {
+    fill: var(--d-sun);
+    opacity: .28;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: busHalo 2.2s ease-out infinite;
+}
+
+@keyframes busHalo {
+    0% {
+        opacity: .4;
+        transform: scale(.6);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1.5);
+    }
+}
+
+:global(.lp) .busDot {
+    fill: var(--d-sun);
+    stroke: #ffffff;
+    stroke-width: 3;
+}
+
+:global(.lp) .mapLabel {
+    fill: #3b4b47;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+:global(.lp) .busFigure {
+    margin-top: 12px;
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: 24px;
+    line-height: 28px;
+}
+
+:global(.lp) .busFigure span {
+    color: var(--d-ink-2);
+    font-family: var(--font-app, "Plus Jakarta Sans"), "Segoe UI", system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+:global(.lp) .busNote {
+    color: var(--d-ink-2);
+    font-size: 12px;
+    line-height: 18px;
+}
+
+/* ---- accounts ------------------------------------------------------------- */
+
+:global(.lp) .ledger { margin-top: 6px; }
+
+:global(.lp) .ledgerRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 92px 92px;
+    gap: 6px;
+    padding: 5px 0;
+    border-top: 1px solid var(--d-line);
+    font-variant-numeric: tabular-nums;
+}
+
+:global(.lp) .ledgerRow span:not(:first-child) { text-align: right; }
+:global(.lp) .ledgerRow.marksHead { border-top: 0; }
+
+:global(.lp) .ledgerTotal {
+    border-top: 2px solid var(--d-ink);
+    font-weight: 800;
+}
+
+/* ---- a parent's phone ------------------------------------------------------ */
+
+:global(.lp) .phone {
+    width: 272px;
+    max-width: 100%;
+    padding: 9px;
+    border-radius: 40px;
+    background: #0b1f1c;
+    box-shadow: 0 40px 70px -34px rgba(6, 41, 37, .75);
+}
+
+:global(.lp) .phoneScreen {
+    min-height: 100%;
+    padding: 10px 12px 20px;
+    border-radius: 31px;
+    background: var(--d-canvas);
+}
+
+:global(.lp) .phoneBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px;
+    font-size: 11px;
+    line-height: 18px;
+    font-weight: 700;
+}
+
+:global(.lp) .phoneNotch {
+    width: 72px;
+    height: 18px;
+    border-radius: 999px;
+    background: #0b1f1c;
+}
+
+:global(.lp) .phoneSignal {
+    width: 20px;
+    height: 9px;
+    border: 1.5px solid var(--d-ink);
+    border-radius: 3px;
+    box-shadow: inset 11px 0 0 var(--d-ink);
+}
+
+:global(.lp) .phoneTitle {
+    margin-top: 14px;
+    padding: 0 2px;
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: 22px;
+    line-height: 26px;
+}
+
+:global(.lp) .notes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+    list-style: none;
+}
+
+:global(.lp) .note {
+    display: flex;
+    gap: 9px;
+    padding: 10px;
+    border: 1px solid var(--d-line);
+    border-radius: 15px;
+    background: #ffffff;
+}
+
+:global(.lp) .noteIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--d-teal-tint);
+    color: var(--d-teal);
+}
+
+:global(.lp) .noteIcon svg {
+    width: 16px;
+    height: 16px;
+}
+
+:global(.lp) .noteIcon[data-tone="sun"] {
+    background: var(--d-sun-tint);
+    color: var(--d-sun-ink);
+}
+
+:global(.lp) .noteIcon[data-tone="pine"] {
+    background: var(--d-rail);
+    color: #ffffff;
+}
+
+:global(.lp) .noteIcon[data-tone="sand"] {
+    background: #f1ebdd;
+    color: #3b4b47;
+}
+
+:global(.lp) .noteBody {
+    flex: 1;
+    min-width: 0;
+}
+
+:global(.lp) .noteHead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+:global(.lp) .noteTitle {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+}
+
+:global(.lp) .noteTime {
+    flex: none;
+    color: var(--d-ink-2);
+    font-size: 10px;
+    line-height: 16px;
+}
+
+:global(.lp) .noteText {
+    display: block;
+    margin-top: 1px;
+    color: var(--d-ink-2);
+    font-size: 11px;
+    line-height: 15px;
+}
+
+/* ---- dashboard, third row -------------------------------------------------- */
+
+:global(.lp) .split {
+    display: flex;
+    gap: 2px;
+    height: 10px;
+    margin-top: 10px;
+}
+
+/* 55% and 45% of the bar: 11 parts to 9 */
+:global(.lp) .splitA {
+    flex: 11;
+    border-radius: 3px 0 0 3px;
+    background: var(--d-teal);
+}
+
+:global(.lp) .splitB {
+    flex: 9;
+    border-radius: 0 3px 3px 0;
+    background: var(--d-sun);
+}
+
+:global(.lp) .splitFoot {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 6px;
+    color: var(--d-ink-2);
+    font-size: 11px;
+    line-height: 16px;
+    white-space: nowrap;
+}
+
+:global(.lp) .ranks {
+    margin-top: 6px;
+    list-style: none;
+}
+
+:global(.lp) .rank {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr) 20px;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 0;
+    font-size: 11px;
+    line-height: 16px;
+    font-variant-numeric: tabular-nums;
+}
+
+:global(.lp) .rank span:last-child {
+    font-weight: 700;
+    text-align: right;
+}
+
+:global(.lp) .rankBar {
+    height: 7px;
+    border-radius: 4px;
+    background: var(--d-teal);
+}
+
+:global(.lp) .rankBar[data-size="three-quarters"] { width: 75%; }
+:global(.lp) .rankBar[data-size="half"] { width: 50%; }
+
+/* ---- a student record and its ID card --------------------------------------- */
+
+:global(.lp) .recGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+}
+
+:global(.lp) .fields { margin-top: 6px; }
+
+:global(.lp) .field {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 5px 0;
+    border-top: 1px solid var(--d-line);
+}
+
+:global(.lp) .field:first-child { border-top: 0; }
+:global(.lp) .field dt { color: var(--d-ink-2); }
+:global(.lp) .field dd { font-weight: 700; text-align: right; }
+
+:global(.lp) .idCard {
+    width: 100%;
+    max-width: 170px;
+    margin: 0 auto;
+    overflow: hidden;
+    padding-bottom: 12px;
+    border: 1px solid var(--d-line);
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 16px 28px -20px rgba(6, 41, 37, .5);
+    text-align: center;
+}
+
+:global(.lp) .idSchool {
+    padding: 9px 8px 26px;
+    background: var(--d-teal);
+    color: #ffffff;
+    font-size: 11px;
+    line-height: 14px;
+    font-weight: 700;
+}
+
+:global(.lp) .idPhoto {
+    display: block;
+    width: 54px;
+    height: 54px;
+    margin: -20px auto 0;
+    border: 3px solid #ffffff;
+    border-radius: 12px;
+    background: #cfe3dd;
+}
+
+:global(.lp) .idName {
+    margin-top: 7px;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 800;
+}
+
+:global(.lp) .idMeta {
+    color: var(--d-ink-2);
+    font-size: 10px;
+    line-height: 14px;
+}
+
+/* the bar code: black bars of one width, evenly spaced */
+:global(.lp) .idCode {
+    display: block;
+    width: 96px;
+    height: 20px;
+    margin: 9px auto 0;
+    background-image: repeating-linear-gradient(to right, #10201d 0, #10201d 2px, transparent 2px, transparent 6px);
+}
+
+/* ---- payroll, library, hostel, inventory ------------------------------------ */
+
+:global(.lp) .billStrong {
+    border-top: 1px solid var(--d-line);
+    font-weight: 800;
+}
+
+:global(.lp) .loans {
+    margin-top: 4px;
+    list-style: none;
+}
+
+:global(.lp) .loan {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-top: 1px solid var(--d-line);
+}
+
+:global(.lp) .loan:first-child { border-top: 0; }
+
+:global(.lp) .loanNo {
+    flex: none;
+    padding: 2px 7px;
+    border: 1px solid var(--d-edge);
+    border-radius: 6px;
+    background: var(--d-soft);
+    font-family: var(--f-mono);
+    font-size: 11px;
+    line-height: 16px;
+}
+
+:global(.lp) .loanBody {
+    flex: 1;
+    min-width: 0;
+}
+
+:global(.lp) .loanTitle {
+    display: block;
+    font-weight: 700;
+}
+
+:global(.lp) .loanNote {
+    display: block;
+    color: var(--d-ink-2);
+    font-size: 11px;
+}
+
+:global(.lp) .loanState {
+    flex: none;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: #f1ebdd;
+    color: #3b4b47;
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 700;
+}
+
+:global(.lp) .loanState[data-tone="done"] {
+    background: var(--d-teal-tint);
+    color: var(--d-teal-ink);
+}
+
+:global(.lp) .loanState[data-tone="late"] {
+    background: #fde8dc;
+    color: var(--d-brick);
+}
+
+:global(.lp) .rooms {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 10px 0;
+}
+
+:global(.lp) .room {
+    padding: 8px 10px 10px;
+    border: 1px solid var(--d-line);
+    border-radius: 10px;
+    background: var(--d-soft);
+}
+
+:global(.lp) .roomName {
+    color: var(--d-ink-2);
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 600;
+}
+
+:global(.lp) .beds {
+    display: flex;
+    gap: 5px;
+    margin-top: 6px;
+}
+
+:global(.lp) .bed {
+    flex: 1;
+    height: 18px;
+    border-radius: 4px;
+    background: var(--d-teal);
+}
+
+/* out on a pass: hollow, as an absent seat is */
+:global(.lp) .bed[data-state="out"] {
+    border: 2px solid var(--d-brick);
+    background: transparent;
+}
+
+:global(.lp) .stockRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) repeat(4, 44px);
+    gap: 4px;
+    padding: 6px 0;
+    border-top: 1px solid var(--d-line);
+    font-variant-numeric: tabular-nums;
+}
+
+:global(.lp) .stockRow span:not(:first-child) { text-align: right; }
+:global(.lp) .stockRow.marksHead { border-top: 0; }
+:global(.lp) .stockLeft { font-weight: 800; }
+
+/* ---- a drawing on its mount ---------------------------------------------- */
+
+:global(.lp) .frame {
+    min-width: 0;
+    padding: 16px 16px 12px;
+    border-radius: 22px;
+    background: var(--pine);
+}
+
+:global(.lp) .frameIn {
+    padding: 12px;
+    border-radius: 14px;
+    background: #f5f0e6;
+}
+
+:global(.lp) .frameNote {
+    margin-top: 10px;
+    color: var(--on-dark-3);
+    font-family: var(--f-mono);
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-align: right;
+    text-transform: uppercase;
+}
+
+/* ---- wider: the screens go two-up, the menu becomes a rail ----------------- */
+
+@media (min-width: 400px) {
+    :global(.lp) .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    :global(.lp) .dashRow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    :global(.lp) .attGrid { grid-template-columns: minmax(0, 5fr) minmax(0, 4fr); }
+    :global(.lp) .examGrid { grid-template-columns: minmax(0, 5fr) minmax(0, 4fr); }
+    :global(.lp) .busGrid { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+    :global(.lp) .recGrid { grid-template-columns: minmax(0, 1fr) 170px; }
+    :global(.lp) .rooms { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (min-width: 400px) and (max-width: 559px) {
+    :global(.lp) .kpi { padding: 8px 7px 9px; }
+    :global(.lp) .kpiFigure { font-size: 13px; }
+    :global(.lp) .kpiLabel { letter-spacing: 0; }
+}
+
+@media (min-width: 560px) {
+    :global(.lp) .windowBody { grid-template-columns: 158px minmax(0, 1fr); }
+
+    :global(.lp) .rail {
+        flex-direction: column;
+        gap: 4px;
+        overflow: visible;
+        padding: 12px 10px;
+    }
+
+    :global(.lp) .stage {
+        min-height: 362px;
+        padding: 14px;
+    }
+
+    :global(.lp) .dashWide { display: grid; }
+    :global(.lp) .payGrid { grid-template-columns: minmax(0, 1fr) 204px; }
+
+    :global(.lp) .payReceipt {
+        display: block;
+        margin-top: 14px;
+        transform: rotate(1.6deg);
+    }
+}

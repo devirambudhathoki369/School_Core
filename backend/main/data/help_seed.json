@@ -1,0 +1,499 @@
+{
+  "support": {
+    "name": "Cent IT Solutions Pvt. Ltd.",
+    "product": "CentEducation · School Management System",
+    "address": "Madannagar, Tulsipur-6, Dang, Lumbini",
+    "open_days": "Sunday – Friday",
+    "open_time": "9:00 AM – 5:00 PM",
+    "open_from_hour": 9,
+    "open_to_hour": 17,
+    "closed_weekdays": [
+      5
+    ],
+    "contact": "9815582814",
+    "email": "centit37@gmail.com",
+    "website": "https://nirsabi.com",
+    "whatsapp_contact": "https://wa.me/9815582814?text=Hi CentIT team, I need support for ",
+    "fb_page_id": "61579363944373",
+    "checklist": [
+      "The page you were on (e.g. Payment ▸ Student).",
+      "A screenshot showing the error message.",
+      "The student / staff name or bill number involved.",
+      "What you expected to happen instead."
+    ]
+  },
+  "categories": [
+    {
+      "key": "start",
+      "name": "Getting started",
+      "order": 10
+    },
+    {
+      "key": "students",
+      "name": "Students & staff",
+      "order": 20
+    },
+    {
+      "key": "fees",
+      "name": "Fees & payments",
+      "order": 30
+    },
+    {
+      "key": "exams",
+      "name": "Exams & results",
+      "order": 40
+    },
+    {
+      "key": "attendance",
+      "name": "Attendance",
+      "order": 50
+    },
+    {
+      "key": "sms",
+      "name": "SMS & app",
+      "order": 60
+    },
+    {
+      "key": "money",
+      "name": "Accounting & payroll",
+      "order": 70
+    },
+    {
+      "key": "library",
+      "name": "Library",
+      "order": 80
+    },
+    {
+      "key": "yearend",
+      "name": "Year end",
+      "order": 90
+    }
+  ],
+  "guides": [
+    {
+      "slug": "setup-order",
+      "category": "start",
+      "title": "Set the school up, in the right order",
+      "summary": "Everything else depends on this chain. Doing it out of order is the usual cause of an empty class list or a fee that will not attach.",
+      "where": "Manage",
+      "view": "manage.academic-year",
+      "steps": [
+        "Manage ▸ Academic Year — create the running year first. Nothing can be created without a year to sit in.",
+        "Manage ▸ Sections — add the sections a class is split into (A, B, Science…).",
+        "Manage ▸ Courses/Subjects — add every subject the school teaches.",
+        "Manage ▸ Classes/Periods — create each class for this year, then attach its subjects and teachers.",
+        "Manage ▸ Fees — create the fee heads and their amounts for each class.",
+        "Enrollment ▸ Student — only now enroll students, so each one lands in a class that already has fees and subjects."
+      ],
+      "tips": [
+        "A class belongs to one academic year. When the year changes you create the classes again for the new year — you do not rename last year's."
+      ],
+      "order": 10
+    },
+    {
+      "slug": "users-permissions",
+      "category": "start",
+      "title": "Give a staff member their own login",
+      "summary": "Each person should sign in as themselves — shared logins make the history reports useless.",
+      "where": "Manage ▸ Users",
+      "view": "manage.users",
+      "steps": [
+        "Enroll the person under Enrollment ▸ Staff first, so there is a staff record to attach the login to.",
+        "Open Manage ▸ Users and create an account for them.",
+        "Open their staff profile ▸ Permissions and tick only the pages that person actually needs.",
+        "Hand over the username and password; ask them to change it from Profile after signing in."
+      ],
+      "tips": [
+        "Permissions are per page. Someone who only collects fees needs Payment, not Accounting."
+      ],
+      "order": 20
+    },
+    {
+      "slug": "school-brand",
+      "category": "start",
+      "title": "Put your logo and signatures on printed documents",
+      "summary": "Bills, marksheets and certificates print whatever is uploaded here.",
+      "where": "Profile",
+      "view": "profile",
+      "steps": [
+        "Open Profile.",
+        "In 'Logos and signatures', click the image you want to replace.",
+        "Pick a clear image with a white or transparent background and confirm the upload.",
+        "Print any bill to check it before a whole batch is printed."
+      ],
+      "tips": [
+        "The school's name, PAN and dates are held by CentIT — contact support to have those corrected."
+      ],
+      "order": 30
+    },
+    {
+      "slug": "enroll-student",
+      "category": "students",
+      "title": "Enroll a new student",
+      "summary": "One student, with guardian details, class and fees attached in a single pass.",
+      "where": "Enrollment ▸ Student",
+      "view": "enrollment.student",
+      "steps": [
+        "Open Enrollment ▸ Student.",
+        "Fill the personal details, then the guardian's name and contact — the guardian contact is the number every SMS goes to.",
+        "Pick the academic year, class and section.",
+        "Attach the fees that apply to this student, and any discount.",
+        "Save. The student now appears in that class everywhere in the system."
+      ],
+      "tips": [
+        "If the guardian contact is wrong or missing, that student silently receives no SMS at all.",
+        "Enrolling many students at once? Use Enrollment ▸ Bulk ▸ Student enrollments instead."
+      ],
+      "order": 40
+    },
+    {
+      "slug": "move-class",
+      "category": "students",
+      "title": "Move a student to another class or section",
+      "summary": "Changing a class carries the student's outstanding dues with them; changing a section can carry their results.",
+      "where": "Enrollment ▸ Student (search, then edit)",
+      "view": "enrollment.student",
+      "steps": [
+        "Search the student and open their profile.",
+        "Change the class or section and save.",
+        "Check the student's ledger afterwards to confirm the balance came across as expected."
+      ],
+      "tips": [
+        "A section change moves the student's recorded results with them automatically — you do not need to re-enter marks.",
+        "Old dues are carried forward on a class change. If a balance looks wrong after a move, tell support the student's name before doing anything else."
+      ],
+      "order": 50
+    },
+    {
+      "slug": "collect-payment",
+      "category": "fees",
+      "title": "Collect a fee and print the receipt",
+      "summary": "The everyday counter job.",
+      "where": "Payment ▸ Student",
+      "view": "payment.student",
+      "steps": [
+        "Open Payment ▸ Student and search the student.",
+        "Check the outstanding rows and the balance shown.",
+        "Enter the amount received against the correct fee titles.",
+        "Choose the payment month, then save — wait for the button to finish before clicking again.",
+        "Print the receipt for the guardian."
+      ],
+      "tips": [
+        "Never double-click Save on a slow connection: the button disables itself while it is working, and a second click is how duplicate receipts get created.",
+        "Put the money against the fee titles it was actually paid for. Dumping a lump into 'Old Dues' makes every later report harder to read."
+      ],
+      "order": 60
+    },
+    {
+      "slug": "ledger-posting",
+      "category": "fees",
+      "title": "Post monthly fees to a whole class",
+      "summary": "Charges the month's fees to every student in a class in one action.",
+      "where": "Payment ▸ Ledger posting",
+      "view": "payment.ledger-posting",
+      "steps": [
+        "Open Payment ▸ Ledger posting.",
+        "Pick the academic year, class and section.",
+        "Pick the month you are charging for — this is required, and it is what every monthly report groups by.",
+        "Select the fee titles to post and check the amounts.",
+        "Post, then spot-check one student's ledger to confirm it landed."
+      ],
+      "tips": [
+        "Posting the same month twice charges twice. Check Reports ▸ Recent postings before re-posting."
+      ],
+      "order": 70
+    },
+    {
+      "slug": "old-dues",
+      "category": "fees",
+      "title": "Enter dues carried over from before the system",
+      "summary": "Opening balances for students who already owed money when you started.",
+      "where": "Payment ▸ Old dues posting",
+      "view": "payment.old-dues-posting",
+      "steps": [
+        "Open Payment ▸ Old dues posting.",
+        "Pick the class, then enter each student's carried-over amount.",
+        "Save, and verify the total against your previous register."
+      ],
+      "tips": [
+        "Old dues are exempt from the month requirement — they belong to no single month by definition."
+      ],
+      "order": 80
+    },
+    {
+      "slug": "reminder-bills",
+      "category": "fees",
+      "title": "Send home a dues reminder bill",
+      "summary": "A printed bill per student showing what is still owed.",
+      "where": "Payment ▸ Reminder bills",
+      "view": "payment.reminder-bills",
+      "steps": [
+        "Open Payment ▸ Reminder bills.",
+        "Pick the class and section.",
+        "Review the list, then print — several bills lay out per sheet."
+      ],
+      "tips": [
+        "Prefer a text message? SMS and Communication ▸ SMS ▸ Send Dues Reminder does the same thing by SMS."
+      ],
+      "order": 90
+    },
+    {
+      "slug": "who-owes",
+      "category": "fees",
+      "title": "Find out who still owes money",
+      "summary": "The report to open before a fee drive.",
+      "where": "Reports ▸ Overall Remaining dues",
+      "view": "reports.overall-remaining-dues",
+      "steps": [
+        "Open Reports ▸ Overall Remaining dues.",
+        "Filter to the class or the whole school.",
+        "Use the Columns button to hide anything you do not need before printing or exporting."
+      ],
+      "tips": [
+        "Every report honours the columns you have left visible when it prints or exports."
+      ],
+      "order": 100
+    },
+    {
+      "slug": "exam-setup",
+      "category": "exams",
+      "title": "Set up an exam",
+      "summary": "Do this before anyone tries to enter marks.",
+      "where": "Exam and result ▸ Exam",
+      "view": "exams.setup",
+      "steps": [
+        "Exam and result ▸ Exam — create the exam (First Terminal, Final…) for this academic year.",
+        "Exam and result ▸ Schedule — set the date and time per subject.",
+        "Exam and result ▸ Grading rules — confirm the pass marks and grade bands.",
+        "Exam and result ▸ Entry cards — print admit cards for the students."
+      ],
+      "tips": [
+        "If a subject is missing from marks entry, it is not attached to that class under Manage ▸ Classes/Periods."
+      ],
+      "order": 110
+    },
+    {
+      "slug": "marks-entry",
+      "category": "exams",
+      "title": "Enter marks and publish results",
+      "summary": "From an empty mark sheet to a printable marksheet.",
+      "where": "Exam and result ▸ Marks entry",
+      "view": "exams.marks-entry",
+      "steps": [
+        "Print Exam and result ▸ Marks entry slip and give it to each subject teacher.",
+        "Open Exam and result ▸ Marks entry, pick the exam, class, section and subject.",
+        "Type the marks and save — the page saves per subject, so finish one before moving on.",
+        "Enter extra activities under Exam and result ▸ Extra activities entry, if the school uses them.",
+        "Exam and result ▸ Publish results, then print from Exam and result ▸ Results."
+      ],
+      "tips": [
+        "A subject that was taught but has no marks column shows as blank on the marksheet — check the class's subject list rather than re-entering."
+      ],
+      "order": 120
+    },
+    {
+      "slug": "attendance-daily",
+      "category": "attendance",
+      "title": "Take attendance for the day",
+      "summary": "Manually, from the class register.",
+      "where": "App ▸ Attendance ▸ Student Attendance entry",
+      "view": "app.attendance.entry",
+      "steps": [
+        "Open App ▸ Attendance ▸ Student Attendance entry.",
+        "Pick the class, section and date.",
+        "Mark the absent students; everyone else is counted present.",
+        "Save. Guardians of present and absent students receive an app notification."
+      ],
+      "tips": [
+        "The absent-student SMS is not sent automatically. Send it deliberately from SMS and Communication ▸ SMS ▸ Send Messages."
+      ],
+      "order": 130
+    },
+    {
+      "slug": "rfid",
+      "category": "attendance",
+      "title": "When the RFID device shows no new attendance",
+      "summary": "Almost always the device, not the system.",
+      "where": "App ▸ RFID ▸ Attendance Logs",
+      "view": "app.rfid.attd-logs",
+      "steps": [
+        "Open App ▸ RFID ▸ Attendance Logs and look at the date of the last log.",
+        "If it stopped on a particular day, check the device's power and internet at the school.",
+        "Once it is back online, use the Pull logs button to fetch everything it recorded while it was offline."
+      ],
+      "tips": [
+        "Any punch counts as present, and the earliest punch of the day is taken as the check-in time.",
+        "A card only works after the person is registered under App ▸ RFID ▸ Users Setup."
+      ],
+      "order": 140
+    },
+    {
+      "slug": "sms-setup",
+      "category": "sms",
+      "title": "Turn SMS on for the school",
+      "summary": "One API key, entered once. Nothing sends until it is there.",
+      "where": "SMS and Communication ▸ SMS ▸ SMS Settings",
+      "view": "communication.sms.settings",
+      "steps": [
+        "Open SMS and Communication ▸ SMS ▸ SMS Settings.",
+        "Follow the Help steps on that page to create a token in the SMS portal.",
+        "Paste the Auth Token into 'SMS API Key' and save.",
+        "Write your message wording under SMS ▸ SMS Templates."
+      ],
+      "tips": [
+        "Every send costs one credit per recipient. The credit balance is shown at the top of each SMS page."
+      ],
+      "order": 150
+    },
+    {
+      "slug": "sms-bulk",
+      "category": "sms",
+      "title": "Send an SMS to a group of guardians",
+      "summary": "A holiday notice, a meeting call, a fee reminder.",
+      "where": "SMS and Communication ▸ SMS ▸ Send Bulk SMS",
+      "view": "communication.sms.bulk-sms",
+      "steps": [
+        "Open SMS and Communication ▸ SMS ▸ Send Bulk SMS.",
+        "Filter to the students you mean — by class, by name, or by bus station.",
+        "Search, then check the count against your SMS credits.",
+        "Write the message. Use the place values to drop in each student's own name.",
+        "Send."
+      ],
+      "tips": [
+        "Bulk SMS goes to the guardian's contact number, not the student's."
+      ],
+      "order": 160
+    },
+    {
+      "slug": "sms-staff",
+      "category": "sms",
+      "title": "Send an SMS to teachers and staff",
+      "summary": "Straight to the staff member's own phone, not a guardian's.",
+      "where": "SMS and Communication ▸ SMS ▸ Send SMS to Staff",
+      "view": "communication.sms.staff-sms",
+      "steps": [
+        "Open SMS and Communication ▸ SMS ▸ Send SMS to Staff.",
+        "Filter by name, role or employment status — leave it blank for every employed staff member.",
+        "Search and check the count against your SMS credits.",
+        "Write the message; the place values fill in each person's name and designation.",
+        "Send."
+      ],
+      "tips": [
+        "It sends to the staff member's primary contact. Anyone without one is skipped and reported back to you."
+      ],
+      "order": 170
+    },
+    {
+      "slug": "birthday",
+      "category": "sms",
+      "title": "Wish students and teachers on their birthday",
+      "summary": "Sent automatically each morning, once per person, from your own template.",
+      "where": "SMS ▸ SMS Templates, then Profile ▸ settings",
+      "view": "communication.sms.templates",
+      "steps": [
+        "Open SMS and Communication ▸ SMS ▸ SMS Templates.",
+        "Write the 'Birthday Wish SMS Template' for students and the 'Staff Birthday Wish SMS Template' for teachers and staff.",
+        "Open Profile ▸ SMS and Notification Settings and switch on the birthday wishes you want.",
+        "Save. From the next morning, anyone whose birth date falls on that day is wished automatically."
+      ],
+      "tips": [
+        "A birth date has to be recorded for the wish to fire — staff birth dates live on the staff member's Other info tab."
+      ],
+      "order": 180
+    },
+    {
+      "slug": "salary",
+      "category": "money",
+      "title": "Pay salaries for the month",
+      "summary": "Post the month's salary, then record the payment.",
+      "where": "Payroll",
+      "view": "payroll.salary-posting",
+      "steps": [
+        "Payroll ▸ Salary posting — post the month's salary for the staff you are paying.",
+        "Payroll ▸ Payment — record what was actually paid to each person.",
+        "Payroll ▸ Pay slips — print the slips.",
+        "Payroll ▸ Salary sheet — the month's summary, including TDS, PF and insurance deductions."
+      ],
+      "tips": [
+        "PF and insurance are fixed monthly deductions taken at payment time. Net pay = gross − TDS − PF − insurance."
+      ],
+      "order": 190
+    },
+    {
+      "slug": "accounting-entry",
+      "category": "money",
+      "title": "Record an income or an expense",
+      "summary": "Double-entry vouchers, with the reports built from them.",
+      "where": "Accounting",
+      "view": "accounting.income-entry",
+      "steps": [
+        "Accounting ▸ Create Ledger — make sure the ledger head you need exists.",
+        "Accounting ▸ Income Entry or Expense Entry — enter the voucher and save.",
+        "Accounting ▸ Income Entries / Expense Entries — find, view or reprint it later.",
+        "Accounting ▸ Reports — Trial Balance, Profit and Loss, Balance Sheet."
+      ],
+      "tips": [
+        "A deleted voucher still appears in the entry lists with a red 'Deleted' badge, for viewing and reprinting only. Reports exclude it.",
+        "You can open a closed fiscal year to read it — past years are viewable, not editable."
+      ],
+      "order": 200
+    },
+    {
+      "slug": "library-issue",
+      "category": "library",
+      "title": "Issue and return a book",
+      "summary": "Scan or search, issue, and take it back later.",
+      "where": "Library ▸ Book Issue/Return",
+      "view": "library.book-transaction",
+      "steps": [
+        "Library ▸ Library Setup — set the loan period and the fine per day, once.",
+        "Library ▸ Books — add the titles and their copies.",
+        "Library ▸ Book Issue/Return — find the member, find the book, issue it.",
+        "On return, open the same page; any fine is calculated for you."
+      ],
+      "tips": [
+        "The accession number of a copy is its own number in the system — it is unique across every school sharing the library.",
+        "Issuing to a student from another school? Add them under 'Other schools' on the issue page."
+      ],
+      "order": 210
+    },
+    {
+      "slug": "promotion",
+      "category": "yearend",
+      "title": "Promote students to the next class",
+      "summary": "The move from this academic year into the next one.",
+      "where": "Enrollment ▸ Class Promotion",
+      "view": "enrollment.class-promotion",
+      "steps": [
+        "Create the next academic year under Manage ▸ Academic Year.",
+        "Create next year's classes, subjects and fees before promoting anyone.",
+        "Open Enrollment ▸ Class Promotion, pick the class, and promote the students who passed.",
+        "Check a few students afterwards: correct new class, and their outstanding dues carried across."
+      ],
+      "tips": [
+        "Promote only after next year's classes exist, otherwise there is nowhere for the students to land.",
+        "Students leaving the school should be marked as such rather than promoted."
+      ],
+      "order": 220
+    },
+    {
+      "slug": "year-close",
+      "category": "yearend",
+      "title": "Close the academic year",
+      "summary": "Locks last year's records and rolls balances forward. Not reversible on your own.",
+      "where": "Manage ▸ Academic year closing",
+      "view": "manage.academic-year-closing",
+      "steps": [
+        "Finish every fee collection, marks entry and result publication for the year first.",
+        "Open Manage ▸ Academic year closing and read the impact summary it shows you.",
+        "Check the carried-forward dues on that summary before confirming.",
+        "Confirm the close."
+      ],
+      "tips": [
+        "Closing is a large, hard-to-undo step. If anything on the impact summary looks wrong, stop and call support before confirming.",
+        "A closed year stays readable — results and reports for it can still be opened and printed."
+      ],
+      "order": 230
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+export const testimonials = [
+    {
+        id: 1,
+        name: "Dr. Sarah Johnson",
+        role: "Principal",
+        institution: "Greenwood Academy",
+        image: "/placeholder.svg?height=80&width=80",
+        rating: 5,
+        text: "CentEducation didn't just change our school—it saved it. We went from drowning in admin work to having extra hours weekly for actual education. Parent complaints dropped significantly, and our staff morale is at an all-time high.",
+    },
+    {
+        id: 2,
+        name: "Michael Chen",
+        role: "IT Director",
+        institution: "Metro University",
+        image: "/placeholder.svg?height=80&width=80",
+        rating: 5,
+        text: "I've implemented dozens of systems in my career. CentEducation's rollout was flawless—zero downtime, zero complaints. Our faculty adoption rate was exceptional from week one.",
+    },
+    {
+        id: 3,
+        name: "Lisa Rodriguez",
+        role: "Administrator",
+        institution: "Sunrise Elementary",
+        image: "/placeholder.svg?height=80&width=80",
+        rating: 5,
+        text: "The ROI was immediate and dramatic. We eliminated several part-time admin positions through automation alone, saving significantly annually. But the real win? Our teachers can finally focus on teaching, not paperwork.",
+    },
+    {
+        id: 4,
+        name: "David Thompson",
+        role: "Dean",
+        institution: "Tech Institute",
+        image: "/placeholder.svg?height=80&width=80",
+        rating: 5,
+        text: "Fee collection used to be our nightmare—now it's automated perfection. Late payments dropped significantly, cash flow improved dramatically, and parents actually thank us for the convenient payment options.",
+    },
+]

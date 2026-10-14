@@ -1,0 +1,4 @@
+.link { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; gap:6px; padding:0 10px; height:40px; border:1px solid var(--line); border-radius:10px; color:var(--t-brand-ink,#0f766e); background:var(--t-brand-tint,#f0fdfa); font-size:12px; font-weight:600; }
+.link:hover { filter:brightness(.97); }
+.link:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
+@media(max-width:767px) { .link { height:36px; width:36px; padding:7px; } }

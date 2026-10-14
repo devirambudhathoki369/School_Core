@@ -1,0 +1,18 @@
+ETHNICITY_CHOICES = [
+    (0, ""),
+    (1, "chhetri"),
+    (2, "brahmin"),
+    (3, "magar"),
+    (4, "tharu"),
+    (5, "tamang"),
+    (6, "newar"),
+    (7, "kami"),
+    (8, "muslim"),
+    (9, "yadav"),
+    (10, "rai"),
+    (11, "gurung"),
+    (12, "damai/dholi"),
+    (13, "thakuri"),
+    (14, "limbu"),
+    (15, "sarki"),
+]

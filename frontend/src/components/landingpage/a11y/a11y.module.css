@@ -1,0 +1,408 @@
+/* The accessibility tools. The panel keeps its own fixed sizes and colours: it
+   is the control for text size and contrast, so it must not move under the
+   hand while they change. High contrast is the one mode it follows. */
+
+:global(.lp) .dock {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 70;
+    --focus: #0b5d57;
+}
+
+:global(.lp) .launcher {
+    display: inline-flex;
+    align-items: center;
+    height: 52px;
+    padding: 0 12px;
+    border: 2px solid #ffffff;
+    border-radius: 999px;
+    background: #0b1f1c;
+    color: #ffffff;
+    box-shadow: 0 10px 26px -10px rgba(6, 41, 37, .7);
+    cursor: pointer;
+}
+
+:global(.lp) .launcher:focus-visible {
+    outline: 2px solid #f7941d;
+    outline-offset: 2px;
+    border-radius: 999px;
+}
+
+:global(.lp) .launcherMark {
+    width: 24px;
+    height: 24px;
+    flex: none;
+}
+
+/* the word opens out beside the mark when the button is pointed at or reached
+   by keyboard, and stays while the panel is open */
+:global(.lp) .launcherText {
+    max-width: 0;
+    overflow: hidden;
+    font-size: 15px;
+    line-height: 22px;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: max-width .22s ease, margin .22s ease;
+}
+
+:global(.lp) .launcher:hover .launcherText,
+:global(.lp) .launcher:focus-visible .launcherText,
+:global(.lp) .launcher[aria-expanded="true"] .launcherText {
+    max-width: 120px;
+    margin: 0 9px 0 6px;
+}
+
+:global(.lp) .panel {
+    position: absolute;
+    right: 0;
+    bottom: 64px;
+    width: min(348px, calc(100vw - 32px));
+    max-height: calc(100vh - 104px);
+    max-height: calc(100dvh - 104px);
+    overflow-y: auto;
+    padding: 16px;
+    border: 1px solid #d5cdbb;
+    border-radius: 20px;
+    background: #ffffff;
+    color: #0b1f1c;
+    box-shadow: 0 30px 60px -22px rgba(6, 41, 37, .6);
+    font-family: var(--f-body);
+    font-size: 15px;
+    line-height: 22px;
+    letter-spacing: 0;
+    word-spacing: 0;
+}
+
+:global(.lp) .panelHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+:global(.lp) .panelTitle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 26px;
+}
+
+:global(.lp) .panelMark {
+    width: 24px;
+    height: 24px;
+    flex: none;
+    color: #0b5d57;
+}
+
+:global(.lp) .iconButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex: none;
+    border: 0;
+    border-radius: 12px;
+    background: #f1ebdd;
+    color: #0b1f1c;
+    cursor: pointer;
+}
+
+:global(.lp) .iconButton svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.2;
+}
+
+:global(.lp) .group { margin-top: 14px; }
+
+:global(.lp) .groupTitle {
+    color: #4a5a55;
+    font-family: var(--f-mono);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+:global(.lp) .stepper {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+:global(.lp) .stepButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    flex: none;
+    border: 1.5px solid #0b1f1c;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #0b1f1c;
+    cursor: pointer;
+}
+
+:global(.lp) .stepButton:hover:not(:disabled) { background: #f1ebdd; }
+
+:global(.lp) .stepButton:disabled {
+    border-color: #cdc3ac;
+    color: #8c9692;
+    cursor: default;
+}
+
+:global(.lp) .stepButton svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.4;
+}
+
+:global(.lp) .stepValue {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+:global(.lp) .stepFigure {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 22px;
+    font-variant-numeric: tabular-nums;
+}
+
+:global(.lp) .stepBars {
+    display: flex;
+    gap: 4px;
+}
+
+:global(.lp) .stepBar {
+    width: 22px;
+    height: 4px;
+    border-radius: 2px;
+    background: #d9d2c2;
+}
+
+:global(.lp) .stepBar[data-filled] { background: #0f766e; }
+
+:global(.lp) .tones {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+:global(.lp) .tone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 4px 8px;
+    border: 1.5px solid #d9d2c2;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #0b1f1c;
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+}
+
+:global(.lp) .tone:hover { border-color: #0b1f1c; }
+
+:global(.lp) .tone[aria-pressed="true"] {
+    border-color: #0f766e;
+    box-shadow: inset 0 0 0 1.5px #0f766e;
+    background: #ecf7f3;
+}
+
+:global(.lp) .swatch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 30px;
+    border: 1px solid #d9d2c2;
+    border-radius: 9px;
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 20px;
+}
+
+:global(.lp) .swatch[data-tone="standard"] {
+    background: #faf6ee;
+    color: #0a3833;
+}
+
+:global(.lp) .swatch[data-tone="high"] {
+    border-color: #000000;
+    background: #000000;
+    color: #ffd60a;
+}
+
+:global(.lp) .swatch[data-tone="dark"] {
+    border-color: #071c19;
+    background: #071c19;
+    color: #f3efe6;
+}
+
+:global(.lp) .switches {
+    margin-top: 12px;
+    border-top: 1px solid #e4dccb;
+    list-style: none;
+}
+
+:global(.lp) .switchRow {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 8px 2px;
+    border: 0;
+    border-bottom: 1px solid #e4dccb;
+    background: transparent;
+    color: #0b1f1c;
+    text-align: left;
+    cursor: pointer;
+}
+
+:global(.lp) .switchText {
+    display: flex;
+    flex-direction: column;
+}
+
+:global(.lp) .switchName {
+    font-size: 15px;
+    line-height: 22px;
+    font-weight: 700;
+}
+
+:global(.lp) .switchHint {
+    color: #4a5a55;
+    font-size: 13px;
+    line-height: 18px;
+}
+
+:global(.lp) .track {
+    position: relative;
+    width: 46px;
+    height: 28px;
+    flex: none;
+    border: 1.5px solid #6b7a75;
+    border-radius: 999px;
+    background: #ffffff;
+    transition: background-color .16s ease, border-color .16s ease;
+}
+
+:global(.lp) .thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: #6b7a75;
+    transition: transform .16s ease, background-color .16s ease;
+}
+
+:global(.lp) .switchRow[aria-checked="true"] .track {
+    border-color: #0f766e;
+    background: #0f766e;
+}
+
+:global(.lp) .switchRow[aria-checked="true"] .thumb {
+    background: #ffffff;
+    transform: translateX(18px);
+}
+
+:global(.lp) .panelFoot {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+:global(.lp) .reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 16px;
+    border: 1.5px solid #0b1f1c;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #0b1f1c;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+:global(.lp) .reset:hover:not(:disabled) { background: #f1ebdd; }
+
+:global(.lp) .reset:disabled {
+    border-color: #cdc3ac;
+    color: #8c9692;
+    cursor: default;
+}
+
+:global(.lp) .reset svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.2;
+}
+
+:global(.lp) .saved {
+    color: #4a5a55;
+    font-size: 13px;
+    line-height: 18px;
+    text-align: right;
+}
+
+/* ---- in high contrast the panel goes black and white with the page -------- */
+
+:global(.lp)[data-tone="high"] .panel {
+    border: 2px solid #000000;
+    color: #000000;
+}
+
+:global(.lp)[data-tone="high"] .panel .groupTitle,
+:global(.lp)[data-tone="high"] .panel .switchHint,
+:global(.lp)[data-tone="high"] .panel .saved { color: #000000; }
+
+:global(.lp)[data-tone="high"] .panel .iconButton,
+:global(.lp)[data-tone="high"] .panel .tone,
+:global(.lp)[data-tone="high"] .panel .swatch,
+:global(.lp)[data-tone="high"] .panel .switchRow,
+:global(.lp)[data-tone="high"] .panel .switches { border-color: #000000; }
+
+:global(.lp)[data-tone="high"] .panel .panelMark { color: #000000; }
+:global(.lp)[data-tone="high"] .panel .stepBar[data-filled] { background: #000000; }
+
+:global(.lp)[data-tone="high"] .panel .tone[aria-pressed="true"] {
+    border-color: #000000;
+    box-shadow: inset 0 0 0 2px #000000;
+    background: #ffd60a;
+}
+
+:global(.lp)[data-tone="high"] .panel .switchRow[aria-checked="true"] .track {
+    border-color: #000000;
+    background: #000000;
+}
+
+:global(.lp)[data-tone="high"] .launcher { background: #000000; }

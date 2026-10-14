@@ -1,0 +1,30 @@
+## App-name: rfid
+> Handles biometric devices and attendances using rfid cards.
+
+
+* Endpoints
+    - Device
+        - /getrequest - `polling, fetch enqued commands`
+        - /ping - `health`
+        - /cdata - `Incoming Logs Management (Attendance, setups)`
+        - /devicecmd - `sends response for device commands`
+    - Admin Panel
+        - /devices - `devices management [add,update, delete]`
+        - /users - `attd users management and sync`
+        - /logs - `attd logs management`
+
+* Models
+- app:rfid
+    - Device - `Devices per school`
+    - DeviceCommand - `Commands in queue, fetched and executed by device`
+    - RFIDAttdUser - `User linked to device and app:main.profiles`
+    - RFIDAttdLog - `Attendance Logs`
+- app:main.profiles `Relation`
+    - Student [profile]
+    - Staff [profile]
+
+* TODO:
+    - normalize foreign keys []
+    - optimize read fields for models
+    - clean DeviceCommand.cmd_content on mark:done
+    - 

@@ -1,0 +1,51 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+/others
+/removed
+/analyze
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+.env
+
+# vercel
+.vercel
+
+# local-only deploy / infra files — keep ONLY the script the deploy workflow
+# ships to the VPS (activate-release.sh); everything else (systemd unit, nginx
+# conf, env example, notes) is reference/one-time and lives on the server.
+/deploy/*
+!/deploy/activate-release.sh
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# internal docs — kept local, not committed (READMEs stay tracked)
+/FRONTEND_DEPLOYMENT.md
+/MAP.md

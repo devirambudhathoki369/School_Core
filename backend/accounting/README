@@ -1,0 +1,52 @@
+## App-name: accounting
+> School related accounting module
+
+* Knowledge required
+    - Accounting fiscal year
+    - Income, Expense, Journal, Contra entries
+    - Reports
+        - Individual ledger report
+        - Groupwise ledger report
+        - Profit/Loss report
+        - Trial balance
+        - Cash flow statement
+
+* Models:
+    - BaseModels.py - `Base Model for all types of Entries`
+        - Every entry must has `voucher_id`, see it's voucher_id property for format.
+    - AccountingEconomicYear.py
+        - Fiscal year per school for accounting purpose only
+    - AccountingLedger.py
+        - AccountingLedger - 
+            - see `constants/ledger_groups.py` for AccountingLedger.ledger_ledger_group
+        - AccountingBalance 
+            - Closing balance per school, fiscal-year and ledger
+* Entries
+    - IncomeEntry
+    - ExpenseEntry
+    - JournalEntry - ``
+    - ContraEntry - `Not implemented yet`
+
+    * Particulars
+        - Every entry has their particulars.
+
+* Urls - `/accounting/...`
+    - /economic_year
+    - /economic_year/closing
+    - /economic_year/closing/undo [Superadmin]
+    - /ledgers
+    - /income_entry
+    - /expense_entry
+    - /journal_entry
+    - /contra_entry
+    - /search/ledgers
+    - /search/entries
+    - /reports/ledger_report (Individual and Groupwise ledger report)
+    - /reports/trial_balance
+    - /reports/profit_loss
+    - /reports/balance_sheet
+
+* TODO:
+    - Retest groupwise report and fix if needed
+    - Implement Cash flow statement report
+    - Optimize apis as needed

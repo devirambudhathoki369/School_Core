@@ -1,0 +1,37 @@
+**/__pycache__
+**/*.py[cod]
+/venv
+/others
+error.json
+/creds
+/feeddata
+*.sql
+/.kolo
+/tests
+/scripts
+*.sqlite3
+.vscode
+.env
+.git_backup
+/media
+/.venv
+
+# deployment (kept local, shipped to VPS via rsync — never committed)
+/deploy
+DEPLOYMENT.md
+/backups
+shareholders.json
+backup.json
+
+# internal docs — kept local, not committed (READMEs stay tracked)
+/docs/Apps.md
+/docs/dev-docs/*.md
+!/docs/dev-docs/README.md
+/docs/dev-docs/flows/*.md
+NOTIFICATIONS.md
+NOTIFICATIONS_APP_SPEC.md
+PUSH_TO_DEPLOY.md
+# Runtime logs from the django LOGGING config — written on the server,
+# never source. The directory has to exist for logging to start, so it is
+# ignored rather than removed.
+logs/

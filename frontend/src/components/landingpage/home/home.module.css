@@ -1,0 +1,822 @@
+/* The front page ( / ). See site/site.module.css for how these files are
+   written and why every selector starts with `.lp`. */
+
+/* ---- hero ---------------------------------------------------------------- */
+
+:global(.lp) .hero {
+    position: relative;
+    overflow: hidden;
+    background: var(--pine);
+    padding: 32px 0 0;
+}
+
+/* a field of dots, one shade off the ground: the same wall the sign-in has */
+:global(.lp) .hero::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-image: radial-gradient(circle, var(--pine-2) 1.3px, transparent 1.7px);
+    background-size: 24px 24px;
+    pointer-events: none;
+}
+
+:global(.lp) .heroGrid {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 40px;
+}
+
+:global(.lp) .h1 {
+    margin-top: 20px;
+    color: var(--on-dark);
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: calc(44px * var(--kd));
+    line-height: calc(46px * var(--kd) * var(--kl));
+    letter-spacing: -1.4px;
+}
+
+:global(.lp) .h1Mark {
+    position: relative;
+    display: inline-block;
+    color: var(--sun);
+    white-space: nowrap;
+}
+
+:global(.lp) .h1Stroke {
+    position: absolute;
+    left: 0;
+    bottom: -11px;
+    width: 100%;
+    height: 14px;
+    overflow: visible;
+}
+
+/* the stroke is 300 long in its own units; it is drawn once, after the words */
+:global(.lp) .h1Stroke path {
+    fill: none;
+    stroke: var(--sun);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 300;
+    animation: penStroke .9s .45s ease both;
+}
+
+@keyframes penStroke {
+    from { stroke-dashoffset: 300; }
+    to { stroke-dashoffset: 0; }
+}
+
+:global(.lp) .heroLede {
+    max-width: 540px;
+    margin-top: 28px;
+    color: var(--on-dark-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+}
+
+:global(.lp) .heroActions {
+    margin-top: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 14px;
+}
+
+:global(.lp) .heroNote {
+    margin-top: 18px;
+    color: var(--on-dark-3);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+}
+
+:global(.lp) .heroTel {
+    display: inline-block;
+    padding: 6px 0;
+    color: var(--on-dark);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+:global(.lp) .heroTel:hover { text-decoration: underline; }
+
+:global(.lp) .heroStage {
+    position: relative;
+    min-width: 0;
+}
+
+:global(.lp) .facts {
+    position: relative;
+    margin-top: 44px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--line-dark);
+    list-style: none;
+}
+
+:global(.lp) .fact {
+    padding: 18px 16px 22px 0;
+}
+
+:global(.lp) .fact:nth-child(even) {
+    padding-left: 18px;
+    border-left: 1px solid var(--line-dark);
+}
+
+:global(.lp) .fact:nth-child(n + 3) { border-top: 1px solid var(--line-dark); }
+
+:global(.lp) .factFigure {
+    display: block;
+    color: var(--on-dark);
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: 34px;
+    line-height: 38px;
+    letter-spacing: -0.6px;
+}
+
+:global(.lp) .factLabel {
+    display: block;
+    margin-top: 4px;
+    color: var(--on-dark-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+}
+
+/* ---- the running band ------------------------------------------------------ */
+
+:global(.lp) .ticker {
+    overflow: hidden;
+    background: var(--sun);
+    padding: 15px 0;
+}
+
+:global(.lp) .tickerTrack {
+    display: flex;
+    width: max-content;
+    animation: tickerRun 52s linear infinite;
+}
+
+:global(.lp) .ticker:hover .tickerTrack { animation-play-state: paused; }
+
+@keyframes tickerRun {
+    to { transform: translateX(-50%); }
+}
+
+:global(.lp) .tickerList {
+    display: flex;
+    flex: none;
+    list-style: none;
+}
+
+:global(.lp) .tickerWord {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    padding-right: 26px;
+    color: var(--fg);
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: 21px;
+    line-height: 28px;
+    letter-spacing: -0.2px;
+    white-space: nowrap;
+}
+
+:global(.lp) .tickerMark {
+    width: 9px;
+    height: 9px;
+    flex: none;
+    background: var(--fg);
+    transform: rotate(45deg);
+}
+
+/* ---- a school day ---------------------------------------------------------- */
+
+:global(.lp) .nowLine {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--lh-sm);
+    margin-top: 14px;
+    color: var(--fg);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+    font-weight: 700;
+}
+
+:global(.lp) .nowDot {
+    width: 10px;
+    height: 10px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--sun);
+    box-shadow: 0 0 0 4px var(--sun-tint);
+}
+
+/* the sun's arc over the day: only where the five steps stand side by side */
+:global(.lp) .arc { display: none; }
+
+:global(.lp) .arcLine {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 120px;
+    overflow: visible;
+}
+
+:global(.lp) .arcLine path {
+    fill: none;
+    stroke: var(--line-2);
+    stroke-width: 2;
+    stroke-dasharray: 2 8;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+}
+
+:global(.lp) .arcStop {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    margin: -6px 0 0 -6px;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    background: var(--paper);
+}
+
+:global(.lp) .arcStop[data-past] { background: var(--ink); }
+
+:global(.lp) .arcSun {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    margin: -18px 0 0 -18px;
+    border-radius: 50%;
+    background: var(--sun);
+    box-shadow: 0 0 0 9px var(--sun-tint);
+    transition: left .7s ease, top .7s ease;
+}
+
+/* below 1080px the day runs down the page on a line */
+:global(.lp) .steps {
+    max-width: 680px;
+    margin-top: 40px;
+    list-style: none;
+}
+
+:global(.lp) .step {
+    position: relative;
+    margin-left: 7px;
+    padding: 0 0 32px 30px;
+    border-left: 2px solid var(--line-2);
+}
+
+:global(.lp) .step:last-child {
+    padding-bottom: 0;
+    border-left-color: transparent;
+}
+
+:global(.lp) .stepMark {
+    position: absolute;
+    left: -8px;
+    top: 10px;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    background: var(--paper);
+}
+
+:global(.lp) .step[data-now] .stepMark {
+    border-color: var(--sun);
+    background: var(--sun);
+    box-shadow: 0 0 0 5px var(--sun-tint);
+}
+
+:global(.lp) .stepTime {
+    color: var(--fg);
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: 34px;
+    line-height: 36px;
+    letter-spacing: -0.6px;
+    font-variant-numeric: tabular-nums;
+}
+
+:global(.lp) .stepMeridiem {
+    color: var(--fg-3);
+    font-family: var(--f-mono);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: .5px;
+}
+
+:global(.lp) .stepNow {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--sun);
+    color: #0b1f1c;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    vertical-align: middle;
+}
+
+:global(.lp) .stepTitle {
+    margin-top: 10px;
+    color: var(--fg);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+    font-weight: 800;
+}
+
+:global(.lp) .stepText {
+    margin-top: 4px;
+    color: var(--fg-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+}
+
+/* ---- the twelve modules: an index and its plate ----------------------------- */
+
+:global(.lp) .index {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 32px;
+}
+
+:global(.lp) .indexList {
+    border-top: 2px solid var(--ink);
+    list-style: none;
+}
+
+:global(.lp) .indexRow {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) 20px;
+    align-items: baseline;
+    gap: 0 12px;
+    padding: 14px 4px 15px;
+    border-bottom: 1px solid var(--line-2);
+    color: var(--fg);
+    text-decoration: none;
+    transition: background-color .15s ease, padding .2s ease;
+}
+
+:global(.lp) .indexNo {
+    color: var(--fg-3);
+    font-family: var(--f-mono);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 500;
+}
+
+:global(.lp) .indexTitle {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: calc(21px * var(--k));
+    line-height: calc(26px * var(--k) * var(--kl));
+    letter-spacing: -0.3px;
+}
+
+:global(.lp) .indexLine {
+    grid-column: 2;
+    color: var(--fg-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+}
+
+:global(.lp) .indexArrow {
+    grid-column: 3;
+    grid-row: 1;
+    width: 20px;
+    height: 20px;
+    align-self: center;
+    color: var(--fg-3);
+    stroke-width: 2;
+}
+
+:global(.lp) .plateIn {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 20px;
+    border-radius: 22px;
+    background: var(--pine);
+    animation: plateTurn .32s ease both;
+}
+
+@keyframes plateTurn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+:global(.lp) .plateLabel {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--on-dark-2);
+    font-family: var(--f-mono);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+:global(.lp) .plateLabel span { color: var(--sun); }
+
+:global(.lp) .plateDrawing {
+    margin: auto 0;
+    padding: 12px;
+    border-radius: 14px;
+    background: #f5f0e6;
+}
+
+:global(.lp) .sectionLink { margin-top: 28px; }
+
+/* ---- who it is for: four cards on the site's four grounds -------------------- */
+
+:global(.lp) .roles {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+}
+
+:global(.lp) .role {
+    display: flex;
+    flex-direction: column;
+    padding: 24px 24px 28px;
+    border: 1px solid transparent;
+    border-radius: 22px;
+}
+
+:global(.lp) .role[data-ground="pine"] { background: var(--pine); }
+:global(.lp) .role[data-ground="sun"] { background: var(--sun); }
+:global(.lp) .role[data-ground="mint"] { background: var(--mint); }
+
+:global(.lp) .role[data-ground="paper"] {
+    border-color: var(--line-2);
+    background: var(--paper);
+}
+
+/* in high contrast a card with a white ground still needs its edge */
+:global(.lp)[data-tone="high"] .role { border-color: var(--line-2); }
+
+:global(.lp) .roleTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+:global(.lp) .roleIcon {
+    width: 30px;
+    height: 30px;
+    color: var(--fg);
+    stroke-width: 1.5;
+}
+
+:global(.lp) .roleNo {
+    color: var(--fg-2);
+    font-family: var(--f-mono);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 500;
+}
+
+:global(.lp) .roleTitle {
+    margin-top: 36px;
+    color: var(--fg);
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: calc(26px * var(--kd));
+    line-height: calc(30px * var(--kd) * var(--kl));
+    letter-spacing: -0.4px;
+}
+
+:global(.lp) .roleLine {
+    margin: 8px 0 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--rule-2);
+    color: var(--fg-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+}
+
+/* ---- where it runs ------------------------------------------------------------ */
+
+:global(.lp) .pocket {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 48px;
+}
+
+:global(.lp) .pocketTitle { margin-top: 14px; }
+
+:global(.lp) .pocketLede {
+    max-width: 520px;
+    margin-top: 16px;
+}
+
+:global(.lp) .platforms {
+    margin-top: 28px;
+    border-top: 1px solid var(--mint-line);
+    list-style: none;
+}
+
+:global(.lp) .platform {
+    display: flex;
+    gap: 16px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--mint-line);
+}
+
+:global(.lp) .platformIcon {
+    width: 26px;
+    height: 26px;
+    flex: none;
+    margin-top: 2px;
+    color: var(--teal-ink);
+    stroke-width: 1.7;
+}
+
+:global(.lp) .platformTitle {
+    color: var(--fg);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+    font-weight: 800;
+}
+
+:global(.lp) .platformText {
+    color: var(--fg-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+}
+
+:global(.lp) .pocketStage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* the sun behind the phone: one flat disc */
+:global(.lp) .pocketDisc {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 280px;
+    height: 280px;
+    margin: -150px 0 0 -140px;
+    border-radius: 50%;
+    background: var(--sun);
+}
+
+:global(.lp) .pocketPhone { position: relative; }
+
+:global(.lp) .sample {
+    position: relative;
+    margin-top: 16px;
+    color: var(--fg-3);
+    font-family: var(--f-mono);
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* ---- built in Dang ------------------------------------------------------------- */
+
+:global(.lp) .nepalGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 44px;
+}
+
+:global(.lp) .nepalTitle { margin-top: 14px; }
+:global(.lp) .nepalLede { margin-top: 16px; }
+
+/* the Bikram Sambat year, set in Devanagari: the one loud mark on the page */
+:global(.lp) .year {
+    margin-top: 30px;
+    color: var(--sun);
+    font-family: var(--f-deva);
+    font-weight: 700;
+    font-size: 92px;
+    line-height: 92px;
+}
+
+:global(.lp) .yearNote {
+    margin-top: 6px;
+    color: var(--fg-3);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+}
+
+:global(.lp) .reasons {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: 40px;
+}
+
+:global(.lp) .reason {
+    padding: 22px 0 30px;
+    border-top: 1px solid var(--rule);
+}
+
+:global(.lp) .reasonTitle {
+    color: var(--fg);
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: calc(24px * var(--kd));
+    line-height: calc(28px * var(--kd) * var(--kl));
+    letter-spacing: -0.3px;
+}
+
+:global(.lp) .reasonText {
+    margin-top: 8px;
+    color: var(--fg-2);
+    font-size: var(--fs-md);
+    line-height: var(--lh-md);
+}
+
+/* ---- from a large phone up ------------------------------------------------------ */
+
+@media (min-width: 400px) {
+    :global(.lp) .pocketDisc {
+        width: 340px;
+        height: 340px;
+        margin: -180px 0 0 -170px;
+    }
+}
+
+@media (min-width: 640px) {
+    :global(.lp) .h1 {
+        font-size: calc(58px * var(--kd));
+        line-height: calc(60px * var(--kd) * var(--kl));
+        letter-spacing: -1.8px;
+    }
+
+    :global(.lp) .h1Stroke path { stroke-width: 5; }
+
+    :global(.lp) .indexRow {
+        grid-template-columns: 40px 236px minmax(0, 1fr) 20px;
+        padding: 15px 6px 16px;
+    }
+
+    :global(.lp) .indexLine { grid-column: 3; }
+    :global(.lp) .indexArrow { grid-column: 4; }
+
+    :global(.lp) .roles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    :global(.lp) .reasons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 820px) {
+    :global(.lp) .hero { padding-top: 48px; }
+
+    :global(.lp) .facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    :global(.lp) .fact,
+    :global(.lp) .fact:nth-child(even),
+    :global(.lp) .fact:nth-child(n + 3) {
+        padding: 20px 20px 26px 24px;
+        border-top: 0;
+        border-left: 1px solid var(--line-dark);
+    }
+
+    :global(.lp) .fact:first-child {
+        padding-left: 0;
+        border-left: 0;
+    }
+
+    :global(.lp) .year {
+        font-size: 128px;
+        line-height: 128px;
+    }
+}
+
+@media (min-width: 960px) {
+    :global(.lp) .pocket {
+        grid-template-columns: minmax(0, 1fr) 420px;
+        gap: 64px;
+    }
+
+    :global(.lp) .pocketDisc {
+        width: 400px;
+        height: 400px;
+        margin: -210px 0 0 -200px;
+    }
+}
+
+/* ---- desktop (1080) --------------------------------------------------------------- */
+
+@media (min-width: 1080px) {
+    :global(.lp) .heroGrid {
+        grid-template-columns: minmax(0, 1fr) 590px;
+        gap: 44px;
+    }
+
+    :global(.lp) .h1 {
+        font-size: calc(54px * var(--kd));
+        line-height: calc(56px * var(--kd) * var(--kl));
+    }
+
+    /* the five steps stand side by side under the arc */
+    :global(.lp) .arc {
+        display: block;
+        position: relative;
+        height: 120px;
+        margin-top: 36px;
+    }
+
+    :global(.lp) .steps {
+        max-width: none;
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 28px;
+    }
+
+    :global(.lp) .step,
+    :global(.lp) .step:last-child {
+        margin-left: 0;
+        padding: 0;
+        border-left: 0;
+    }
+
+    :global(.lp) .stepMark { display: none; }
+
+    :global(.lp) .index {
+        grid-template-columns: minmax(0, 1fr) 500px;
+        gap: 56px;
+    }
+
+    :global(.lp) .indexRow { grid-template-columns: 40px 216px minmax(0, 1fr) 20px; }
+
+    /* the arrow shows on the row the plate is showing */
+    :global(.lp) .indexArrow { opacity: 0; }
+
+    :global(.lp) .indexRow[data-picked] {
+        padding-left: 16px;
+        background: var(--card);
+    }
+
+    :global(.lp) .indexRow[data-picked] .indexNo { color: var(--sun-ink); }
+
+    :global(.lp) .indexRow[data-picked] .indexArrow {
+        opacity: 1;
+        color: var(--fg);
+    }
+
+    :global(.lp) .plate {
+        position: sticky;
+        top: calc(var(--bar) + 24px);
+    }
+
+    :global(.lp) .plateIn { min-height: 470px; }
+
+    :global(.lp) .roles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    :global(.lp) .nepalGrid {
+        grid-template-columns: 440px minmax(0, 1fr);
+        gap: 72px;
+    }
+}
+
+@media (min-width: 1264px) {
+    :global(.lp) .heroGrid {
+        grid-template-columns: minmax(0, 1fr) 640px;
+        gap: 56px;
+    }
+
+    :global(.lp) .h1 {
+        font-size: calc(68px * var(--kd));
+        line-height: calc(68px * var(--kd) * var(--kl));
+        letter-spacing: -2.2px;
+    }
+
+    :global(.lp) .index { grid-template-columns: minmax(0, 1fr) 540px; }
+    :global(.lp) .indexRow { grid-template-columns: 40px 236px minmax(0, 1fr) 20px; }
+}

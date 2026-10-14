@@ -1,0 +1,9 @@
+- Inside enrollment -> staff/student -> form -> inputs
+    - validation occurs onBlur (when focus is removed)
+    - the real way of validation is `validationSchema.validateAt(name, root)`
+    - but this is slower, so
+        - i did `validationSchema.validateAt(name, { [name]: value })`
+            - where, `name & value` is passed to onBlur method via inputs.
+            - which is the fast solution.
+    - validation occurs last time before submission
+        - where `real` way is used to validation data!

@@ -1,0 +1,35 @@
+/* Database Backup. Colours come from the theme's tokens, so the page wears the
+   console's indigo without naming it; sizes are in px because the app's root
+   font is not 16px. */
+.page { position:relative; display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); gap:20px; align-items:start; }
+.form { display:flex; flex-direction:column; gap:22px; min-width:0; }
+.step { display:flex; flex-direction:column; gap:10px; min-width:0; margin:0; padding:0; border:0; }
+.step h3, .about h3 { font-size:13px; line-height:18px; font-weight:600; color:var(--ink-500,#64748b); }
+.choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.choice { position:relative; display:flex; align-items:flex-start; gap:12px; min-width:0; padding:14px 42px 14px 14px; border:1px solid var(--line,#e2e8f0); border-radius:12px; background:#fff; cursor:pointer; transition:border-color .15s, background .15s; }
+.choice:hover { border-color:color-mix(in srgb, var(--t-brand-solid,#0d9488) 45%, #fff); }
+.choice[data-on="true"] { border-color:var(--t-brand-solid,#0d9488); background:var(--t-brand-tint,#e3f3f1); box-shadow:0 0 0 1px var(--t-brand-solid,#0d9488); }
+.choice:has(input:focus-visible) { outline:2px solid var(--t-brand-solid,#0d9488); outline-offset:2px; }
+.choice input { position:absolute; top:16px; right:14px; width:16px; height:16px; margin:0; accent-color:var(--t-brand-solid,#0d9488); cursor:pointer; }
+.step:disabled .choice { cursor:default; opacity:.7; }
+.choiceIcon { display:grid; place-items:center; flex:none; width:36px; height:36px; border-radius:10px; color:var(--t-brand-ink,#0f766e); background:var(--t-brand-tint,#e3f3f1); }
+.choice[data-on="true"] .choiceIcon { background:#fff; }
+.choiceIcon svg { width:20px; height:20px; }
+.choice strong { display:block; font-size:14px; line-height:20px; font-weight:700; color:var(--ink-900,#0f172a); }
+.choice em { display:block; margin-top:2px; font-style:normal; font-size:13px; line-height:19px; color:var(--ink-600,#475569); }
+.field { max-width:34rem; }
+.quiet { font-size:13px; line-height:19px; color:var(--ink-600,#475569); }
+.failed { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:10px 14px; border:1px solid #fecaca; border-radius:10px; font-size:13px; line-height:19px; color:#991b1b; background:#fef2f2; }
+.failed button { font-size:13px; line-height:19px; font-weight:600; text-decoration:underline; color:inherit; }
+.actions { display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding-top:18px; border-top:1px solid var(--line,#e2e8f0); }
+.actions p { flex:1 1 16rem; min-width:0; }
+.result { padding:10px 14px; border:1px solid; border-radius:10px; font-size:13px; line-height:19px; }
+.result[data-ok="true"] { color:#166534; background:#f0fdf4; border-color:#bbf7d0; }
+.result[data-ok="false"] { color:#991b1b; background:#fef2f2; border-color:#fecaca; }
+.about { min-width:0; padding:16px; border:1px solid var(--line,#e2e8f0); border-radius:12px; background:var(--surface-soft,#f8fafc); }
+.about ul { display:flex; flex-direction:column; gap:10px; margin:10px 0 0; padding:0; list-style:none; }
+.about li { display:flex; align-items:flex-start; gap:10px; font-size:13px; line-height:19px; color:var(--ink-700,#334155); }
+.about li svg { flex:none; width:18px; height:18px; margin-top:1px; color:var(--t-brand-solid,#0d9488); }
+.about li b { font-weight:600; color:var(--ink-900,#0f172a); }
+@media (max-width:959.98px) { .page { grid-template-columns:minmax(0,1fr); } }
+@media (max-width:539.98px) { .choices { grid-template-columns:minmax(0,1fr); } }

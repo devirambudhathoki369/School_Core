@@ -1,0 +1,39 @@
+## App-name: account
+> Handles accounts management and authentications
+
+* User Roles
+    - See `auth/UserRole.py`
+    - App Admin - `default django superuser`
+    - Super Admin - `created from command line for specific tasks like school creation, etc.`
+    - Admin - `School accounts`
+    - Staff - `School staff accounts, has  subroles which can be created from superadmin`
+    - Student - `School student accounts, created from mobile app only`
+
+* Models
+    - Account - `models.py`
+    - AuthToken- `auth/AuthToken.py`
+
+* Views
+    - `auth/Authentication.py` - handles authentication, uses BaseTokenAuthentication.
+    - `auth/context.py` - uses contextvars for client for every request.
+    - `auth/OTP.py` - OTP services using `pyoyp`.
+
+* Urls
+    - /signin
+    - /change_password
+    - /profile
+    - /account_update
+    - /obtain - `validate token from cookie/header`
+    - /superadmins
+    - /\<role\>/register
+    - /otp/verify
+    - /otp/resend
+    - /logout
+
+* Note:
+    - otp, sms_api, app_device_token, etc. stored in account.
+    - Token obtained from cookie/header.
+
+* `TODO:`
+    - Implement robust RBAC.
+    - 

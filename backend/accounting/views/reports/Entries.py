@@ -1,0 +1,4 @@
+class ENTRIES:
+    INCOME_ENTRY = 1
+    EXPENSE_ENTRY = 2
+    JOURNAL_ENTRY = 3

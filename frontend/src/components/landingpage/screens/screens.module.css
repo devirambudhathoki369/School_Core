@@ -1,0 +1,931 @@
+/* The inner pages: Features, Who it is for, Why CentEducation, About and
+   Contact. See site/site.module.css for how these files are written and why
+   every selector starts with `.lp`. */
+
+/* read by a screen reader, not drawn */
+:global(.lp) .srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* ---- Features: the strip that stays in view --------------------------------- */
+
+:global(.lp) .jump {
+    position: sticky;
+    top: var(--bar);
+    z-index: 40;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+}
+
+:global(.lp) .jumpStrip {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+}
+
+:global(.lp) .jumpStrip::-webkit-scrollbar { display: none; }
+
+:global(.lp) .jumpLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    flex: none;
+    padding: 0 14px;
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    color: var(--fg-2);
+    font-size: calc(14px * var(--kd));
+    line-height: 20px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+
+:global(.lp) .jumpLink span {
+    color: var(--fg-3);
+    font-family: var(--f-mono);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+:global(.lp) .jumpLink:hover {
+    border-color: var(--fg);
+    color: var(--fg);
+}
+
+:global(.lp) .jumpLink[aria-current="true"] {
+    border-color: var(--pine);
+    background: var(--pine);
+    color: var(--on-dark);
+}
+
+:global(.lp) .jumpLink[aria-current="true"] span { color: var(--sun); }
+
+/* ---- one module, or one role: words beside its drawing ----------------------- */
+
+:global(.lp) .feature {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 28px;
+    padding: 52px 0;
+    border-top: 1px solid var(--line);
+    /* a section reached from a link stops below the bar and the strip */
+    scroll-margin-top: calc(var(--bar) + var(--strip, 60px));
+}
+
+:global(.lp) .feature:first-child { border-top: 0; }
+:global(.lp) .feature:focus { outline: none; }
+
+:global(.lp) .featureNo {
+    color: var(--accent);
+    font-family: var(--f-mono);
+    font-size: var(--fs-xs);
+    line-height: var(--lh-xs);
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+:global(.lp) .featureNo span { color: var(--fg-3); }
+
+:global(.lp) .featureTitle {
+    margin-top: 10px;
+    color: var(--fg);
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: calc(32px * var(--kd));
+    line-height: calc(36px * var(--kd) * var(--kl));
+    letter-spacing: -0.8px;
+}
+
+:global(.lp) .featureLine {
+    margin: 10px 0 22px;
+    color: var(--fg-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+}
+
+:global(.lp) .featureMore {
+    margin: -8px 0 22px;
+    color: var(--fg-2);
+    font-size: var(--fs-md);
+    line-height: var(--lh-md);
+}
+
+:global(.lp) .featureTag { margin-top: 24px; }
+
+/* the parent's phone, on its sun */
+:global(.lp) .phoneStage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+:global(.lp) .phoneDisc {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 280px;
+    height: 280px;
+    margin: -150px 0 0 -140px;
+    border-radius: 50%;
+    background: var(--sun);
+}
+
+:global(.lp) .phoneOnDisc { position: relative; }
+
+:global(.lp) .phoneNote {
+    position: relative;
+    margin-top: 16px;
+    color: var(--fg-3);
+    font-family: var(--f-mono);
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* ---- a note on pine: a heading, and what follows from it --------------------- */
+
+:global(.lp) .noteGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 28px;
+}
+
+:global(.lp) .noteTitle { margin-top: 14px; }
+:global(.lp) .noteLede { margin-top: 16px; }
+
+:global(.lp) .rows {
+    border-top: 1px solid var(--rule);
+    list-style: none;
+}
+
+:global(.lp) .row {
+    display: flex;
+    gap: 16px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--rule);
+}
+
+:global(.lp) .rowIcon {
+    width: 26px;
+    height: 26px;
+    flex: none;
+    margin-top: 2px;
+    color: var(--accent);
+    stroke-width: 1.7;
+}
+
+:global(.lp) .rowTitle {
+    color: var(--fg);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+    font-weight: 800;
+}
+
+:global(.lp) .rowText {
+    color: var(--fg-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+}
+
+/* ---- Why: the calendar ---------------------------------------------------------- */
+
+:global(.lp) .calendar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: end;
+    gap: 28px;
+}
+
+:global(.lp) .calendarTitle { margin-top: 14px; }
+
+:global(.lp) .calendarLede {
+    max-width: 620px;
+    margin-top: 16px;
+}
+
+:global(.lp) .yearMark {
+    color: var(--teal);
+    font-family: var(--f-deva);
+    font-weight: 700;
+    font-size: 104px;
+    line-height: 104px;
+}
+
+:global(.lp) .yearNote {
+    margin-top: 4px;
+    color: var(--fg-3);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+}
+
+/* the twelve months, as a strip torn from the wall calendar */
+:global(.lp) .months {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 2px solid var(--ink);
+    border-left: 1px solid var(--line-2);
+    list-style: none;
+}
+
+:global(.lp) .month {
+    display: flex;
+    flex-direction: column;
+    min-height: 124px;
+    padding: 10px 10px 12px;
+    border-right: 1px solid var(--line-2);
+    border-bottom: 1px solid var(--line-2);
+}
+
+:global(.lp) .month[data-first] { background: var(--sun-tint); }
+
+:global(.lp) .monthNo {
+    color: var(--fg-3);
+    font-family: var(--f-mono);
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 500;
+}
+
+:global(.lp) .monthNe {
+    margin-top: 10px;
+    color: var(--fg);
+    font-family: var(--f-deva);
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 32px;
+}
+
+:global(.lp) .monthEn {
+    color: var(--fg-2);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 600;
+}
+
+:global(.lp) .monthTag {
+    margin-top: auto;
+    padding-top: 8px;
+    color: var(--sun-ink);
+    font-family: var(--f-mono);
+    font-size: 10px;
+    line-height: 14px;
+    font-weight: 500;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+}
+
+/* ---- three or four things side by side, each under its numeral ---------------- */
+
+:global(.lp) .trio,
+:global(.lp) .start {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+    list-style: none;
+}
+
+:global(.lp) .trioItem,
+:global(.lp) .startStep {
+    padding-top: 22px;
+    border-top: 2px solid var(--ink);
+}
+
+:global(.lp) .numeral {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--sun);
+    color: #0b1f1c;
+    font-family: var(--f-mono);
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 500;
+}
+
+:global(.lp) .trioTitle {
+    margin-top: 18px;
+    color: var(--fg);
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: var(--fs-h3);
+    line-height: var(--lh-h3);
+    letter-spacing: -0.3px;
+}
+
+:global(.lp) .trioText {
+    margin-top: 8px;
+    color: var(--fg-2);
+    font-size: var(--fs-md);
+    line-height: var(--lh-md);
+}
+
+/* ---- Why: on paper, and on CentEducation ---------------------------------------
+   A table, because it is one: each row is a job, read across. On a phone each
+   row stacks, and each cell is given its column's name. */
+
+:global(.lp) .changes {
+    width: 100%;
+    margin-top: 36px;
+    border-top: 2px solid var(--ink);
+    border-collapse: collapse;
+    text-align: left;
+}
+
+:global(.lp) .changes thead { display: none; }
+
+:global(.lp) .changes tr {
+    display: block;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--line-2);
+}
+
+:global(.lp) .changes th,
+:global(.lp) .changes td {
+    display: block;
+    text-align: left;
+}
+
+:global(.lp) .changes tbody th {
+    color: var(--fg);
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: var(--fs-h3);
+    line-height: var(--lh-h3);
+    letter-spacing: -0.3px;
+}
+
+:global(.lp) .changes td {
+    margin-top: 12px;
+    font-size: var(--fs-md);
+    line-height: var(--lh-md);
+}
+
+:global(.lp) .changes td::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--fg-3);
+    font-family: var(--f-mono);
+    font-size: var(--fs-cap);
+    line-height: var(--lh-cap);
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+:global(.lp) .before { color: var(--fg-2); }
+
+:global(.lp) .after {
+    color: var(--fg);
+    font-weight: 600;
+}
+
+:global(.lp) .after svg { display: none; }
+
+/* ---- About ---------------------------------------------------------------------- */
+
+:global(.lp) .story {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 44px;
+}
+
+:global(.lp) .storyTitle { margin-top: 14px; }
+
+:global(.lp) .storyText {
+    max-width: 680px;
+    margin-top: 22px;
+    color: var(--fg-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+}
+
+:global(.lp) .sheet { border-top: 2px solid var(--ink); }
+
+:global(.lp) .sheetRow {
+    display: grid;
+    grid-template-columns: 104px minmax(0, 1fr);
+    gap: 16px;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--line-2);
+}
+
+:global(.lp) .sheetRow dt {
+    padding-top: 4px;
+    color: var(--fg-3);
+    font-family: var(--f-mono);
+    font-size: var(--fs-cap);
+    line-height: var(--lh-cap);
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+:global(.lp) .sheetRow dd {
+    color: var(--fg);
+    font-weight: 700;
+}
+
+:global(.lp) .creed {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+:global(.lp) .creedItem {
+    padding: 26px 0 30px;
+    border-top: 1px solid var(--rule);
+}
+
+:global(.lp) .creedItem:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+:global(.lp) .creedTerm {
+    color: var(--sun);
+    font-family: var(--f-mono);
+    font-size: var(--fs-cap);
+    line-height: var(--lh-cap);
+    font-weight: 500;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+}
+
+:global(.lp) .creedText {
+    margin-top: 14px;
+    color: var(--fg);
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: calc(23px * var(--k));
+    line-height: calc(31px * var(--k) * var(--kl));
+    letter-spacing: -0.2px;
+}
+
+/* ---- Contact -------------------------------------------------------------------- */
+
+:global(.lp) .heroCall {
+    margin-top: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 28px;
+}
+
+:global(.lp) .heroNumber {
+    color: var(--sun);
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: 44px;
+    line-height: 48px;
+    letter-spacing: -0.5px;
+    font-variant-numeric: tabular-nums;
+    text-decoration: none;
+}
+
+:global(.lp) .heroNumber:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+    text-underline-offset: 6px;
+}
+
+:global(.lp) .reach {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 40px;
+}
+
+:global(.lp) .reachTitle { margin-top: 14px; }
+
+:global(.lp) .channels {
+    margin-top: 28px;
+    border-top: 2px solid var(--ink);
+    list-style: none;
+}
+
+:global(.lp) .channel {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) 20px;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 6px;
+    border-bottom: 1px solid var(--line-2);
+    color: var(--fg);
+    text-decoration: none;
+    transition: background-color .15s ease, padding .2s ease;
+}
+
+:global(.lp) .channelIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--pine);
+    color: var(--on-dark);
+}
+
+:global(.lp) .channelIcon svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 1.8;
+}
+
+/* a channel's own mark keeps its own colours, on white */
+:global(.lp) .channelIcon[data-brand] {
+    border: 1px solid var(--line-2);
+    background: #ffffff;
+}
+
+:global(.lp) .channelIcon[data-brand] svg {
+    width: 26px;
+    height: 26px;
+}
+
+:global(.lp) .channelBody { min-width: 0; }
+
+:global(.lp) .channelLabel {
+    display: block;
+    color: var(--fg-3);
+    font-family: var(--f-mono);
+    font-size: var(--fs-cap);
+    line-height: var(--lh-cap);
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+:global(.lp) .channelValue {
+    display: block;
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: calc(22px * var(--k));
+    line-height: calc(28px * var(--k) * var(--kl));
+    letter-spacing: -0.3px;
+    overflow-wrap: anywhere;
+}
+
+:global(.lp) .channelHint {
+    display: block;
+    color: var(--fg-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+}
+
+:global(.lp) .channelArrow {
+    width: 20px;
+    height: 20px;
+    color: var(--fg-3);
+    stroke-width: 2;
+}
+
+:global(.lp) .office {
+    padding: 28px;
+    border-radius: 22px;
+    background: var(--pine);
+}
+
+:global(.lp) .officeLabel {
+    color: var(--sun);
+    font-family: var(--f-mono);
+    font-size: var(--fs-cap);
+    line-height: var(--lh-cap);
+    font-weight: 500;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+}
+
+:global(.lp) .officeName {
+    margin-top: 12px;
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: var(--fs-h3);
+    line-height: var(--lh-h3);
+    letter-spacing: -0.3px;
+}
+
+:global(.lp) .officeRows {
+    margin-top: 20px;
+    border-top: 1px solid var(--rule);
+    list-style: none;
+}
+
+:global(.lp) .officeRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--rule);
+    color: var(--fg-2);
+}
+
+:global(.lp) .officeRow:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+:global(.lp) .officeRow svg {
+    width: 22px;
+    height: 22px;
+    flex: none;
+    margin-top: 2px;
+    color: var(--sun);
+    stroke-width: 1.8;
+}
+
+:global(.lp) .existing {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 32px;
+}
+
+:global(.lp) .existingLede {
+    max-width: 460px;
+    margin-top: 16px;
+}
+
+:global(.lp) .doors {
+    border-top: 2px solid var(--ink);
+    list-style: none;
+}
+
+:global(.lp) .door {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 6px;
+    border-bottom: 1px solid var(--line-2);
+    color: var(--fg);
+    text-decoration: none;
+    transition: background-color .15s ease, padding .2s ease;
+}
+
+:global(.lp) .doorName {
+    display: block;
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: calc(21px * var(--k));
+    line-height: calc(26px * var(--k) * var(--kl));
+    letter-spacing: -0.3px;
+}
+
+:global(.lp) .doorHint {
+    display: block;
+    color: var(--fg-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+}
+
+:global(.lp) .door svg {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    color: var(--fg-3);
+    stroke-width: 2;
+    transition: transform .2s ease;
+}
+
+@media (hover: hover) {
+    :global(.lp) .channel:hover,
+    :global(.lp) .door:hover {
+        padding-left: 16px;
+        background: var(--card);
+    }
+
+    :global(.lp) .door:hover svg { transform: translateX(4px); }
+}
+
+:global(.lp) .faq {
+    max-width: 880px;
+    margin-top: 36px;
+    border-top: 2px solid var(--ink);
+}
+
+:global(.lp) .faqItem { border-bottom: 1px solid var(--line-2); }
+
+:global(.lp) .faqQuestion {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px 6px;
+    color: var(--fg);
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: calc(20px * var(--k));
+    line-height: calc(28px * var(--k) * var(--kl));
+    letter-spacing: -0.2px;
+    list-style: none;
+    cursor: pointer;
+}
+
+:global(.lp) .faqQuestion::-webkit-details-marker { display: none; }
+
+:global(.lp) .faqSign {
+    width: 24px;
+    height: 24px;
+    flex: none;
+    margin-top: 2px;
+    color: var(--accent);
+    stroke-width: 2;
+    transition: transform .2s ease;
+}
+
+:global(.lp) .faqItem[open] .faqSign { transform: rotate(45deg); }
+
+:global(.lp) .faqAnswer {
+    max-width: 720px;
+    padding: 0 6px 24px;
+    color: var(--fg-2);
+    font-size: var(--fs-md);
+    line-height: var(--lh-md);
+}
+
+/* ---- from a large phone up ------------------------------------------------------ */
+
+@media (min-width: 400px) {
+    :global(.lp) .phoneDisc {
+        width: 340px;
+        height: 340px;
+        margin: -180px 0 0 -170px;
+    }
+}
+
+@media (min-width: 640px) {
+    :global(.lp) .months { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    :global(.lp) .start { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    :global(.lp) .heroNumber {
+        font-size: 60px;
+        line-height: 64px;
+    }
+
+    :global(.lp) .yearMark {
+        font-size: 148px;
+        line-height: 148px;
+    }
+}
+
+@media (min-width: 820px) {
+    :global(.lp) .featureTitle {
+        font-size: calc(40px * var(--kd));
+        line-height: calc(44px * var(--kd) * var(--kl));
+    }
+
+    :global(.lp) .trio { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    :global(.lp) .creed { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    :global(.lp) .creedItem,
+    :global(.lp) .creedItem:first-child {
+        padding: 4px 32px 8px;
+        border-top: 0;
+        border-left: 1px solid var(--rule);
+    }
+
+    :global(.lp) .creedItem:first-child {
+        padding-left: 0;
+        border-left: 0;
+    }
+
+    /* the table opens out: one job to a row, read across */
+    :global(.lp) .changes thead { display: table-header-group; }
+    :global(.lp) .changes tr { display: table-row; }
+
+    :global(.lp) .changes th,
+    :global(.lp) .changes td {
+        display: table-cell;
+        padding: 20px 28px 20px 0;
+        border-bottom: 1px solid var(--line-2);
+        vertical-align: top;
+    }
+
+    :global(.lp) .changes thead th {
+        padding: 14px 28px 14px 0;
+        color: var(--fg-3);
+        font-family: var(--f-mono);
+        font-size: var(--fs-cap);
+        line-height: var(--lh-cap);
+        font-weight: 500;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+    }
+
+    :global(.lp) .changes tbody th { width: 220px; }
+    :global(.lp) .changes td { margin-top: 0; }
+    :global(.lp) .changes td::before { display: none; }
+
+    :global(.lp) .afterIn {
+        display: flex;
+        gap: 12px;
+    }
+
+    :global(.lp) .after svg {
+        display: block;
+        width: 20px;
+        height: 20px;
+        flex: none;
+        margin-top: 4px;
+        color: var(--accent);
+        stroke-width: 2.6;
+    }
+}
+
+@media (min-width: 960px) {
+    :global(.lp) .feature {
+        grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+        gap: 72px;
+        padding: 84px 0;
+    }
+
+    /* the drawing changes sides from one to the next */
+    :global(.lp) .feature:nth-child(even) .featureText { order: 2; }
+
+    :global(.lp) .noteGrid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 72px;
+    }
+
+    :global(.lp) .calendar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 64px;
+    }
+
+    :global(.lp) .calendarYear { text-align: right; }
+
+    :global(.lp) .story {
+        grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+        gap: 72px;
+    }
+
+    :global(.lp) .reach {
+        grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+        gap: 64px;
+    }
+
+    :global(.lp) .office { margin-top: 62px; }
+
+    :global(.lp) .existing {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 72px;
+    }
+
+    :global(.lp) .phoneDisc {
+        width: 400px;
+        height: 400px;
+        margin: -210px 0 0 -200px;
+    }
+}
+
+/* From a laptop up the strip of modules stops sliding and wraps instead. A
+   row that slides sideways is made for a finger: with a mouse and no scrollbar
+   the last four modules could not be reached from it at all, at any width. The
+   links are drawn a size smaller here so two rows cost little more height than
+   the one row did. */
+@media (min-width: 1080px) {
+    :global(.lp) .jumpStrip {
+        flex-wrap: wrap;
+        overflow-x: visible;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    :global(.lp) .jumpLink {
+        min-height: 32px;
+        gap: 6px;
+        padding: 0 11px;
+        font-size: calc(13px * var(--kd));
+    }
+
+    /* two rows of links: 8 + 32 + 6 + 32 + 8 */
+    :global(.lp) .feature { --strip: 86px; }
+}
+
+@media (min-width: 1080px) {
+    :global(.lp) .months { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+    :global(.lp) .start { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

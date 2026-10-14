@@ -1,0 +1,11 @@
+# package --> nepali_datetime_field
+
+
+# modified function to return string-time
+import nepali_datetime
+
+
+def from_db_value(self, value, expression, connection):
+    if value is None or value == "":
+        return value
+    return nepali_datetime.date.strftime(value, "%Y-%m-%d")

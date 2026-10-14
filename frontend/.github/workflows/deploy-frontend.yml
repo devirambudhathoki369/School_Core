@@ -1,0 +1,73 @@
+name: Build & Deploy Frontend
+
+# Auto-deploys on every push to main (and a manual button via workflow_dispatch).
+# Runs on the canonical repo centit37/smsys, where the VPS_* secrets live —
+# push there to deploy.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-frontend
+  cancel-in-progress: false   # never interrupt a deploy mid-flight
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      # unique, slash-free release dir name on the VPS
+      RELEASE_ID: ${{ github.sha }}-${{ github.run_id }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node (pinned to the VPS's version for build/runtime parity)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.20.2
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (standalone)
+        run: npm run build
+        env:
+          NODE_ENV: production
+          # NEXT_PUBLIC_* values come from the committed .env.production
+
+      - name: Assemble self-contained bundle
+        # `output: standalone` does not copy these in — they must sit next to server.js
+        run: |
+          cp -r public .next/standalone/public
+          cp -r .next/static .next/standalone/.next/static
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Ship release to VPS
+        # rsync into a FRESH release dir (never over the live one). --delete is safe
+        # here because the target starts empty.
+        run: |
+          REMOTE="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          DIR="${{ secrets.VPS_FRONTEND_DIR }}"
+          ssh -i ~/.ssh/id_deploy "$REMOTE" "mkdir -p '$DIR/releases/${RELEASE_ID}'"
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/id_deploy" \
+            .next/standalone/ \
+            "$REMOTE:$DIR/releases/${RELEASE_ID}/"
+          scp -i ~/.ssh/id_deploy deploy/activate-release.sh "$REMOTE:$DIR/activate-release.sh"
+
+      - name: Activate & verify (auto-rollback on failure)
+        # Swaps the `current` symlink, restarts the service, health-checks
+        # /api/hello, and rolls back to the previous release if it fails.
+        run: |
+          REMOTE="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          DIR="${{ secrets.VPS_FRONTEND_DIR }}"
+          ssh -i ~/.ssh/id_deploy "$REMOTE" \
+            "FRONTEND_DIR='$DIR' bash '$DIR/activate-release.sh' '${RELEASE_ID}'"

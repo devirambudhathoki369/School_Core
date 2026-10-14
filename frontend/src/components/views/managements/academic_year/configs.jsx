@@ -1,0 +1,1 @@
+export const ACADEMIC_YEAR_CLOSING_KEY = "academic_year_close";
