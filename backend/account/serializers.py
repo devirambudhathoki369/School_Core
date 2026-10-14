@@ -55,6 +55,30 @@ class StaffAccountSerializer(serializers.ModelSerializer, AppCredsSerializer):
                 return staff_acc
 
 
+def contact_on_file(student, contact):
+    """
+    Is `contact` a number the school already holds for this student?
+
+    Self-registration and OTP resend are unauthenticated, and both used to send
+    the verification code to whatever number the caller typed. That made the
+    OTP prove nothing: anyone could register an account for ANY student id
+    (the ids are sequential), receive the code on their own phone, verify, and
+    sign in as that child — and the registration re-linked the student to the
+    new account, cutting off the real one. The code now only ever goes to a
+    number on the student's record: the same two numbers the registration
+    screen's search-by-contact matches on.
+    """
+    contact = str(contact or "").strip()
+    if not contact or student is None:
+        return False
+    on_file = {
+        str(student.contact or "").strip(),
+        str(getattr(student.guardian_info, "guardian_contact", "") or "").strip(),
+    }
+    on_file.discard("")
+    return contact in on_file
+
+
 class StudentAccountSerializer(
     serializers.ModelSerializer, AppCredsSerializer, BaseOTP
 ):
@@ -67,6 +91,25 @@ class StudentAccountSerializer(
         model = StudentAccount
         fields = "__all__"
         extra_kwargs = {"password": {"write_only": True}}
+        # Server-owned. `fields = "__all__"` let the registering client set
+        # them — `verified: true`, its own OTP `secret`, a backdated
+        # `created_at` to dodge expiry.
+        read_only_fields = (
+            "verified",
+            "secret",
+            "otp",
+            "last_login",
+            "created_at",
+            "deletion_requested_at",
+        )
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if not contact_on_file(attrs.get("student"), attrs.get("contact")):
+            raise serializers.ValidationError(
+                {"contact": "This number is not on the student's record."}
+            )
+        return attrs
 
     def create(self, validated_data):
         student = validated_data.pop("student")

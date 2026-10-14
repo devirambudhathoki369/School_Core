@@ -35,6 +35,7 @@ from .serializers import (
     AccountDeletionPayloadSerializer,
     OTPVerificationPayloadSerializer,
     OTPResendParamsSerializer,
+    contact_on_file,
 )
 from .auth.AuthToken import (
     SuperAdminAuthToken,
@@ -596,6 +597,30 @@ class SuperAdminListView(APIView):
 
 
 #
+OTP_MAX_FAILURES = 5
+
+
+def _otp_key(username):
+    return f"otp-fail:{(username or '').strip().lower()}"
+
+
+def _otp_failures(username):
+    return cache.get(_otp_key(username)) or 0
+
+
+def _otp_record_failure(username):
+    key = _otp_key(username)
+    cache.add(key, 0, 60 * 60)
+    try:
+        cache.incr(key)
+    except ValueError:
+        cache.set(key, 1, 60 * 60)
+
+
+def _otp_clear_failures(username):
+    cache.delete(_otp_key(username))
+
+
 class OTPVerificationView(APIView, BaseOTP):
     @swagger_auto_schema(
         operation_id="auth_otp_verification",
@@ -607,20 +632,34 @@ class OTPVerificationView(APIView, BaseOTP):
         """
         username = request.data.get("username")
         otp = request.data.get("otp")
-        user = StudentAccount.objects.get(username=username, verified=False)
-        if user:
+        user = StudentAccount.objects.filter(username=username, verified=False).first()
+        if user and user.secret:
             isExpired = self.isOTPExpired(user)
             if isExpired:
                 return Response(
                     {"message": "OTP has expired!"}, status=status.HTTP_400_BAD_REQUEST
+                )
+            # A 6-digit code with unlimited guesses falls to a script in minutes,
+            # and the code is what proves the caller holds the student's phone.
+            # Too many misses burn the code: the holder asks for a fresh one.
+            if _otp_failures(username) >= OTP_MAX_FAILURES:
+                user.otp = None
+                user.secret = None
+                user.save(update_fields=["otp", "secret"])
+                _otp_clear_failures(username)
+                return Response(
+                    {"message": "Too many attempts. Please request a new OTP."},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
             if self.verifyOTP(user, otp):
                 user.verified = True
                 user.otp = None
                 user.secret = None
                 user.save()
+                _otp_clear_failures(username)
                 return Response({"message": "Verified!"}, status=status.HTTP_200_OK)
             else:
+                _otp_record_failure(username)
                 return Response(
                     {"message": "Verification failed!"},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -644,16 +683,17 @@ class OTPView(APIView, BaseOTP):
         contact = request.query_params.get("contact")
         if username and contact:
             try:
-                student = (
-                    Student.objects.select_related("class_info__school", "account")
-                    .only("class_info__school", "account")
-                    .get(account__username=username)
-                )
-                if student:
+                student = Student.objects.select_related(
+                    "class_info__school", "account", "guardian_info"
+                ).get(account__username=username)
+                # the code goes only to a number the school holds for this
+                # student — see account.serializers.contact_on_file
+                if student and contact_on_file(student, contact):
                     school_sms_api_key = extractSchoolSMSAPIKey(
                         student.class_info.school.id
                     )
                     if school_sms_api_key:
+                        _otp_clear_failures(username)
                         otp, secret = self.generateOTP()
                         user = student.account
                         user.secret = secret
