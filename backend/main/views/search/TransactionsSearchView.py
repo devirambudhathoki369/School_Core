@@ -1,3 +1,5 @@
+import re
+
 from django.contrib.contenttypes.models import ContentType
 from account.models import StaffAccount
 from extra_billing.models.Billing import ExtraInvoice
@@ -188,7 +190,12 @@ class TransactionsSearchView(BaseSearchView):
                 return [None, None, None, {}]
         # title
         title = data.pop("title", None)  # expects 1-n or id
-        if title:
+        if title not in (None, ""):
+            # A fee-title key is a short id or code — never free text.
+            if not isinstance(title, (str, int)) or not re.fullmatch(
+                r"[A-Za-z0-9_:-]{1,64}", str(title)
+            ):
+                return [None, None, None, {}]
             q &= Q(details__has_key=str(title))
         # print(q)
         return [q, school_id, title, historical_class_map]
@@ -339,8 +346,13 @@ class TransactionsSearchView(BaseSearchView):
             invoice_details=Case(
                 When(
                     Q(details__has_key=str(title), isCashReceipt=False),
+                    # `title` is the client's, straight from the request body.
+                    # It used to be pasted into the SQL text with an f-string,
+                    # which let any staff login run arbitrary SQL against the
+                    # whole database. Bound parameters only.
                     then=RawSQL(
-                        f"JSONB_BUILD_OBJECT('{title}', details -> '{title}')", []
+                        "JSONB_BUILD_OBJECT(%s::text, details -> %s::text)",
+                        (str(title), str(title)),
                     ),
                 ),
                 default=F("details"),
