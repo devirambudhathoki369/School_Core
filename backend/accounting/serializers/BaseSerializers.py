@@ -34,6 +34,7 @@ class BaseEntrySerializer(serializers.ModelSerializer):
             instance, "economic_year", None
         )
         school = attrs.get("school") or getattr(instance, "school", None)
+        self.validate_ledgers_belong_to_school(attrs, school)
 
         if not economic_year:
             return attrs
@@ -47,6 +48,44 @@ class BaseEntrySerializer(serializers.ModelSerializer):
                 {"economic_year": "This fiscal year is closed and cannot accept vouchers."}
             )
         return attrs
+
+    def validate_ledgers_belong_to_school(self, attrs, school):
+        """
+        Every ledger a voucher touches must be its own school's.
+
+        Ledger ids arrive from the client (the major `ledger` and each
+        particular's `ledger`) and were never checked, so a school could post
+        a voucher into ANOTHER school's ledgers — and that school's ledger
+        report, trial balance and balance sheet would carry it.
+        """
+        if not school:
+            return
+        from ..models.AccountingLedger import AccountingLedger
+
+        ledger_ids = set()
+        major = attrs.get("ledger")
+        if major is not None:
+            ledger_ids.add(getattr(major, "id", major))
+        for row in attrs.get("particulars") or []:
+            if not isinstance(row, dict):
+                raise serializers.ValidationError(
+                    {"particulars": "Invalid particular."}
+                )
+            if row.get("ledger") not in (None, ""):
+                ledger_ids.add(row.get("ledger"))
+        if not ledger_ids:
+            return
+        try:
+            ledger_ids = {int(i) for i in ledger_ids}
+        except (TypeError, ValueError):
+            raise serializers.ValidationError({"particulars": "Invalid ledger."})
+        owned = AccountingLedger.objects.filter(
+            id__in=ledger_ids, school=school
+        ).count()
+        if owned != len(ledger_ids):
+            raise serializers.ValidationError(
+                {"ledger": "The ledger does not belong to this school."}
+            )
 
     # def get_voucher_id(self, obj):
     #     return obj.voucher_id
