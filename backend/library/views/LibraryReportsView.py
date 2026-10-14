@@ -64,6 +64,8 @@ class LibraryReportsView(SecuredAPIView):
     """
 
     authentication_classes = (AdminTokenAuthentication, StaffTokenAuthentication)
+    # reports cover guest schools' borrowers too (see guest_school_ids)
+    allow_other_school_people = True
 
     def get(self, request):
         school_id = request.query_params.get("school")

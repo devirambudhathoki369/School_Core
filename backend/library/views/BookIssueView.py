@@ -29,6 +29,8 @@ class BookIssueCursorPagination(CursorPagination):
 
 class BookIssueView(SecuredAPIView):
     authentication_classes = (AdminTokenAuthentication, StaffTokenAuthentication)
+    # borrowers may be a guest school's students/staff (see guest_school_ids)
+    allow_other_school_people = True
 
     def get(self, request):
         school_id = request.query_params.get("school")

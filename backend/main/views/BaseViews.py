@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework import permissions
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
@@ -86,6 +87,10 @@ class SecuredAPIView(APIView):
     # Handler names ("post", "put", ...) a STUDENT token may call that change
     # something. Empty by default — see enforce_student_boundary.
     student_write_methods = ()
+    # Library views serve guest schools' borrowers as well (LibraryGuestSchool,
+    # scoped by library.methods.guestSchools), so the students and staff they
+    # name may belong to another school by design.
+    allow_other_school_people = False
     # authentication_classes=()
     RESPONSE__INVALID_REQUEST = Response(
         {"message": "Invalid request!"}, status=status.HTTP_400_BAD_REQUEST
@@ -112,6 +117,66 @@ class SecuredAPIView(APIView):
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
         self.enforce_student_boundary(request)
+        self.enforce_named_records_scope(request)
+
+    @staticmethod
+    def _named_ids(request, key):
+        """Integer ids the request names under `key` (query string or body)."""
+        values = [request.query_params.get(key)]
+        values += request.query_params.getlist(f"{key}[]")
+        data = request.data
+        if hasattr(data, "get"):
+            body = data.get(key)
+            values += body if isinstance(body, (list, tuple)) else [body]
+        ids = set()
+        for value in values:
+            if isinstance(value, bool):
+                continue
+            if isinstance(value, int) or (
+                isinstance(value, str) and value.strip().isdigit()
+            ):
+                ids.add(int(value))
+        return ids
+
+    def enforce_named_records_scope(self, request):
+        """
+        The class, student and staff ids a request names must be the caller's
+        own school's.
+
+        The authenticator proves the caller owns the `school` a request names —
+        but most handlers then act on a `class_info`, `student` or `staff` id
+        without re-checking it against that school, and many name no school at
+        all. A staff login could read or rewrite another school's timetable,
+        exam schedule, marks, fees or pupils by sending that school's ids. This
+        closes the gap once, for every handler, on the three ids nearly all of
+        them take. Superadmin/superuser tokens are not bound to a school.
+        """
+        schools = caller_school_ids(request)
+        if schools is None:
+            return
+        checks = [("class_info", ClassInfo, "school__in")]
+        if not self.allow_other_school_people:
+            checks += [
+                ("student", Student, "class_info__school__in"),
+                ("staff", Staff, "school__in"),
+            ]
+        for key, Model, school_lookup in checks:
+            ids = self._named_ids(request, key)
+            if ids and (
+                Model.objects.filter(id__in=ids)
+                .exclude(**{school_lookup: schools})
+                .exists()
+            ):
+                security_logger.warning(
+                    "school-scope refused: %s %s by %s named %s %s",
+                    request.method,
+                    request.path,
+                    getattr(request.user, "username", "?"),
+                    key,
+                    sorted(ids),
+                )
+                if getattr(settings, "ENFORCE_SCHOOL_SCOPE", True):
+                    raise PermissionDenied("Not permitted for this school.")
 
     def enforce_student_boundary(self, request):
         """
