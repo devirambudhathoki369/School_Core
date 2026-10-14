@@ -123,7 +123,10 @@ class CalendarEventView(SecuredAPIView):
     def delete(self, request):
         id = request.query_params.get("id")
         if id:
-            instance = CalendarEvent.objects.get(id=id)
+            # by id alone, any school could delete any other school's events
+            instance = self.scope_to_caller(
+                CalendarEvent.objects.filter(id=id), request
+            ).first()
             if instance:
                 instance.is_active = False
                 instance.save()

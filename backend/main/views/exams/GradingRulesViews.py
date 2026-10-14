@@ -49,7 +49,10 @@ class GradingRulesView(SecuredAPIView):
     def put(self, request):
         id = request.data.get("id")
         if id:
-            rule = GradingRules.objects.get(id=id)
+            # by id alone, any school could rewrite another school's grading
+            rule = self.scope_to_caller(
+                GradingRules.objects.filter(id=id), request
+            ).first()
             if rule:
                 s = GradingRulesSerializer(
                     instance=rule, data=request.data, partial=True

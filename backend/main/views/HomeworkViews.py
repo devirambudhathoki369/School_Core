@@ -101,7 +101,9 @@ class HomeworkView(SecuredAPIView):
             )
         id = request.query_params.get("id")
         if id:
-            Homework.objects.filter(id=id).update(is_active=False)
+            self.scope_to_caller(Homework.objects.filter(id=id), request).update(
+                is_active=False
+            )
             return Response({"message": "Homework closed!"})
         return self.RESPONSE__INVALID_REQUEST
 
@@ -135,7 +137,9 @@ class HomeworkSubmissionView(SecuredAPIView):
             if status:
                 q &= Q(status=status)
             submissions = (
-                HomeworkSubmission.objects.filter(q)
+                self.scope_to_caller(
+                    HomeworkSubmission.objects.filter(q), request, "homework__school"
+                )
                 .annotate(
                     student_name=Concat(
                         "student__first_name",
@@ -188,6 +192,8 @@ class HomeworkSubmissionView(SecuredAPIView):
         remarks = request.data.get("remarks") or None
         if id:
             update = {"status": status, "remarks": remarks}
-            HomeworkSubmission.objects.filter(id=id).update(**update)
+            self.scope_to_caller(
+                HomeworkSubmission.objects.filter(id=id), request, "homework__school"
+            ).update(**update)
             return Response({"message": "Submission updated!"})
         return self.RESPONSE__INVALID_REQUEST

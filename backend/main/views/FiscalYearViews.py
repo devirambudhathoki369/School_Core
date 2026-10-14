@@ -273,7 +273,11 @@ class AcademicYearMappingView(SecuredAPIView):
     def put(self, request):
         id = request.data.get("id")
         if id:
-            ins = AcademicYearMapping.objects.get(id=id)
+            # by id alone, any school could re-point another school's classes
+            # to a different academic year
+            ins = self.scope_to_caller(
+                AcademicYearMapping.objects.filter(id=id), request
+            ).first()
             if ins:
                 s = AcademicYearMappingSerializer(ins, data=request.data, partial=True)
                 if s.is_valid():

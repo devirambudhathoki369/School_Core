@@ -79,7 +79,9 @@ class BaseEntryView:
         entry_id = request.query_params.get("entry")
         if school_id:
             if entry_id:
-                voucher = self.getVoucher(entry_id)
+                # `school` is validated by the authenticator; the entry id was
+                # not tied to it, so any school could read any voucher.
+                voucher = self.getVoucher(entry_id, school_id)
                 return Response(voucher)
             else:
                 # deleted (is_active=False) vouchers stay visible in the list —
@@ -145,11 +147,13 @@ class BaseEntryView:
         )
         return Subquery(particulars_query)
 
-    def getVoucher(self, voucher_id):
+    def getVoucher(self, voucher_id, school_id=None):
         # no is_active filter: deleted vouchers stay viewable/reprintable
         # (the client blocks editing them; delete reason lives in remarks)
         RETURN_FIELDS = self.RETURN_FIELDS + ("is_active",)
         entry = self.EntryModel.objects.filter(id=voucher_id)
+        if school_id is not None:
+            entry = entry.filter(school=school_id)
         entry = entry.annotate(
             particulars=self.getParticularsQuery(),
             accountant=accountant_sq(self.EntryModel),
