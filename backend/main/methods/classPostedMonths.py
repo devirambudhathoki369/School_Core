@@ -1,6 +1,7 @@
 from ..models.ClassInfo import ClassInfo
 from ..models.Ledger import LedgerPosting
 from .carriedOverPostings import carriedOverPostings
+from .getCreateClass import class_info_keys_are_safe
 
 
 def classPostedMonths(class_ids, academic_year_id=None):
@@ -28,7 +29,7 @@ def classPostedMonths(class_ids, academic_year_id=None):
 def findClass(class_info_data):
     """The existing ClassInfo row a class-wide posting payload points at, or
     None. Same lookup as get_or_create_class, without the create."""
-    if not isinstance(class_info_data, dict):
+    if not class_info_keys_are_safe(class_info_data):
         return None
     data = {k: v for k, v in class_info_data.items() if k != "academic_year"}
     for key in ("section", "course"):

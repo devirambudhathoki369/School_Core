@@ -8,8 +8,31 @@ from ..models.SchoolAdmin import SchoolAdmin
 from .academicYear import new_class_academic_year_id
 
 
+def class_info_keys_are_safe(class_info_data):
+    """
+    True when every key of a client-built class dict is a plain ClassInfo field.
+
+    These dicts are unpacked straight into `ClassInfo.objects.filter(**data)` /
+    `.create(**data)`, and a request body is the client's to shape. A key such
+    as `school__account__tokens__key__startswith` is a perfectly valid Django
+    lookup: it walked from a class to ANOTHER school's admin session token, and
+    whether a class matched came back in the response — a yes/no oracle that
+    read secrets out a character at a time. Only the model's own columns are
+    allowed; nothing that traverses a relation.
+    """
+    if not isinstance(class_info_data, dict):
+        return False
+    allowed = set()
+    for field in ClassInfo._meta.concrete_fields:
+        allowed.add(field.name)
+        allowed.add(field.attname)
+    return all(isinstance(key, str) and key in allowed for key in class_info_data)
+
+
 def get_or_create_class(class_info_data):
     created = False
+    if not class_info_keys_are_safe(class_info_data):
+        return None, False
     section = class_info_data.get("section")
     course = class_info_data.get("course")
     school = class_info_data.get("school")
