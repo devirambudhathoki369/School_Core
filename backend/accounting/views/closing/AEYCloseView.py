@@ -49,8 +49,10 @@ class AEYCloseView(SecuredAPIView, AccountingLedgerBalanceQueryMixin):
             check_invalids = request.data.get("check_invalids") or True
             check_invalids = self.getBooleanValue(check_invalids)
             #
+            # the year must be the requesting school's own: by id alone, any
+            # admin could close — and freeze — another school's books
             closing_ey = AccountingEconomicYear.objects.filter(
-                id=acc_ey_id, closed=False
+                id=acc_ey_id, school=school_id, closed=False
             ).first()
             if not closing_ey:
                 return self.RESPONSE__INVALID_REQUEST

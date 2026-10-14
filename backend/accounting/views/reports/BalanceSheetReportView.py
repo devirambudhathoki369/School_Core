@@ -98,7 +98,7 @@ class BalanceSheetReportView(
             # was a balance sheet. The period therefore always begins where the
             # fiscal year does; only the as-at date is the caller's to choose.
             year = (
-                AccountingEconomicYear.objects.filter(id=ecoy_id)
+                AccountingEconomicYear.objects.filter(id=ecoy_id, school=school_id)
                 .values("name", "start_date")
                 .first()
             ) or {}
