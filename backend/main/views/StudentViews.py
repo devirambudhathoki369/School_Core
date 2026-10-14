@@ -314,7 +314,7 @@ class StudentsView(SecuredAPIView, ResultMigrationMixin):
                     _response__ok["images"] = images
                 return Response(_response__ok)
         elif all(key in request.data for key in ["students", "from", "to"]):
-            res = self.promoteClass(request.data)
+            res = self.promoteClass(request.data, request)
             if isinstance(res, Response):
                 return res  # guardrail / validation error with a message
             if res:
@@ -547,12 +547,24 @@ class StudentsView(SecuredAPIView, ResultMigrationMixin):
         else:
             return self.RESPONSE__INVALID_REQUEST
 
-    def promoteClass(self, data):
+    def promoteClass(self, data, request=None):
         RUNNING = 1
         current_status = data.pop("from_status", RUNNING)
         target_status = data.pop("to_status", RUNNING)
         current_class = data.pop("from", None)
         target_class = data.pop("to", None)
+        # Both classes must be the caller's own. They travel as `from`/`to`, so
+        # the generic class_info check never saw them: a school could move
+        # another school's pupils into its own class, or its pupils into theirs.
+        if request is not None and (current_class or target_class):
+            classes = ClassInfo.objects.filter(
+                id__in=[c for c in (current_class, target_class) if c]
+            )
+            if self.scope_to_caller(classes, request).count() != classes.count():
+                return Response(
+                    {"message": "Not permitted for this school."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
         students = data.pop("students", None)
         # `section_change_only` is the operator's override for whether exam
         # results follow. Absent -> auto-detect. It governs RESULTS ONLY: the
