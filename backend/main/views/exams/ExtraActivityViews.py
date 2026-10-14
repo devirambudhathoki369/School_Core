@@ -79,7 +79,9 @@ class ExtraActivityView(SecuredAPIView):
             if school_id:
                 q &= Q(school=school_id)
             #
-            item = ExtraActivity.objects.get(q)
+            # `school` is optional in this payload, so the id alone used to
+            # reach any school's activity
+            item = self.scope_to_caller(ExtraActivity.objects.filter(q), request).first()
             if item:
                 s = ExtraActivitySerializer(item, request.data, partial=True)
                 if s.is_valid():

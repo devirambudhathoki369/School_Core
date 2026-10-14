@@ -38,7 +38,8 @@ class ExamView(SecuredAPIView):
             if acay:
                 q &= Q(academic_year=acay)
                 if id:
-                    q = Q(id=id)
+                    # narrows within the school; it used to replace it
+                    q = Q(id=id, school=school_id)
             #
             RETURN_FIELDS = ("id", "name")
             # if not as_options:

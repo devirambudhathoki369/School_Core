@@ -41,7 +41,11 @@ class ExamScheduleView(SecuredAPIView):
             query = Q(id=id)
         if query:
             data = (
-                ExamSchedule.objects.filter(query, is_active=status)
+                self.scope_to_caller(
+                    ExamSchedule.objects.filter(query, is_active=status),
+                    request,
+                    "class_info__school",
+                )
                 .order_by("-id")
                 .values(
                     "id", "exam", "schedule", "start_time", "end_time", "class_info"
