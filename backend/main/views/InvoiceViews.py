@@ -17,7 +17,7 @@ from account.auth.Authentication import (
 )
 
 #
-from .BaseViews import SecuredAPIView
+from .BaseViews import SecuredAPIView, caller_student_id, is_student_request
 from .sms.SMSTemplateMixin import SMSTemplateMixin
 from .sms import placeholders as PH
 from ..serializers.InvoiceSerializer import StudentInvoiceSerializer
@@ -137,6 +137,10 @@ class InvoiceViews(SecuredAPIView, FeePaidSMSMixin):
         student_id = request.query_params.get("student", None)
         school_id = request.query_params.get("school", None)
         academic_year = request.query_params.get("academic_year")
+        if is_student_request(request):
+            # a student's own receipts only — not another pupil's bill by id,
+            # nor the school's whole payment list
+            student_id = caller_student_id(request)
         if school_id:
             if invoice_id and student_id:
                 """reprint-invoice.jsx

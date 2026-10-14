@@ -47,7 +47,7 @@ from ..serializers.StudentSerializer import (
     StudentOtherInfoSerializer,
     StudentSerializer,
 )
-from .BaseViews import SecuredAPIView
+from .BaseViews import SecuredAPIView, caller_student_id, is_student_request
 from .exams.ResultMigration import ResultMigrationMixin
 from ..methods.getStudentDetail import getClassDetails
 from ..constants.payment import TRANSPORTATION, OPENING_BALANCE, CARRY_FORWARD_OUT
@@ -100,6 +100,10 @@ class StudentsView(SecuredAPIView, ResultMigrationMixin):
         school_id = request.query_params.get("school")
         if school_id:
             student_id = request.query_params.get("student")
+            if is_student_request(request):
+                # a student's own record — never the school's roster (every
+                # pupil's contacts, guardians and birth dates)
+                student_id = caller_student_id(request)
             RUNNING = 1
             if student_id:
                 student = Student.objects.filter(

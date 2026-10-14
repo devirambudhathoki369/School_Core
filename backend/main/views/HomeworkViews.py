@@ -15,7 +15,7 @@ from account.auth.Authentication import (
     StudentTokenAuthentication,
 )
 from account.auth.UserRole import UserRoles
-from .BaseViews import SecuredAPIView
+from .BaseViews import SecuredAPIView, caller_student_id, is_student_request
 from ..models.Homework import Homework, HomeworkSubmission
 from ..methods.push import notify_class_students
 from ..serializers.HomeworkSerializer import (
@@ -136,6 +136,9 @@ class HomeworkSubmissionView(SecuredAPIView):
         if q:
             if status:
                 q &= Q(status=status)
+            if is_student_request(request):
+                # a student sees their own hand-ins, not their classmates'
+                q &= Q(student=caller_student_id(request))
             submissions = (
                 self.scope_to_caller(
                     HomeworkSubmission.objects.filter(q), request, "homework__school"

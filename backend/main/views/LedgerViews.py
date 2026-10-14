@@ -33,7 +33,7 @@ from ..serializers.FeeSerializer import FeeSerializer
 from ..serializers.LedgerSerializer import (
     LedgerPostingSerializer,
 )
-from .BaseViews import SecuredAPIView
+from .BaseViews import SecuredAPIView, caller_student_id, is_student_request
 from ..methods.genClassname import getClassDetails
 from ..methods.push import notify_students
 from ..methods.extractTitleIds import extractTitleIdsFromLedgers
@@ -711,6 +711,18 @@ class LedgerView(SecuredAPIView):
         # different question from "which of this class's postings does this
         # student already have".
         posted_months = request.query_params.get("posted_months") or False
+
+        if is_student_request(request):
+            # A student reads their OWN ledger (and their class's posted
+            # months) — never the school-wide sheets below: every pupil's dues
+            # for a posting, the opening-balance report, month-wise totals.
+            student_id = caller_student_id(request)
+            if reminder and (
+                ledger_posting_id or opening_balance_report or not (class_id and acay)
+            ):
+                return Response(
+                    {"message": "Not permitted."}, status=status.HTTP_403_FORBIDDEN
+                )
 
         if school_id:
             if posted_months:
