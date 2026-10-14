@@ -88,7 +88,11 @@ class DeviceView(SecuredAPIView):
         device_id = request.data.get("id")
         if not device_id:
             return self.RESPONSE__INVALID_REQUEST
-        device = Device.objects.filter(id=device_id).first()
+        # by id alone, any school could rename or re-serial another school's
+        # terminal — and a stolen serial routes that gate's punches here
+        device = self.scope_to_caller(
+            Device.objects.filter(id=device_id), request
+        ).first()
         if not device:
             return self.RESPONSE__INVALID_REQUEST
         payload = {

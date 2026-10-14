@@ -51,7 +51,8 @@ class SyncDeviceUsersView(SecuredAPIView):
         if not device_id:
             return self.RESPONSE__INVALID_REQUEST
 
-        devices = Device.objects.filter(id=device_id)
+        # `school` is optional here, so the device must be the caller's own
+        devices = self.scope_to_caller(Device.objects.filter(id=device_id), request)
         if school_id:
             devices = devices.filter(school_id=school_id)
         device = devices.first()
