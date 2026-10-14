@@ -16,6 +16,7 @@ import sentry_sdk
 
 #
 from main.models.Staff import Staff
+from main.models.Student import Student
 from main.models.SchoolAdmin import SchoolAdmin
 from .context import users_context
 
@@ -41,8 +42,18 @@ class BaseTokenAuthentication(BaseAuthentication):
     keyword = "IGNITE"  # normally [BEARER, TOKEN] are used
     model = None
     role = None
-    # check if school-id is real, if request is from staff/admin
-    SchoolValidationRequiredRoles = (UserRoles.ROLE_STAFF, UserRoles.ROLE_ADMIN)
+    # check if school-id is real, if request is from staff/admin/student.
+    #
+    # Students were left out, so a student token was bound to NO school: the
+    # same `?school=` swap the check below stops for staff worked unchanged for
+    # every student account, across every endpoint that answers student tokens
+    # (rosters, fee ledgers, invoices). A student belongs to exactly one school
+    # — the school of their class — so the rule is just as unambiguous.
+    SchoolValidationRequiredRoles = (
+        UserRoles.ROLE_STAFF,
+        UserRoles.ROLE_ADMIN,
+        UserRoles.ROLE_STUDENT,
+    )
 
     def get_model(self):
         if self.model is not None:
@@ -281,6 +292,10 @@ class BaseTokenAuthentication(BaseAuthentication):
             if self.role == UserRoles.ROLE_STAFF:
                 return Staff.objects.filter(
                     school_id=school_id, account_id=user.pk
+                ).exists()
+            if self.role == UserRoles.ROLE_STUDENT:
+                return Student.objects.filter(
+                    class_info__school_id=school_id, account_id=user.pk
                 ).exists()
         except Exception:
             # Fail CLOSED. A check that cannot be completed is not a check that
