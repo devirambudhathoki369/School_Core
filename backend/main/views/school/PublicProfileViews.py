@@ -5,7 +5,8 @@ from django.db.models.functions import Coalesce
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.throttling import SimpleRateThrottle
+from rest_framework.throttling import SimpleRateThrottle, AnonRateThrottle
+from django.conf import settings
 
 #
 from main.methods.bloodgroupQuery import bloodgroupQuery
@@ -67,8 +68,25 @@ class PublicProfileThrottle(SimpleRateThrottle):
         return None
 
 
+class PublicProfileIPThrottle(AnonRateThrottle):
+    """
+    Per-client cap across ALL profiles.
+
+    The throttle above is keyed on the (org, user) PAIR, so it never slowed
+    anyone walking the ids: each new id is a new pair. With sequential ids that
+    made this unauthenticated endpoint a bulk export of every pupil's photo,
+    birth date, guardian, phone and address. A person scanning ID cards needs
+    a handful an hour; the cap is generous and set from settings.
+    """
+
+    scope = "public_profile_ip"
+
+    def get_rate(self):
+        return getattr(settings, "PUBLIC_PROFILE_RATE", "120/hour")
+
+
 class PublicProfileView(APIView):
-    throttle_classes = (PublicProfileThrottle,)
+    throttle_classes = (PublicProfileThrottle, PublicProfileIPThrottle)
     swagger_schema = None
 
     def get(self, request):
@@ -83,17 +101,20 @@ class PublicProfileView(APIView):
             school_q = Q(id=organization)
             _org = SchoolAdmin.objects.filter(school_q).values(*school_fields).first()
             _user = {}
+            # The person must belong to the organisation the link names — a
+            # card's QR always pairs the two. Looked up by id alone, any `org`
+            # unlocked every school's people.
             if role == Roles["staff"]:
-                _user = self.getStaff(user)
+                _user = self.getStaff(user, organization)
             elif role == Roles["student"]:
-                _user = self.getStudent(user)
+                _user = self.getStudent(user, organization)
             return Response({"org": _org, "user": _user})
         return Response(
             {"message": "Invalid request!"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    def getStudent(self, user_id):
-        student_q = Q(id=user_id)
+    def getStudent(self, user_id, organization):
+        student_q = Q(id=user_id, class_info__school_id=organization)
         _user = (
             Student.objects.filter(student_q)
             .annotate(
@@ -142,8 +163,8 @@ class PublicProfileView(APIView):
             .first()
         )
 
-    def getStaff(self, user_id):
-        staff_q = Q(id=user_id)
+    def getStaff(self, user_id, organization):
+        staff_q = Q(id=user_id, school_id=organization)
         _user = (
             Staff.objects.filter(staff_q)
             .annotate(
