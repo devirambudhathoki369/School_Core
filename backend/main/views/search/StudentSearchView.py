@@ -278,8 +278,27 @@ class StudentSearchView(BaseSearchView, StudentSearchByAcademicYearMixin):
     include_docs = True
     STUDENT_STATUS_RUNNING = 1
 
+    def is_public_contact_lookup(self, request):
+        """
+        The ONE request this view answers without signing in: the app's
+        self-registration lookup, a POST carrying a phone number.
+
+        It used to be `"contact" in request.data` — presence of the KEY — so
+        `{"contact": "", "school": N}` skipped authentication and then, the
+        empty contact being falsy, fell through to the full school search: any
+        school's roster with no token. And because the SMS senders subclass
+        this view, `{"contact": "x", "school": N, "message": ...}` sent a bulk
+        SMS to a whole school's parents on its credits, unauthenticated. Now:
+        this exact view only, and only with an actual number.
+        """
+        if type(self) is not StudentSearchView or request.method != "POST":
+            return False
+        data = request.data
+        contact = data.get("contact") if hasattr(data, "get") else None
+        return isinstance(contact, str) and bool(contact.strip())
+
     def initial(self, request, *args, **kwargs):
-        if request.method == "POST" and "contact" in request.data:
+        if self.is_public_contact_lookup(request):
             # The self-registration lookup runs WITHOUT authentication, and
             # returning early here also skipped every throttle: phone number
             # in, children's names, photos and school out, as fast as a script
