@@ -146,8 +146,17 @@ def _clip(text):
     return text
 
 
-def _student_recipients(filters):
-    """(id, device_token) pairs for active, push-reachable students."""
+def _student_recipients(filters, school_id=None):
+    """(id, device_token) pairs for active, push-reachable students.
+
+    Confined to `school_id` when one is given. Student ids and class ids reach
+    these helpers from request bodies, and nothing tied them to the school the
+    push was filed under — a school could put "you were marked absent" or "a
+    fee was posted" on another school's parents' phones by listing their
+    children's ids. Staff recipients were already filtered this way.
+    """
+    if school_id:
+        filters = {**filters, "class_info__school_id": school_id}
     return list(
         Student.objects.filter(
             is_active=True,
@@ -246,7 +255,7 @@ def unsubscribe_student_from_school(account, token):
 
 def notify_class_students(school_id, class_info_id, title, body):
     """Real-time hybrid push to active app-using students of a class."""
-    recipients = _student_recipients({"class_info": class_info_id})
+    recipients = _student_recipients({"class_info": class_info_id}, school_id)
     if recipients:
         dispatch_push_async(
             school_id, RECIPIENT_ROLE_STUDENT, recipients, title, _clip(body),
@@ -265,7 +274,7 @@ def notify_students_checked_in(school_id, student_ids):
     student_ids = list(student_ids or [])
     if not student_ids:
         return
-    recipients = _student_recipients({"id__in": student_ids})
+    recipients = _student_recipients({"id__in": student_ids}, school_id)
     if recipients:
         dispatch_push_async(
             school_id,
@@ -289,7 +298,7 @@ def notify_students_absent(school_id, student_ids):
     student_ids = list(student_ids or [])
     if not student_ids:
         return
-    recipients = _student_recipients({"id__in": student_ids})
+    recipients = _student_recipients({"id__in": student_ids}, school_id)
     if recipients:
         dispatch_push_async(
             school_id,
@@ -337,7 +346,7 @@ def notify_students(school_id, student_ids, title, body, notif_type):
     student_ids = list(dict.fromkeys(student_ids or []))
     if not student_ids:
         return
-    recipients = _student_recipients({"id__in": student_ids})
+    recipients = _student_recipients({"id__in": student_ids}, school_id)
     if recipients:
         dispatch_push_async(
             school_id,
