@@ -55,6 +55,25 @@ export async function __fetchAsOptions(path, params, mappings, headers) {
     }
 }
 
+// A failed sign-in is a failed save too, so its body — username AND password —
+// was being forwarded verbatim to the issues store. Credentials never leave.
+const SECRET_KEY_PATTERN = /pass(word)?|otp|token|secret|sms_api/i;
+
+function redactRequestData(url, data) {
+    if (url.includes("/auth/")) return "[redacted]";
+    if (typeof data !== "string") return data;
+    try {
+        const parsed = JSON.parse(data);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            for (const key of Object.keys(parsed)) {
+                if (SECRET_KEY_PATTERN.test(key)) parsed[key] = "[redacted]";
+            }
+            return JSON.stringify(parsed);
+        }
+    } catch (error) { }
+    return data;
+}
+
 async function forwardToIssues(e, timestamp) {
     // No server response (network error / CORS block / timeout / backend
     // unreachable) means there's nothing to forward — and destructuring the
@@ -64,7 +83,7 @@ async function forwardToIssues(e, timestamp) {
     if (!resp) return;
     const { status, data: error, config } = resp;
     const url = config?.url || "";
-    const requestData = config?.data;
+    const requestData = redactRequestData(url, config?.data);
     // console.log(timestamp, url, status, error, requestData);
     const key = `${url.split('/').join('__')}::${timestamp}`;
     const payload = { date: new Date(timestamp), status, error, requestData };
