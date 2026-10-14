@@ -6,6 +6,7 @@ from rest_framework import serializers
 
 #
 from main.methods.nepaliDatetime import ndt_today
+from main.methods.uploads import reject_active_content
 from ..models.Homework import (
     Homework,
     HomeworkFile,
@@ -25,6 +26,14 @@ class HomeworkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Homework
         fields = "__all__"
+
+    def validate_files(self, files):
+        refused = reject_active_content(files)
+        if refused:
+            raise serializers.ValidationError(
+                f"This file type is not allowed: {', '.join(refused)}"
+            )
+        return files
 
     def create(self, validated_data):
         files = validated_data.pop("files", None)
@@ -74,6 +83,11 @@ class HomeworkSubmissionSerializer(serializers.ModelSerializer):
         hasFiles = len(files) > 0 and files[0] != ""
         if not hasFiles:
             raise serializers.ValidationError("Files must be submitted.")
+        refused = reject_active_content(files)
+        if refused:
+            raise serializers.ValidationError(
+                f"This file type is not allowed: {', '.join(refused)}"
+            )
         return files
 
     def validate(self, attrs):

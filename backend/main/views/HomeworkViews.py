@@ -172,6 +172,14 @@ class HomeworkSubmissionView(SecuredAPIView):
         """
         Once created/submitted, then cannot be deleted!
         """
+        # the homework handed in to must be set by the submitter's own school
+        homework_id = request.data.get("homework")
+        if homework_id and not self.scope_to_caller(
+            Homework.objects.filter(id=homework_id), request
+        ).exists():
+            return Response(
+                {"message": "Not permitted."}, status=status.HTTP_403_FORBIDDEN
+            )
         s = HomeworkSubmissionSerializer(data=request.data)
         if s.is_valid():
             ins = s.save()
