@@ -407,3 +407,17 @@ ENFORCE_SCHOOL_SCOPE = (
 ENFORCE_ORIGIN_CHECK = (
     os.environ.get("ENFORCE_ORIGIN_CHECK", "true").lower() != "false"
 )
+
+# Which client address a rate limit counts against. DRF reads X-Forwarded-For,
+# and with NUM_PROXIES unset it uses the WHOLE header — which the client writes
+# its own first entries of — so every request could claim a fresh address and
+# no per-client limit held. nginx appends the real peer as the last entry, so
+# one proxy hop is the default; set NUM_PROXIES if another proxy is added in
+# front. Only throttles read this (the sign-in lockout is keyed on username).
+REST_FRAMEWORK = {
+    "NUM_PROXIES": int(os.environ.get("NUM_PROXIES", "1") or 0),
+}
+
+# Per-client caps on the two endpoints that answer WITHOUT signing in.
+PUBLIC_PROFILE_RATE = os.environ.get("PUBLIC_PROFILE_RATE") or "120/hour"
+CONTACT_SEARCH_RATE = os.environ.get("CONTACT_SEARCH_RATE") or "60/hour"

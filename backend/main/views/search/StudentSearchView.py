@@ -17,6 +17,8 @@ from django.core.cache import cache
 
 #
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
+from django.conf import settings
 from decimal import Decimal
 from rest_framework import serializers
 from drf_yasg.utils import swagger_auto_schema
@@ -233,6 +235,20 @@ class StudentSearchPayloadSerializer(serializers.Serializer):
     )
 
 
+class ContactSearchThrottle(AnonRateThrottle):
+    scope = "student_contact_search"
+
+    def get_rate(self):
+        return getattr(settings, "CONTACT_SEARCH_RATE", "60/hour")
+
+    def get_cache_key(self, request, view):
+        # counted per client whether or not a session cookie rides along
+        return self.cache_format % {
+            "scope": self.scope,
+            "ident": self.get_ident(request),
+        }
+
+
 class StudentSearchView(BaseSearchView, StudentSearchByAcademicYearMixin):
     authentication_classes = (
         AdminTokenAuthentication,
@@ -264,6 +280,13 @@ class StudentSearchView(BaseSearchView, StudentSearchByAcademicYearMixin):
 
     def initial(self, request, *args, **kwargs):
         if request.method == "POST" and "contact" in request.data:
+            # The self-registration lookup runs WITHOUT authentication, and
+            # returning early here also skipped every throttle: phone number
+            # in, children's names, photos and school out, as fast as a script
+            # could ask. A parent registering asks a few times.
+            throttle = ContactSearchThrottle()
+            if not throttle.allow_request(request, self):
+                self.throttled(request, throttle.wait())
             return
         super().initial(request, *args, **kwargs)
 
