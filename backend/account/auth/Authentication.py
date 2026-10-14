@@ -104,9 +104,11 @@ class BaseTokenAuthentication(BaseAuthentication):
             raise exceptions.AuthenticationFailed(msg)
         #
         school_id = None
+        school_ids = []
         if self.role in self.SchoolValidationRequiredRoles:
             school_id = self.get_school(request)
-        user, auth = self.authenticate_credentials(school_id, token)
+            school_ids = self.get_schools(request)
+        user, auth = self.authenticate_credentials(school_ids, token)
         if user and from_cookie and request.method not in SAFE_METHODS:
             self.enforce_trusted_origin(request, user)
         #
@@ -206,7 +208,58 @@ class BaseTokenAuthentication(BaseAuthentication):
             or (class_info.get("school") if isinstance(class_info, dict) else None)
         )
 
+    # Body keys that name a school, at any depth of a JSON payload.
+    SCHOOL_KEYS = ("school", "school_id")
+    _MAX_BODY_DEPTH = 6
+
+    def get_schools(self, request):
+        """
+        EVERY school the request names — not just the first.
+
+        `get_school` stops at the first value it finds (query string before
+        body), and only that value was checked. Views read whichever place they
+        like, mostly the body, so `?school=<mine>` with a body
+        `{"school": <theirs>}` passed the check while the view acted on theirs:
+        another school's roster, and a bulk SMS to its parents on its credits.
+        Nested payloads (a posting's `class_info.school`, rows in a list) were
+        never looked at at all. Each value found anywhere is now checked.
+        """
+        found = []
+
+        def add(value):
+            values = value if isinstance(value, (list, tuple)) else [value]
+            for v in values:
+                if v not in (None, "") and not isinstance(v, (dict, list)):
+                    if v not in found:
+                        found.append(v)
+
+        params = request.query_params
+        for key in self.SCHOOL_KEYS:
+            add(params.getlist(key))
+
+        def walk(node, depth):
+            if depth > self._MAX_BODY_DEPTH:
+                return
+            if isinstance(node, dict):
+                items = node.lists() if hasattr(node, "lists") else node.items()
+                for key, value in items:
+                    if key in self.SCHOOL_KEYS:
+                        add(value)
+                    if isinstance(value, (dict, list, tuple)):
+                        walk(value, depth + 1)
+            elif isinstance(node, (list, tuple)):
+                for value in node:
+                    if isinstance(value, (dict, list, tuple)):
+                        walk(value, depth + 1)
+
+        walk(request.data, 0)
+        return found
+
     def authenticate_credentials(self, school_id, key):
+        # one school id, or the list get_schools found
+        school_ids = (
+            list(school_id) if isinstance(school_id, (list, tuple)) else [school_id]
+        )
         model = self.get_model()
         try:
             token = model.objects.select_related("user").get(key=key)
@@ -226,7 +279,16 @@ class BaseTokenAuthentication(BaseAuthentication):
         # the token row itself travels as `request.auth`, so a view can tell
         # WHICH of the user's devices is making the call (see the device-token
         # refresh endpoint) instead of only who the user is.
-        if school_id and not self.belongs_to_school(token.user, school_id):
+        refused = next(
+            (
+                sid
+                for sid in school_ids
+                if sid and not self.belongs_to_school(token.user, sid)
+            ),
+            None,
+        )
+        if refused is not None:
+            school_id = refused
             # THE TENANT BOUNDARY.
             #
             # This block used to call `.exists()` and THROW THE RESULT AWAY —
