@@ -411,11 +411,15 @@ ENFORCE_ORIGIN_CHECK = (
 # Which client address a rate limit counts against. DRF reads X-Forwarded-For,
 # and with NUM_PROXIES unset it uses the WHOLE header — which the client writes
 # its own first entries of — so every request could claim a fresh address and
-# no per-client limit held. nginx appends the real peer as the last entry, so
-# one proxy hop is the default; set NUM_PROXIES if another proxy is added in
-# front. Only throttles read this (the sign-in lockout is keyed on username).
+# no per-client limit held. backend.nirsabi.com is Cloudflare-proxied
+# (frontend/deploy/nginx-backend-internal.conf), so the chain is
+# client → Cloudflare → nginx → gunicorn: Cloudflare appends the real client,
+# nginx appends the Cloudflare edge. Two hops, so the client is the
+# second-to-last entry; counting the last one would lump every user behind the
+# same Cloudflare edge into one bucket. Set NUM_PROXIES if the chain changes.
+# Only throttles read this (the sign-in lockout is keyed on username).
 REST_FRAMEWORK = {
-    "NUM_PROXIES": int(os.environ.get("NUM_PROXIES", "1") or 0),
+    "NUM_PROXIES": int(os.environ.get("NUM_PROXIES", "2") or 0),
 }
 
 # Per-client caps on the two endpoints that answer WITHOUT signing in.
