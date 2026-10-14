@@ -36,6 +36,8 @@ class MyAttendanceReportView(SecuredAPIView):
     """
 
     authentication_classes = (StaffTokenAuthentication, StudentTokenAuthentication)
+    # a read of the caller's own attendance that the app sends as POST
+    student_write_methods = ("post",)
     STUDENT_STATUS_RUNNING = 1
 
     def post(self, request):

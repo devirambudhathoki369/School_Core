@@ -115,6 +115,8 @@ class HomeworkSubmissionView(SecuredAPIView):
     parser_classes = (JSONParser, MultiPartParser)
     STATUS_RECEIVED = 1
     include_docs = True
+    # students hand homework in; reviewing it (PUT) stays with the teacher
+    student_write_methods = ("post",)
 
     @swagger_auto_schema(
         tags=["homeworks"],

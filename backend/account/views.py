@@ -942,6 +942,8 @@ class DeviceTokenView(SecuredAPIView):
     )
     allowed_roles = [UserRoles.ROLE_STUDENT, UserRoles.ROLE_STAFF]
     include_docs = True
+    # acts only on the caller's own account
+    student_write_methods = ("post",)
 
     @swagger_auto_schema(
         operation_id="update_device_token",
@@ -1022,6 +1024,8 @@ class AccountDeletionView(SecuredAPIView):
     )
     allowed_roles = [UserRoles.ROLE_STUDENT, UserRoles.ROLE_STAFF]
     include_docs = True
+    # acts only on the caller's own account
+    student_write_methods = ("post",)
 
     @swagger_auto_schema(
         operation_id="delete_account",

@@ -7,8 +7,9 @@ from account.auth.Authentication import (
 )
 
 #
-from ..BaseViews import SecuredAPIView
+from ..BaseViews import SecuredAPIView, caller_student_id
 from ...models.Alerts import BusTrackOnAlertInfo
+from ...models.Staff import Staff
 from ...serializers.alerts.BusAlertSettingsSerializer import (
     BusAlertSettingsSerializer,
     UserRoles,
@@ -22,6 +23,20 @@ TAGS = ["bus-alert-settings"]
 class BusAlertSettingsPostView(SecuredAPIView, UserRoles):
     authentication_classes = (StudentTokenAuthentication, StaffTokenAuthentication)
     include_docs = True
+    # a student saves their own alert settings
+    student_write_methods = ("post",)
+
+    def is_own_record(self, request, role, user_id):
+        """`user_id` is the Student/Staff row whose alert this is, and it comes
+        from the body: without this any account could rewrite anyone's."""
+        if role == self.ROLE_STUDENT:
+            return str(user_id) == str(caller_student_id(request))
+        if role == self.ROLE_STAFF:
+            return Staff.objects.filter(
+                id=user_id if str(user_id).isdigit() else None,
+                account_id=request.user.pk,
+            ).exists()
+        return False
 
     @swagger_auto_schema(
         tags=TAGS,
@@ -35,6 +50,8 @@ class BusAlertSettingsPostView(SecuredAPIView, UserRoles):
         #
         previous_ins = None
         serializer = None
+        if user_id and role and not self.is_own_record(request, role, user_id):
+            return Response({"message": "Not permitted."}, status=403)
         if user_id and role:
             data["role"] = role
             if role == self.ROLE_STUDENT:

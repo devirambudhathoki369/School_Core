@@ -1,6 +1,8 @@
+import logging
+
 from rest_framework.views import APIView
 from rest_framework import permissions
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework import status
@@ -8,12 +10,82 @@ from rest_framework.parsers import JSONParser
 from rest_framework.serializers import BooleanField, ValidationError
 
 #
+from account.auth.AuthToken import (
+    AdminAuthToken,
+    StaffAuthToken,
+    StudentAuthToken,
+)
 from ..models.ClassInfo import ClassInfo
+from ..models.SchoolAdmin import SchoolAdmin
+from ..models.Staff import Staff
+from ..models.Student import Student
 from .fields import CLASS_DETAILS_FIELDS
+
+security_logger = logging.getLogger("django.security")
+
+# Methods that change nothing.
+READ_METHODS = ("GET", "HEAD", "OPTIONS")
+
+
+def caller_school_ids(request):
+    """
+    The schools the signed-in account belongs to, or None when it is not bound
+    to any one school (superadmin / superuser).
+
+    The authenticator only validates a school the request NAMES (`?school=`).
+    A handler that acts on a row by its id alone has to confine the lookup to
+    these schools itself — otherwise any signed-in school reaches any other
+    school's row by changing the id.
+    """
+    cached = getattr(request, "_caller_school_ids", "unset")
+    if cached != "unset":
+        return cached
+    auth = getattr(request, "auth", None)
+    user_pk = getattr(getattr(request, "user", None), "pk", None)
+    if isinstance(auth, AdminAuthToken):
+        ids = set(
+            SchoolAdmin.objects.filter(account_id=user_pk).values_list("id", flat=True)
+        )
+    elif isinstance(auth, StaffAuthToken):
+        ids = set(
+            Staff.objects.filter(account_id=user_pk).values_list("school_id", flat=True)
+        )
+    elif isinstance(auth, StudentAuthToken):
+        ids = set(
+            Student.objects.filter(account_id=user_pk).values_list(
+                "class_info__school_id", flat=True
+            )
+        )
+    else:
+        ids = None
+    request._caller_school_ids = ids
+    return ids
+
+
+def caller_student_id(request):
+    """The Student row behind a student token, else None."""
+    if not isinstance(getattr(request, "auth", None), StudentAuthToken):
+        return None
+    cached = getattr(request, "_caller_student_id", "unset")
+    if cached == "unset":
+        cached = (
+            Student.objects.filter(account_id=request.user.pk)
+            .values_list("id", flat=True)
+            .first()
+        )
+        request._caller_student_id = cached
+    return cached
+
+
+def is_student_request(request):
+    return isinstance(getattr(request, "auth", None), StudentAuthToken)
 
 
 class SecuredAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
+    # Handler names ("post", "put", ...) a STUDENT token may call that change
+    # something. Empty by default — see enforce_student_boundary.
+    student_write_methods = ()
     # authentication_classes=()
     RESPONSE__INVALID_REQUEST = Response(
         {"message": "Invalid request!"}, status=status.HTTP_400_BAD_REQUEST
@@ -36,6 +108,72 @@ class SecuredAPIView(APIView):
         if not include_docs:
             setattr(self, "swagger_schema", None)
         super().__init__(**kwargs)
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        self.enforce_student_boundary(request)
+
+    def enforce_student_boundary(self, request):
+        """
+        What a STUDENT token may do, decided once for every endpoint.
+
+        Student tokens are accepted by two dozen views so the mobile app can
+        READ — and almost none of those views asked who was writing. Any
+        signed-in student (and student accounts are self-registered) could save
+        exam marks, record a fee payment, delete a fee charge, grant a
+        discount, post a school-wide notice, or edit the fee structure, simply
+        by sending the POST/PUT/DELETE the admin screen sends.
+
+        So, for a student token:
+          · a write is refused unless the view lists that handler in
+            `student_write_methods` (homework submission, bus-alert settings,
+            device token, the read-only searches that happen to use POST);
+          · a `student` named anywhere in the request must be the caller's own
+            record — one student never reads or writes another's ledger,
+            invoices, results or profile.
+        """
+        if not is_student_request(request):
+            return
+        handler = request.method.lower()
+        if request.method not in READ_METHODS and handler not in self.student_write_methods:
+            self._refuse_student(request, "write")
+        own = caller_student_id(request)
+        if own is None:
+            self._refuse_student(request, "no student record")
+        named = [request.query_params.get("student")]
+        data = request.data
+        if hasattr(data, "get"):
+            named.append(data.get("student"))
+        for value in named:
+            if isinstance(value, (list, tuple)) and len(value) == 1:
+                value = value[0]
+            if value in (None, ""):
+                continue
+            if str(value).strip() != str(own):
+                self._refuse_student(request, f"student {value!r}")
+
+    def _refuse_student(self, request, reason):
+        security_logger.warning(
+            "student request refused: %s %s by %s (%s)",
+            request.method,
+            request.path,
+            getattr(request.user, "username", "?"),
+            reason,
+        )
+        raise PermissionDenied("Not permitted.")
+
+    def scope_to_caller(self, queryset, request, field="school"):
+        """
+        Confine `queryset` to the caller's own school(s).
+
+        For handlers that look a row up by id: the id is the caller's to
+        choose, so the school has to come from the token, not the request.
+        Superadmin/superuser tokens are not bound to a school and pass through.
+        """
+        schools = caller_school_ids(request)
+        if schools is None:
+            return queryset
+        return queryset.filter(**{f"{field}__in": schools})
 
     def perform_authentication(self, request):
         authentications = []

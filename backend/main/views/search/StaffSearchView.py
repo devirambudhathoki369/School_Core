@@ -26,7 +26,7 @@ from drf_yasg.utils import swagger_auto_schema
 from main.methods.bloodgroupQuery import bloodgroupQuery
 
 #
-from ..BaseViews import BaseSearchView
+from ..BaseViews import BaseSearchView, is_student_request
 from ...models.Staff import Staff
 from ...models.ClassPeriod import ClassPeriod
 from ...models.Ledger import StaffLedger
@@ -44,6 +44,12 @@ class StaffSearchView(BaseSearchView):
         SuperAdminTokenAuthentication,
     )
     include_docs = True
+    # a search, not a write — the app's teacher list sends it as POST
+    student_write_methods = ("post",)
+    # Payroll and identity columns. A student token reaches this search so the
+    # app can list teachers; it must not be able to ask for every teacher's
+    # salary, PF, balance owed, citizenship number and birth date.
+    STAFF_ONLY_FLAGS = ("finance", "include_balance", "id_cards", "include_rfid_card")
 
     STRING_FIELDS = ("first_name", "middle_name", "last_name")
     # `role` only narrows the search when the caller sends it — `query()` skips
@@ -60,6 +66,9 @@ class StaffSearchView(BaseSearchView):
         school_id = request.data.get("school")
         if not school_id:
             return self.RESPONSE__INVALID_REQUEST
+        if is_student_request(request):
+            for flag in self.STAFF_ONLY_FLAGS:
+                request.data.pop(flag, None)
 
         EMPLOYEED = 1
         staff_status = request.data.get("status") or EMPLOYEED
