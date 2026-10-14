@@ -283,6 +283,12 @@ class SMSView(SecuredAPIView, SMSCredits):
         user = request.query_params.get("user")
         include_credits = request.query_params.get("include_credits")
         if user:
+            # only the caller's own account: by id, any school could check
+            # (and spend provider calls on) another school's gateway key
+            if str(user) != str(request.user.pk):
+                return Response(
+                    {"message": "Not permitted."}, status=status.HTTP_403_FORBIDDEN
+                )
             if include_credits:
                 account = AdminAccount.objects.only("sms_api").filter(id=user).first()
                 if account:
