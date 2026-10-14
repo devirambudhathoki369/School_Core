@@ -119,24 +119,89 @@ class SecuredAPIView(APIView):
         self.enforce_student_boundary(request)
         self.enforce_named_records_scope(request)
 
+    # Request keys that name a class / student / staff record, mapped to which.
+    SCOPED_ID_KEYS = {
+        "class_info": "class_info",
+        "class_info_id": "class_info",
+        "student": "student",
+        "student_id": "student",
+        "students": "student",
+        "staff": "staff",
+        "staff_id": "staff",
+    }
+    _MAX_BODY_DEPTH = 6
+
     @staticmethod
-    def _named_ids(request, key):
-        """Integer ids the request names under `key` (query string or body)."""
-        values = [request.query_params.get(key)]
-        values += request.query_params.getlist(f"{key}[]")
-        data = request.data
-        if hasattr(data, "get"):
-            body = data.get(key)
-            values += body if isinstance(body, (list, tuple)) else [body]
-        ids = set()
-        for value in values:
-            if isinstance(value, bool):
-                continue
-            if isinstance(value, int) or (
-                isinstance(value, str) and value.strip().isdigit()
-            ):
-                ids.add(int(value))
-        return ids
+    def as_record_id(value):
+        """
+        The integer id `value` would become in a lookup, or None.
+
+        Matches what Django and DRF accept, not just tidy digit strings: an
+        id sent as `12.0`, "+12", " 12 ", "1_2" or "12.0" is still row 12 to the
+        ORM / an IntegerField, and was slipping past a check that only counted
+        `str.isdigit()`.
+        """
+        if isinstance(value, bool):
+            return None
+        rid = None
+        if isinstance(value, int):
+            rid = value
+        elif isinstance(value, float):
+            rid = int(value) if value.is_integer() else None
+        elif isinstance(value, str):
+            text = value.strip()
+            try:
+                rid = int(text)
+            except ValueError:
+                try:
+                    number = float(text)
+                except ValueError:
+                    return None
+                rid = int(number) if number.is_integer() else None
+        # beyond a database id's range it names no row
+        if rid is None or abs(rid) > 2**63 - 1:
+            return None
+        return rid
+
+    @classmethod
+    def _named_record_ids(cls, request):
+        """
+        {"class_info": ids, "student": ids, "staff": ids} for every such id the
+        request names: query string (incl. `key[]` lists), the body's top level,
+        and rows nested inside it (a posting's student ledgers, an attendance
+        roll, marks rows) — a nested row reaches the database just the same.
+        """
+        found = {"class_info": set(), "student": set(), "staff": set()}
+
+        def take(kind, value):
+            values = value if isinstance(value, (list, tuple)) else [value]
+            for v in values:
+                rid = cls.as_record_id(v)
+                if rid is not None:
+                    found[kind].add(rid)
+
+        params = request.query_params
+        for key, kind in cls.SCOPED_ID_KEYS.items():
+            take(kind, params.getlist(key) + params.getlist(f"{key}[]"))
+
+        def walk(node, depth):
+            if depth > cls._MAX_BODY_DEPTH:
+                return
+            if isinstance(node, dict):
+                items = node.lists() if hasattr(node, "lists") else node.items()
+                for key, value in items:
+                    kind = cls.SCOPED_ID_KEYS.get(key)
+                    if kind:
+                        take(kind, value)
+                    if isinstance(value, (dict, list, tuple)):
+                        walk(value, depth + 1)
+            elif isinstance(node, (list, tuple)):
+                for value in node:
+                    if isinstance(value, (dict, list, tuple)):
+                        walk(value, depth + 1)
+
+        walk(request.data, 0)
+        return found
 
     def enforce_named_records_scope(self, request):
         """
@@ -160,8 +225,9 @@ class SecuredAPIView(APIView):
                 ("student", Student, "class_info__school__in"),
                 ("staff", Staff, "school__in"),
             ]
+        named = self._named_record_ids(request)
         for key, Model, school_lookup in checks:
-            ids = self._named_ids(request, key)
+            ids = named[key]
             if ids and (
                 Model.objects.filter(id__in=ids)
                 .exclude(**{school_lookup: schools})
