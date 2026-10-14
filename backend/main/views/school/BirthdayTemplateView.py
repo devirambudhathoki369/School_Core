@@ -38,6 +38,7 @@ from account.auth.Authentication import (
 )
 from ..BaseViews import SecuredAPIView
 from ...models.SchoolAdmin import SchoolAdmin
+from ...methods.uploads import is_safe_image
 from ...models.BirthdayTemplate import BirthdayTemplate, AUDIENCES, AUDIENCE_CHOICES
 from ...constants.birthday_layout import (
     BIRTHDAY_FIELDS, IMAGE_SOURCES, FONT_CHOICES, WEIGHTS, ALIGNMENTS,
@@ -285,6 +286,11 @@ class BirthdayTemplateBackgroundView(BirthdayTemplateView):
         if image.size > self.MAX_BYTES:
             return Response(
                 {"message": "That image is larger than 6MB. Please use a smaller file."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not is_safe_image(image):
+            return Response(
+                {"message": "Please upload a JPG, PNG or other image file."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         template.background = image

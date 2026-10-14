@@ -29,6 +29,7 @@ from account.auth.Authentication import (
 )
 
 from ..models.Student import Student
+from ..methods.uploads import is_safe_image
 from .BaseViews import SecuredAPIView
 
 
@@ -177,6 +178,9 @@ class StudentBulkPhotoView(SecuredAPIView):
                 continue
             if getattr(photo, "size", 0) > MAX_FILE_SIZE:
                 rejected.append({"student": student_id, "reason": "file too large"})
+                continue
+            if not is_safe_image(photo):
+                rejected.append({"student": student_id, "reason": "not an image"})
                 continue
             valid_pairs.append((student_id, photo))
 

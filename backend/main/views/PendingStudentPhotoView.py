@@ -27,6 +27,7 @@ from account.auth.Authentication import (
 from ..models.Student import Student
 from ..models.PendingStudentPhoto import PendingStudentPhoto
 from ..methods.classSections import sibling_class_info_ids
+from ..methods.uploads import is_safe_image
 from .BaseViews import SecuredAPIView
 from .StudentBulkPhotoView import (
     _resolve_school_for_user,
@@ -100,6 +101,12 @@ class PendingStudentPhotoView(SecuredAPIView):
                 rejected.append({
                     "name": getattr(photo, "name", "?"),
                     "reason": "file too large",
+                })
+                continue
+            if not is_safe_image(photo):
+                rejected.append({
+                    "name": getattr(photo, "name", "?"),
+                    "reason": "not an image",
                 })
                 continue
             note = notes_raw[idx] if idx < len(notes_raw) else None
