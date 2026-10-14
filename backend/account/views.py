@@ -846,6 +846,15 @@ class AccountView(SecuredAPIView):
     authentication_classes = (AdminTokenAuthentication,)
     allowed_fields = ["sms_api"]
 
+    def is_own_account(self, request, role, user_id):
+        """
+        Only an admin token reaches this view, and the only account it may read
+        or change is its own. `user` came from the request and was looked up
+        as given, so any school admin could read — or overwrite — every other
+        school's SMS gateway key by walking the ids.
+        """
+        return role == UserRoles.ROLE_ADMIN and str(user_id) == str(request.user.pk)
+
     def get(self, request):
         role = request.query_params.get("role")
         user_id = request.query_params.get("user")
@@ -862,6 +871,10 @@ class AccountView(SecuredAPIView):
             and len(fields) > 0
             and all(field in self.allowed_fields for field in fields)
         ):
+            if not self.is_own_account(request, role, user_id):
+                return Response(
+                    {"message": "Not permitted."}, status=status.HTTP_403_FORBIDDEN
+                )
             acc = Account.objects.filter(id=user_id).values(*fields).first()
             return Response(acc)
         return self.RESPONSE__INVALID_REQUEST
@@ -876,6 +889,10 @@ class AccountView(SecuredAPIView):
         elif role == UserRoles.ROLE_ADMIN:
             Account = AdminAccount
         if user_id and Account:
+            if not self.is_own_account(request, role, user_id):
+                return Response(
+                    {"message": "Not permitted."}, status=status.HTTP_403_FORBIDDEN
+                )
             # update sms-api-key!
             if sms_api and role == UserRoles.ROLE_ADMIN:
                 acc = Account.objects.get(id=user_id)
