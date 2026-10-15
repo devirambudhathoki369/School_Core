@@ -3,7 +3,8 @@ from account.auth.Authentication import (
     StaffTokenAuthentication,
     StudentTokenAuthentication,
 )
-from ..models.Student import StudentTransportationInfo
+from ..models.Student import Student, StudentTransportationInfo
+from ..models.BusStation import BusStation
 from ..serializers.StudentSerializer import StudentTransportationInfoSerializer
 from .BaseViews import SecuredAPIView
 
@@ -123,7 +124,38 @@ class StudentTransportationView(SecuredAPIView):
             )
         return [creating, updating]
 
+    @staticmethod
+    def namesOnlyOwnRecords(school_id, data, updates):
+        """
+        Every student (and bus station) a bulk update names is this school's.
+
+        The students arrive as the KEYS of `data` and in `updates`, where the
+        school-scope check never looks, and the stop-service update matched on
+        `student__in` alone -- so one school could switch off another school's
+        bus services, which bills them, or add services for its students.
+        """
+        try:
+            student_ids = {int(sid) for sid in data} | {int(sid) for sid in updates or []}
+        except (TypeError, ValueError):
+            return False
+        station_ids = {
+            (info.get("transportation_info") or {}).get("bus_station")
+            for info in data.values()
+            if isinstance(info, dict)
+        } - {None, ""}
+        own_students = Student.objects.filter(
+            id__in=student_ids, class_info__school=school_id
+        ).count()
+        own_stations = BusStation.objects.filter(
+            id__in=station_ids, school=school_id
+        ).count()
+        return own_students == len(student_ids) and own_stations == len(station_ids)
+
     def handleBulkUpdate(self, school_id, data, updates):
+        if not isinstance(data, dict) or not self.namesOnlyOwnRecords(
+            school_id, data, updates
+        ):
+            return False
         try:
             [creatingData, updatingData] = self.validTransportationData(
                 school_id, data, updates
