@@ -22,7 +22,7 @@ from ..methods.nepaliDatetime import ndt_today
 from ..models.Attendance import ClassAttendance, StudentAttendance
 from ..models.ClassInfo import ClassInfo
 from ..models.Student import Student
-from .BaseViews import SecuredAPIView
+from .BaseViews import SecuredAPIView, caller_student_id, is_student_request
 from ..serializers.AttendanceSerializer import (
     ClassAttendanceSerializer,
     AttendanceParamsSerializer,
@@ -76,6 +76,11 @@ class ClassAttendanceView(SecuredAPIView):
                 #
                 student_id = request.query_params.get("student")
                 include_contact = request.query_params.get("include_contact") or False
+                if is_student_request(request):
+                    # a student's own mark -- leaving `student` out returned
+                    # the whole class, with guardian phones on include_contact
+                    student_id = caller_student_id(request)
+                    include_contact = False
                 if teacher:
                     q &= Q(teacher=teacher)
                 #

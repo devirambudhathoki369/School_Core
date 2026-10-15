@@ -24,7 +24,7 @@ from ...models.ClassInfo import ClassInfo
 from ...models.ClassPeriod import ClassPeriod
 from ...models.exams.ExtraActivity import ExtraActivity, ExtraActivityEntry
 from ...models.exams.GradingRules import GradingRules
-from ..BaseViews import SecuredAPIView
+from ..BaseViews import SecuredAPIView, caller_student_id, is_student_request
 from ...serializers.exams.ResultSerializer import (
     ClassResultSerializer,
     ResultParamsSerializer,
@@ -113,12 +113,26 @@ class ResultView(SecuredAPIView, StudentSearchByAcademicYearMixin, ResultCalcula
             if "published_only" in request.query_params
             else (True if request.user_role == "student" else False)
         )
+        if is_student_request(request):
+            # A student sees their own PUBLISHED marks. `published_only=` (empty)
+            # showed unpublished results, and leaving `student` out returned
+            # every pupil's marks for the class.
+            published_only = True
+            student_id = caller_student_id(request)
+            # `subject` opens the marks-entry sheet: the whole class, unpublished
+            subject_id = None
         self.v2 = "v2" in request.resolver_match.namespaces
         #
         if exam_id and publish:
-            # for result-to-be-published!
+            if is_student_request(request):
+                return self.RESPONSE__NOT_ALLOWED
+            # for result-to-be-published! -- the caller's own classes; the exam
+            # id alone listed any school's classes and publish dates
             results = (
-                ClassResult.objects.filter(exam=exam_id, is_active=True)
+                self.scope_to_caller(
+                    ClassResult.objects.all(), request, "class_info__school"
+                )
+                .filter(exam=exam_id, is_active=True)
                 .order_by("class_info", "-id")
                 .distinct("class_info")
                 .values("class_info", "published_date")
