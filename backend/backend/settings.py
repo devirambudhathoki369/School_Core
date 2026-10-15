@@ -332,6 +332,16 @@ LOGGING = {
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.environ.get("MEDIA_ROOT") or "media"
+
+# Media refuses file types a browser would run (main/methods/uploads.py).
+# Static storage is spelled out as what Django 5.1 already uses: it no longer
+# reads STATICFILES_STORAGE above, and STORAGES replaces both.
+STORAGES = {
+    "default": {"BACKEND": "main.methods.uploads.UploadStorage"},
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+    },
+}
 USE_URL = False
 
 # ---------------------------------------------------------------------------
