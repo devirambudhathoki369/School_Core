@@ -12,6 +12,13 @@ from account.auth.Authentication import (
 from account.views import ADMIN_PROFILE_RETURN_FIELDS
 
 #
+from main.constants.school_modules import CODE_OF_FLAG
+from main.methods.schoolModules import (
+    flags_of,
+    granted_modules,
+    module_flags,
+    set_school_modules,
+)
 from main.models.SchoolAdmin import SchoolAdmin
 from main.models.FiscalYears import EconomicYear
 from main.methods.payrollClose import closePayrollAfterYearSwitch
@@ -35,16 +42,43 @@ class SchoolAdminView(SecuredAPIView):
     """
 
     def get(self, request):
-        admins = SchoolAdmin.objects.values(
-            "account__id", "account__username", *ADMIN_PROFILE_RETURN_FIELDS
-        ).order_by("id")
+        admins = list(
+            SchoolAdmin.objects.values(
+                "account__id", "account__username", *ADMIN_PROFILE_RETURN_FIELDS
+            ).order_by("id")
+        )
+        # each school's facilities, from one query for all of them
+        granted = granted_modules([admin["id"] for admin in admins])
+        for admin in admins:
+            admin.update(flags_of(granted[admin["id"]]))
         s = SchoolAdminSerializer(admins, many=True)
         return Response(s.data)
 
+    def module_choices(self, data):
+        """Take the facility flags (`uses_exams`, `uses_hostel`, ...) out of
+        `data`: {module code: bool} for those it names, or None when one is not
+        a true/false -- a flag is never guessed from "yes", 1 or ""."""
+        chosen = {}
+        for flag, code in CODE_OF_FLAG.items():
+            if flag in data:
+                value = data.pop(flag)
+                if not isinstance(value, bool):
+                    return None
+                chosen[code] = value
+        return chosen
+
     def post(self, request):
-        s = SchoolAdminSerializer(data=request.data)
+        data = request.data.copy()
+        chosen = self.module_choices(data)
+        if chosen is None:
+            return self.RESPONSE__INVALID_REQUEST
+        s = SchoolAdminSerializer(data=data)
         if s.is_valid():
-            ins = s.save()
+            with transaction.atomic():
+                ins = s.save()
+                # A new school starts with the default modules (SchoolModule's
+                # post_save); this makes them exactly what was ticked.
+                set_school_modules(ins, chosen)
             return Response(self.prepResponse(ins, "added"))
         else:
             if "account" in s.errors and "username" in s.errors["account"]:
@@ -59,12 +93,17 @@ class SchoolAdminView(SecuredAPIView):
         id = request.data.pop("id", None)
         economic_year = request.data.pop("economic_year", None)
         apply = request.data.pop("apply", False)
+        chosen = self.module_choices(request.data)
+        if chosen is None:
+            return self.RESPONSE__INVALID_REQUEST
         if id:
             ins = SchoolAdmin.objects.get(id=id)
             if ins:
                 s = SchoolAdminSerializer(ins, data=request.data, partial=True)
                 if s.is_valid():
-                    ins = s.save()
+                    with transaction.atomic():
+                        ins = s.save()
+                        set_school_modules(ins, chosen)
                     return Response(self.prepResponse(ins, "updated"))
                 # else:
                 #     print(s.errors)
@@ -119,6 +158,8 @@ class SchoolAdminView(SecuredAPIView):
                 "test_account_str": ("yes" if ins.test_account == True else "no"),
                 "uses_sms_str": ("yes" if ins.uses_sms == True else "no"),
                 "uses_mobile_app_str": ("yes" if ins.uses_mobile_app == True else "no"),
+                # the facilities, as saved
+                **module_flags(ins.id),
                 **(
                     {
                         "economic_year": ins.economic_year.id,

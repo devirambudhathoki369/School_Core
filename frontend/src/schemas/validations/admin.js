@@ -1,6 +1,7 @@
 import { boolean, object } from "yup";
 import { CONTACT_SIZE, contact, date_required, email_required, text } from ".";
 import { flattenSchema } from "@/methods/FlattenSchema";
+import { SCHOOL_MODULES } from "@/configs/moduleGates";
 
 const _adminValidationSchema = {
     account: {
@@ -20,6 +21,9 @@ const _adminValidationSchema = {
     test_account: boolean().label("Account type").must(),
     uses_sms: boolean().label("Uses sms"),
     uses_mobile_app: boolean().label("Uses mobile app").must(),
+    // The facilities, each true/false (the server refuses anything else). Not
+    // required: one the row does not carry is left as the school has it.
+    ...Object.fromEntries(SCHOOL_MODULES.map(({ flag, label }) => [flag, boolean().label(label)])),
 };
 
 const adminValidationSchema = object(flattenSchema(_adminValidationSchema));

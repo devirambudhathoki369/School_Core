@@ -23,6 +23,8 @@ from ..models.Staff import Staff
 from ..models.Student import Student
 from .fields import CLASS_DETAILS_FIELDS
 from ..constants.staff_permissions import ANY_STAFF, STAFF_PERMISSIONS
+from ..constants.school_modules import FLAG, LABEL, module_for_view
+from ..methods.schoolModules import schools_without
 
 security_logger = logging.getLogger("django.security")
 
@@ -143,9 +145,49 @@ class SecuredAPIView(APIView):
 
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
+        self.enforce_school_modules(request)
         self.enforce_student_boundary(request)
         self.enforce_staff_permissions(request)
         self.enforce_named_records_scope(request)
+
+    def enforce_school_modules(self, request):
+        """
+        A school only reaches the facilities its provider gave it.
+
+        The superadmin picks a school's modules (payroll, exams, accounting,
+        library, inventory) when adding or editing it, and the menu then leaves
+        the rest out -- but a page left out is still one URL away, and its API
+        would have answered any token of that school. So a view a module owns
+        (constants/school_modules.py) refuses every admin, staff and student
+        token of a school without that module.
+
+        The school comes from the token, never from the request: a school
+        switched off cannot get through by naming another. Superadmin and
+        superuser tokens are not bound to a school and pass -- they grant it.
+        """
+        if request.method == "OPTIONS":
+            return
+        code = module_for_view(f"{type(self).__module__}.{type(self).__qualname__}")
+        if not code:
+            return
+        schools = caller_school_ids(request)
+        if schools is None:
+            return
+        # an account of no school at all has no module either
+        if schools and not schools_without(schools, code):
+            return
+        security_logger.warning(
+            "school module refused: %s %s by %s, %s is off for school %s",
+            request.method,
+            request.path,
+            getattr(request.user, "username", "?"),
+            FLAG[code],
+            sorted(schools),
+        )
+        raise PermissionDenied(
+            f"{LABEL[code]} is not enabled for this school. "
+            "Ask your provider to switch it on."
+        )
 
     def enforce_staff_permissions(self, request):
         """

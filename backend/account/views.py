@@ -51,6 +51,7 @@ from main.models.Staff import Staff
 from main.serializers.SchoolAdminSerializer import SchoolAdminSerializer
 from main.methods.nepaliDatetime import ndt_today, ndt_today_npt
 from main.methods.busTracking import with_tracking_flag
+from main.methods.schoolModules import with_module_flags
 from .methods.getStaffProfile import getStaffProfile
 from .methods.getStudentProfile import getStudentProfile
 from .methods.extractSchoolSMSAPIKey import extractSchoolSMSAPIKey
@@ -107,13 +108,12 @@ ADMIN_PROFILE_RETURN_FIELDS = (
     "ui_theme",
     "test_account",
     "uses_mobile_app",
-    # MODULE ACCESS. Rides along with the profile for the same reason `ui_theme`
-    # does: the rail is drawn on first paint, and a menu that appears a moment
-    # after the page does reads as a glitch. The frontend gates the Hostel menu
-    # AND its view map on this (configs/moduleGates.js); the backend refuses the
-    # endpoints regardless, so this flag is convenience, never the protection.
-    "uses_hostel",
-    "uses_extra_billing",
+    # MODULE ACCESS (`uses_hostel`, `uses_exams`, ...) is not a column: it is
+    # added to the profile from main.SchoolModule by `with_module_flags`. It
+    # rides along for the same reason `ui_theme` does -- the rail is drawn on
+    # first paint. The frontend gates each menu AND its view map on it
+    # (configs/moduleGates.js); the backend refuses the endpoints regardless,
+    # so the flags are convenience, never the protection.
     "time_set_required",
     "attendance_in_time",
     "attendance_out_time",
@@ -326,6 +326,7 @@ class LoginView(APIView):
                     # this one on: a school has bus tracking exactly when it has
                     # a bus to track (main/methods/busTracking.py).
                     with_tracking_flag(user_profile, (user_profile or {}).get("id"))
+                    with_module_flags(user_profile, (user_profile or {}).get("id"))
                 elif self.role == UserRoles.ROLE_STAFF:
                     user_profile = getStaffProfile(user)
                 elif self.role == UserRoles.ROLE_STUDENT:
@@ -463,6 +464,7 @@ class ObtainView(APIView):
                 )
                 user["profile"] = SchoolAdminSerializer(user_profile).data
                 with_tracking_flag(user["profile"], (user_profile or {}).get("id"))
+                with_module_flags(user["profile"], (user_profile or {}).get("id"))
             elif self.role == UserRoles.ROLE_STAFF:
                 user["profile"] = getStaffProfile(token_obj.user)
             elif self.role == UserRoles.ROLE_SUPERADMIN:
@@ -981,6 +983,7 @@ class ProfileView(SecuredAPIView):
                     .first()
                 )
                 with_tracking_flag(profile, (profile or {}).get("id"))
+                with_module_flags(profile, (profile or {}).get("id"))
             elif user_role == UserRoles.ROLE_STAFF:
                 profile = getStaffProfile(user)
             elif user_role == UserRoles.ROLE_STUDENT:

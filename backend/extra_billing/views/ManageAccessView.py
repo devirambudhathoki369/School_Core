@@ -17,12 +17,12 @@ from django.db.models import Count
 from rest_framework.response import Response
 
 from account.auth.Authentication import SuperAdminTokenAuthentication
+from main.methods.schoolModules import granted_modules, set_school_modules
 from main.models.SchoolAdmin import SchoolAdmin
 from main.views.BaseViews import SecuredAPIView
 
 from ..models.Billing import ExtraInvoice
 from ..models.Party import BillingParty
-from .BaseViews import clear_extra_billing_gate_cache
 
 
 class ManageExtraBillingAccessView(SecuredAPIView):
@@ -32,8 +32,11 @@ class ManageExtraBillingAccessView(SecuredAPIView):
         schools = list(
             SchoolAdmin.objects.filter(is_active=True)
             .order_by("name")
-            .values("id", "name", "address", "uses_extra_billing")
+            .values("id", "name", "address")
         )
+        granted = granted_modules([s["id"] for s in schools])
+        for school in schools:
+            school["uses_extra_billing"] = "extra_billing" in granted[school["id"]]
         enabled_ids = [s["id"] for s in schools if s["uses_extra_billing"]]
         parties = {
             r["school_id"]: r["n"]
@@ -70,11 +73,7 @@ class ManageExtraBillingAccessView(SecuredAPIView):
         school = SchoolAdmin.objects.filter(id=school_id).first()
         if not school:
             return self.RESPONSE__NOT_FOUND
-        school.uses_extra_billing = value
-        school.save(update_fields=["uses_extra_billing"])
-        # The gate caches this for five minutes; drop the entry so the school
-        # sees the change on their next sign-in rather than five minutes later.
-        clear_extra_billing_gate_cache(school.id)
+        set_school_modules(school, {"extra_billing": value})
 
         kept = None
         if not value:
@@ -84,7 +83,7 @@ class ManageExtraBillingAccessView(SecuredAPIView):
         return Response(
             {
                 "school": school.id,
-                "uses_extra_billing": school.uses_extra_billing,
+                "uses_extra_billing": value,
                 "message": (
                     "Extra billing enabled. The school sees it on their next sign-in."
                     if value

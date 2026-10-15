@@ -229,6 +229,13 @@ Notation: `FK→X`, `1:1→X`, `(opt)` optional, `BS` Nepali date, money = Decim
   `education_levels`(JSON), `test_account`, `uses_sms`, `uses_mobile_app`; attendance policy
   `time_set_required`, `attendance_in_time`, `attendance_out_time`; `foundation`.
 - **SchoolImage** — `image`, `school`.
+- **Module** — the catalog of facilities a school can be given: `code` (PK: `exams`, `payroll`,
+  `accounting`, `library`, `inventory`, `hostel`, `extra_billing`), `name`. Kept in step with
+  `main/constants/school_modules.py` on every `migrate`.
+- **SchoolModule** — a school's grant of one module: `school` FK (CASCADE), `module` FK
+  (PROTECT), unique per (school, module). Active row = the school has it; switching off is the
+  usual soft delete and deletes nothing in the module. `SchoolAdmin 1 — 0..* SchoolModule 0..* — 1 Module`.
+  (`SchoolAdmin.uses_hostel` / `uses_extra_billing` are its deprecated write-only mirror, dropped next release.)
 
 ### 4.3 Fiscal & academic years
 
@@ -657,6 +664,11 @@ issue/due/return dates and fines (via `lib_fine` title + preferences).
 - **Super Admin** `/auth/superadmins`, `/auth/superadmin/register`, `/auth/superadmin/signin`
   — provision/manage School Admins; **org broadcasts** `/api/notices_sa`; cross-tenant
   **ledger management** `/api/ledgers/manage`.
+- **Facilities** — on Setup ▸ School/Admin the superadmin ticks which modules a school gets
+  (`uses_exams`, `uses_payroll`, `uses_accounting`, `uses_library`, `uses_inventory`, `uses_hostel`,
+  `uses_extra_billing` on `/api/admins`). A school sees only those menus and pages, and every
+  endpoint of a module it lacks refuses its admin/staff/student tokens with 403
+  (`SecuredAPIView.enforce_school_modules`).
 - **Database backup** `/api/backup` — DB backup; seed dump in repo (`smsysdb_*.dump`).
 - **Monitoring** `/__live_usage__/` (CPU/memory/disk, media sizes, app status); Sentry both
   ends.

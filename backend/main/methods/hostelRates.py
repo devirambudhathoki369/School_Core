@@ -46,26 +46,12 @@ def schoolUsesHostel(school_id):
     worse for the rest, so every hostel title on a shared billing surface is
     gated on this.
 
-    Cached the same way and for the same reason as the module gate in
-    `hostel/views/BaseViews.py`: a flag flipped once in a school's lifetime,
-    read on every ledger screen.
+    The same answer as the hostel's own gate (`hostel/views/BaseViews.py`),
+    from the same row of main.SchoolModule.
     """
-    from django.core.cache import cache
+    from main.methods.schoolModules import school_has_module
 
-    try:
-        school_id = int(school_id)
-    except (TypeError, ValueError):
-        return False
-    key = f"hostel-module:{school_id}"
-    allowed = cache.get(key)
-    if allowed is None:
-        from main.models.SchoolAdmin import SchoolAdmin
-
-        allowed = SchoolAdmin.objects.filter(
-            id=school_id, is_active=True, uses_hostel=True
-        ).exists()
-        cache.set(key, allowed, 300)
-    return bool(allowed)
+    return school_has_module(school_id, "hostel", active_school=True)
 
 
 def studentHostelRates(student_id, school_id):

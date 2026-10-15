@@ -7,6 +7,7 @@ import { PasswordInput, SearchInput, TextInput } from "@/components/inputs";
 import { Error } from "@/components/Error";
 import { useEnrollmentContext } from "@/contexts/EnrollmentContext";
 import useBackdropDismiss from "@/hooks/backdropDismiss";
+import { SCHOOL_MODULES } from "@/configs/moduleGates";
 
 // One titled block of the form. `!items-start`: a field with a message under it
 // must not push its neighbours' inputs a line up (`.mygrid` bottom-aligns).
@@ -22,11 +23,11 @@ function Group({ title, children }) {
     );
 }
 
-// The four switches share one shape: tick → onChange, leave → onBlur.
-function Flag({ name, text, admin, methods }) {
+// Every switch shares one shape: tick → onChange, leave → onBlur.
+function Flag({ name, text, description = null, admin, methods }) {
     return (
         <div className="app-dialog-flag sm:col-span-6">
-            <Checkbox name={name} checked={admin?.[name]} text={text} onClick={() => {
+            <Checkbox name={name} checked={admin?.[name]} text={text} description={description} onClick={() => {
                 methods.onChange({ name, value: !admin?.[name] });
             }} onBlur={() => {
                 methods.onBlur({ name, value: !admin?.[name] });
@@ -126,6 +127,15 @@ function SchoolFormDialog() {
                             {!isEdit && (
                                 <PasswordInput value={admin?.password} input={{ name: 'password', label: 'Password' }} {...methods} error={errors?.password} />
                             )}
+                        </Group>
+
+                        {/* What the school gets. A facility left unticked is
+                            off the school's menus and refused by the server;
+                            switching one off later deletes nothing in it. */}
+                        <Group title="Facilities">
+                            {SCHOOL_MODULES.map(({ flag, label, hint }) => (
+                                <Flag key={flag} name={flag} text={label} description={hint} admin={admin} methods={methods} />
+                            ))}
                         </Group>
 
                         <Group title="Options">

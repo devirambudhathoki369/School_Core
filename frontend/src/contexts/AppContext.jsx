@@ -12,7 +12,7 @@ import TempStateContextProvider from "./TempStateContext";
 import { options, gradeOptions2, yearOptions, semesterOptions } from "@/components/inputs/options/education";
 import { enableSentry, disableSentry } from "@/methods/sentry-setup";
 import { applyTheme, safeTheme, UI_THEME_CONSOLE } from "@/configs/uiThemes";
-import { filterViewsByModules } from "@/configs/moduleGates";
+import { filterViewsByModules, moduleAllowed } from "@/configs/moduleGates";
 
 const AppContext = createContext({});
 
@@ -285,20 +285,27 @@ const AppContextProvider = ({ children }) => {
             // been given the hostel could still open `#hostel.rooms` by typing
             // it. The module gate applies to the map itself, so those paths
             // resolve to nothing at all.
+            // The superadmin is who grants modules; its own pages are never
+            // cut by them (its profile carries no module flags at all).
+            const gateModules = role !== 'superadmin';
             _menus = {
-                menu: filterMenuByProfileFlags(PAGE[role].menu, user?.profile),
-                views: filterViewsByModules(PAGE[role].views, user?.profile),
+                menu: filterMenuByProfileFlags(PAGE[role].menu, user?.profile, '', gateModules),
+                views: gateModules ? filterViewsByModules(PAGE[role].views, user?.profile) : PAGE[role].views,
             };
         }
         setMenus(_menus);
     }
     // Drop menu items gated by a profile flag (e.g. { profileFlag: 'time_set_required' })
-    // when that flag is not enabled for this school. Leaves everything else intact.
-    function filterMenuByProfileFlags(menuList, profile) {
+    // when that flag is not enabled for this school, and every branch or page of
+    // a module the school does not have (configs/moduleGates.js) — by its view
+    // path, the same key the view map is cut by. Leaves everything else intact.
+    function filterMenuByProfileFlags(menuList, profile, parent = '', gateModules = true) {
         return (menuList || []).reduce((acc, item) => {
             if (item?.profileFlag && !profile?.[item.profileFlag]) return acc;
+            const path = parent && item?.view ? `${parent}.${item.view}` : (item?.view || parent);
+            if (gateModules && item?.view && !moduleAllowed(path, profile)) return acc;
             if (item?.submenu) {
-                acc.push({ ...item, submenu: filterMenuByProfileFlags(item.submenu, profile) });
+                acc.push({ ...item, submenu: filterMenuByProfileFlags(item.submenu, profile, path, gateModules) });
             } else {
                 acc.push(item);
             }
