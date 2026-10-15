@@ -2,8 +2,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 import hashlib
+import hmac
 import json
 
+from django.conf import settings
 from django.utils import timezone
 from zoneinfo import ZoneInfo
 
@@ -33,6 +35,11 @@ def _check_push_key(request):
     # .env defines PUSH_COMM_KEY but settings.py never reads it, so it always
     # resolved to None. Worse, it was all-or-nothing: defining that setting
     # would have locked out the entire fleet in one step.
+    #
+    # Until a device has a key, its serial is all that identifies it -- and
+    # whoever knows it can read the enrolment commands queued for it (card
+    # numbers, PINs) and post punches as it. ICLOCK_REQUIRE_PUSH_KEY closes
+    # that once every reader is keyed: a keyless device is then refused.
     sn = request.GET.get("SN")
     if not sn:
         return None
@@ -44,9 +51,12 @@ def _check_push_key(request):
         or ""
     )
     if not expected:
+        if getattr(settings, "ICLOCK_REQUIRE_PUSH_KEY", False):
+            return HttpResponseForbidden("device has no pushcommkey")
         return None
 
-    if (request.GET.get("pushcommkey", "") or "") != expected:
+    given = request.GET.get("pushcommkey", "") or ""
+    if not hmac.compare_digest(given.encode(), expected.encode()):
         return HttpResponseForbidden("invalid pushcommkey")
     return None
 

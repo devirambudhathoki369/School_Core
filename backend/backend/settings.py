@@ -409,6 +409,15 @@ ENFORCE_SCHOOL_SCOPE = (
     os.environ.get("ENFORCE_SCHOOL_SCOPE", "true").lower() != "false"
 )
 
+# Whether a ZKTeco reader with no push_comm_key may still use /iclock/*.
+# Off until every reader (and its Device row) has a key: a keyless device is
+# identified only by its serial, so anyone who knows it can read the card
+# numbers and PINs queued for it and post punches as it. Turn on with
+# ICLOCK_REQUIRE_PUSH_KEY=true once the fleet is keyed.
+ICLOCK_REQUIRE_PUSH_KEY = (
+    os.environ.get("ICLOCK_REQUIRE_PUSH_KEY", "false").lower() == "true"
+)
+
 # Whether a write carried by the session COOKIE may come from a browser origin
 # this API does not trust (see BaseTokenAuthentication.enforce_trusted_origin —
 # the cross-site request forgery guard). `True` is correct; `false` keeps the
