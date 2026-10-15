@@ -29,3 +29,4 @@ from .Batch import Batch  # noqa: F401
 from .TaxInvoice import StudentTaxInvoice  # noqa: F401
 from .SMSLog import SMSLog  # noqa: F401
 from .PayrollClose import StaffPayrollClose  # noqa: F401
+from .SchoolModule import Module, SchoolModule  # noqa: F401

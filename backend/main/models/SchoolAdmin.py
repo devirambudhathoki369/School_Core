@@ -52,20 +52,14 @@ class SchoolAdmin(BaseModel):
     test_account = BooleanField(default=False)
     uses_sms = BooleanField(default=False)
     uses_mobile_app = BooleanField(default=False)
-    # MODULE ACCESS: the hostel module is off for every school until the
-    # superadmin turns it on (Setup > Hostel Access). It gates BOTH halves —
-    # the rail never draws the Hostel menu, and every /hostel endpoint refuses
-    # a school without it (hostel/views/BaseViews.HostelBaseView). Menu hiding
-    # alone is decoration; a hidden page is still a URL.
-    uses_hostel = BooleanField(default=False)
-    # MODULE ACCESS: billing for people who are NOT students -- the tenant of a
-    # shutter, a canteen contractor, an office renting a room. Off for every
-    # school until the superadmin turns it on (Setup > Extra Billing Access).
-    # Gates both halves, exactly like `uses_hostel`: the rail never draws the
-    # menu, and every /extra-billing endpoint refuses a school without it
-    # (extra_billing/views/BaseViews.ExtraBillingBaseView). Student billing is
-    # untouched by it either way -- the two run side by side.
-    uses_extra_billing = BooleanField(default=False)
+    # DEPRECATED -- which modules (facilities) a school has lives in one table,
+    # main.SchoolModule, and nothing reads these two columns any more. They are
+    # kept for ONE release as a mirror, written alongside the table
+    # (main/methods/schoolModules.set_school_modules), so code still running
+    # from the previous release -- during a deploy, or after a rollback --
+    # reads the right answer. The next release drops them.
+    uses_hostel = BooleanField(default=False, editable=False)
+    uses_extra_billing = BooleanField(default=False, editable=False)
     # When True, the school admin can set attendance in/out times (App > RFID >
     # Time Set) and the in-time acts as a present cutoff: a first device punch
     # after attendance_in_time is NOT marked present (automatic).

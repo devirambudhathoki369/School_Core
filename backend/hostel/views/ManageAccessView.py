@@ -23,12 +23,12 @@ from django.db.models import Count, Q
 from rest_framework.response import Response
 
 from account.auth.Authentication import SuperAdminTokenAuthentication
+from main.methods.schoolModules import granted_modules, set_school_modules
 from main.models.SchoolAdmin import SchoolAdmin
 from main.views.BaseViews import SecuredAPIView
 from ..constants import ALLOC_ACTIVE
 from ..models.Allocation import HostelAllocation
 from ..models.Hostel import Hostel
-from .BaseViews import clear_hostel_gate_cache
 
 
 class ManageHostelAccessView(SecuredAPIView):
@@ -38,8 +38,11 @@ class ManageHostelAccessView(SecuredAPIView):
         schools = list(
             SchoolAdmin.objects.filter(is_active=True)
             .order_by("name")
-            .values("id", "name", "address", "uses_hostel")
+            .values("id", "name", "address")
         )
+        granted = granted_modules([s["id"] for s in schools])
+        for s in schools:
+            s["uses_hostel"] = "hostel" in granted[s["id"]]
         enabled_ids = [s["id"] for s in schools if s["uses_hostel"]]
         hostels = {
             r["school_id"]: r["n"]
@@ -74,12 +77,7 @@ class ManageHostelAccessView(SecuredAPIView):
         school = SchoolAdmin.objects.filter(id=school_id).first()
         if not school:
             return self.RESPONSE__NOT_FOUND
-        school.uses_hostel = value
-        school.save(update_fields=["uses_hostel"])
-        # The gate caches this flag for five minutes; drop the entry so the
-        # school sees the change on their next sign-in rather than five minutes
-        # after it.
-        clear_hostel_gate_cache(school.id)
+        set_school_modules(school, {"hostel": value})
 
         kept = None
         if not value:
@@ -89,7 +87,7 @@ class ManageHostelAccessView(SecuredAPIView):
         return Response(
             {
                 "school": school.id,
-                "uses_hostel": school.uses_hostel,
+                "uses_hostel": value,
                 "message": (
                     "Hostel module enabled. The school sees it on their next sign-in."
                     if value

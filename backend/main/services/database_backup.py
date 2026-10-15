@@ -11,6 +11,7 @@ from django.db import connection, transaction
 from django.db.models import AutoField, Q, FileField, IntegerField
 from django.utils import timezone
 
+from main.methods.schoolModules import module_flags
 from main.models.SchoolAdmin import SchoolAdmin
 
 APP_LABELS = {"main", "account", "accounting", "library", "hostel", "extra_billing", "rfid", "contenttypes"}
@@ -21,6 +22,8 @@ GLOBAL_MODELS = {
     "account.superadminauthtoken", "main.splashnotice", "main.supportinfo",
     "main.guidecategory", "main.guide", "main.economicyear", "main.staffrole",
     "main.schoolfoundation", "main.noticesa",
+    # the catalog of modules; a school's grants (main.schoolmodule) are its own
+    "main.module",
 }
 OWNED_DETAILS = {
     "account.adminaccount": "schooladmin__pk",
@@ -157,7 +160,11 @@ def write_school_backup(output, school_id):
         manifest = {
             "format": "smsys-school-backup", "version": 2,
             "created_at": timezone.now().isoformat(),
-            "school": {"id": school.pk, "name": school.name},
+            # The facilities the school had at the time, read in the same
+            # snapshot -- its main.schoolmodule rows in data.json say the same.
+            # A facility switched off still exports all of its records.
+            "school": {"id": school.pk, "name": school.name,
+                       "modules": module_flags(school.pk)},
             "record_counts": {m._meta.label_lower: len(ids) for m, ids in selected.items()},
             "table_coverage": {m._meta.db_table: {"model": m._meta.label_lower,
                                "selection": "school-owned" if m in paths else "referenced shared data only"}
@@ -286,7 +293,8 @@ absent from. Its row count and SHA-256 are under database_sql in manifest.json.
 
 
 data.json is a Django fixture with original primary keys, including inactive
-records and all years. manifest.json identifies the school and table counts.
+records and all years. manifest.json identifies the school, the facilities
+(modules) it had, and table counts. A facility switched off still exports.
 Uploaded files referenced by school records are included under media/ with
 their original storage paths. Missing source files are listed in missing_files
 in the manifest; they cannot be recovered from the database. Copy media/ into

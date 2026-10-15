@@ -2,6 +2,7 @@ from django.db.models import Value, CharField, F
 from django.db.models.functions import Concat
 
 #
+from main.methods.schoolModules import with_module_flags
 from main.models.Student import Student
 
 STUDENT_PROFILE_RETURN_FIELDS = (
@@ -16,7 +17,7 @@ STUDENT_PROFILE_RETURN_FIELDS = (
 
 
 def getStudentProfile(user):
-    return (
+    profile = (
         Student.objects.filter(account=user)
         .values(*STUDENT_PROFILE_RETURN_FIELDS)
         .annotate(
@@ -52,3 +53,6 @@ def getStudentProfile(user):
         )
         .first()
     )
+    # The school's modules, so the app can leave out what the server would
+    # refuse (results and routines without exams, issued books without library).
+    return with_module_flags(profile, (profile or {}).get("school"))

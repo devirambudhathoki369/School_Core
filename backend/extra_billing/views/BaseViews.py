@@ -2,10 +2,10 @@
 
 WHY A GATE
 ----------
-Like the hostel, this module is granted per school by the superadmin
-(`SchoolAdmin.uses_extra_billing`). Hiding the menu is decoration — a school
-admin is handed the whole view map, so an unlisted page is still one typed URL
-away. The refusal has to live where the data is, which is here.
+Like the hostel, this module is granted per school by the superadmin (its
+`extra_billing` row in main.SchoolModule). Hiding the menu is decoration — a
+school admin is handed the whole view map, so an unlisted page is still one
+typed URL away. The refusal has to live where the data is, which is here.
 
 Two things are checked, in this order:
 
@@ -24,7 +24,6 @@ has to be distinguishable from a broken deployment.
 
 from decimal import Decimal, InvalidOperation
 
-from django.core.cache import cache
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -34,6 +33,7 @@ from account.auth.Authentication import (
     SuperAdminTokenAuthentication,
 )
 from account.auth.UserRole import UserRoles
+from main.methods.schoolModules import school_has_module
 from main.models.FiscalYears import EconomicYear
 from main.models.SchoolAdmin import SchoolAdmin
 from main.views.BaseViews import SecuredAPIView
@@ -44,30 +44,10 @@ EXTRA_BILLING_AUTH = (
     SuperAdminTokenAuthentication,
 )
 
-# Read on every request, changed about once in a school's lifetime, so it is
-# cached with a short TTL rather than invalidated from everywhere. A stale entry
-# expires by itself; a missed invalidation never does. The superadmin view does
-# clear it, so switching a school on is not a five-minute wait.
-_GATE_CACHE_TTL = 300
-
-
 def school_has_extra_billing(school_id):
-    try:
-        school_id = int(school_id)
-    except (TypeError, ValueError):
-        return False
-    key = f"extra-billing-module:{school_id}"
-    allowed = cache.get(key)
-    if allowed is None:
-        allowed = SchoolAdmin.objects.filter(
-            id=school_id, is_active=True, uses_extra_billing=True
-        ).exists()
-        cache.set(key, allowed, _GATE_CACHE_TTL)
-    return bool(allowed)
-
-
-def clear_extra_billing_gate_cache(school_id):
-    cache.delete(f"extra-billing-module:{school_id}")
+    # One lookup on SchoolModule's unique index -- no cache, so a switch by the
+    # superadmin applies on the very next request (main/methods/schoolModules.py).
+    return school_has_module(school_id, "extra_billing", active_school=True)
 
 
 class ExtraBillingBaseView(SecuredAPIView):

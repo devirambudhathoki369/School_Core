@@ -1,4 +1,5 @@
 from main.methods.busTracking import with_tracking_flag
+from main.methods.schoolModules import with_module_flags
 from django.db.models import Value, CharField, F
 from django.db.models.functions import Concat
 
@@ -48,11 +49,6 @@ def getStaffProfile(user):
             # Staff see their school's interface theme too — a school's look
             # must be the same whoever signs in.
             ui_theme=F("school__ui_theme"),
-            # Staff see the hostel module exactly when their school has it —
-            # whether they can open any particular page inside it is then their
-            # own permissions (2501-2510).
-            uses_hostel=F("school__uses_hostel"),
-            uses_extra_billing=F("school__uses_extra_billing"),
             economic_year=F("school__economic_year"),
             economic_year__name=F("school__economic_year__name"),
             renew_date=F("school__renew_date"),
@@ -62,4 +58,7 @@ def getStaffProfile(user):
     # Staff see bus tracking exactly when their school has a bus to track; whether
     # this member of staff may open it is then their own permission (511).
     with_tracking_flag(profile, (profile or {}).get("school_id"))
+    # Staff see a module (hostel, exams, payroll, ...) exactly when their school
+    # has it; which pages inside it they may open is then their own permissions.
+    with_module_flags(profile, (profile or {}).get("school_id"))
     return profile

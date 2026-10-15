@@ -18,7 +18,7 @@ Two independent things are checked, in this order:
      that authenticator looks (`school` / `school_id`, query param or body).
 
   2. THE MODULE GATE — has the superadmin switched the hostel on for that
-     school?  `SchoolAdmin.uses_hostel`.
+     school?  Its `hostel` row in main.SchoolModule.
 
 A superadmin token skips (2), because the superadmin is who grants it and has to
 be able to see what they granted.
@@ -29,7 +29,6 @@ work" indistinguishable from a broken deployment, and the school is allowed to
 know the feature is off.
 """
 
-from django.core.cache import cache
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -39,7 +38,7 @@ from account.auth.Authentication import (
     SuperAdminTokenAuthentication,
 )
 from account.auth.UserRole import UserRoles
-from main.models.SchoolAdmin import SchoolAdmin
+from main.methods.schoolModules import school_has_module
 from main.views.BaseViews import SecuredAPIView
 
 HOSTEL_AUTH = (
@@ -48,33 +47,10 @@ HOSTEL_AUTH = (
     SuperAdminTokenAuthentication,
 )
 
-# The flag changes about once in a school's lifetime but is read on every single
-# hostel request, so it is cached. Short TTL rather than explicit invalidation
-# from the superadmin view: five minutes is a tolerable wait for a switch that
-# is flipped once, and a stale cache that expires on its own can never get stuck
-# the way a missed invalidation can.
-_GATE_CACHE_TTL = 300
-
-
 def school_has_hostel(school_id):
-    try:
-        school_id = int(school_id)
-    except (TypeError, ValueError):
-        return False
-    key = f"hostel-module:{school_id}"
-    allowed = cache.get(key)
-    if allowed is None:
-        allowed = SchoolAdmin.objects.filter(
-            id=school_id, is_active=True, uses_hostel=True
-        ).exists()
-        cache.set(key, allowed, _GATE_CACHE_TTL)
-    return bool(allowed)
-
-
-def clear_hostel_gate_cache(school_id):
-    """Called by the superadmin view so a school it just switched on does not
-    have to wait out the TTL."""
-    cache.delete(f"hostel-module:{school_id}")
+    # One lookup on SchoolModule's unique index -- no cache, so a switch by the
+    # superadmin applies on the very next request (main/methods/schoolModules.py).
+    return school_has_module(school_id, "hostel", active_school=True)
 
 
 class HostelBaseView(SecuredAPIView):
