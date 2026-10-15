@@ -3,7 +3,7 @@
 import re
 from decimal import Decimal, ROUND_HALF_UP
 from django.db import transaction
-from django.db.models import Q, Value, CharField, Sum
+from django.db.models import Q, Value, CharField, Sum, FileField
 from django.db.models.functions import Concat, Lower, Collate
 from django.utils import timezone
 from rest_framework.response import Response
@@ -41,6 +41,7 @@ from ..methods.carryForwardDues import carry_forward_dues_on_class_change
 from ..methods.sectionChange import is_section_only_change, should_migrate_results
 from ..methods.nepaliDatetime import ndt_today
 from ..methods.removeImages import clearImages, requestedRemovals
+from ..methods.uploads import is_safe_image
 from ..serializers.StudentSerializer import (
     StudentDiscountInfoSerializer,
     StudentGuardianInfoSerializer,
@@ -325,6 +326,8 @@ class StudentsView(SecuredAPIView, ResultMigrationMixin):
                 return Response({"message": "Class promotion successful!"})
         else:
             res = self.bulk_update(request.data)
+            if isinstance(res, Response):
+                return res  # a file that isn't an image
             if res:
                 return Response(_response__ok)
         return self.RESPONSE__INVALID_REQUEST
@@ -377,6 +380,28 @@ class StudentsView(SecuredAPIView, ResultMigrationMixin):
                 object[key] = value
         return object
 
+    @staticmethod
+    def bulk_editable_fields(Model):
+        """
+        The fields a bulk edit may write on `Model`: plain values only.
+
+        Bulk edit used to setattr() whatever attribute name a row carried. A
+        multipart key such as `data[<id>][class_info_id]` never reaches the
+        school-scope check (it reads `class_info_id`, not the bracketed key),
+        so one school could move its students into another school's classes,
+        academic years or bus stations, or point a document field at any file
+        in storage by sending its path as text. Relations, files and ids are
+        never bulk-edited; the photo goes through `image` below.
+        """
+        return {
+            field.name
+            for field in Model._meta.concrete_fields
+            if field.editable
+            and not field.primary_key
+            and not field.is_relation
+            and not isinstance(field, FileField)
+        }
+
     def bulk_update(self, data):
         """
         handles bulk updates of student.
@@ -392,6 +417,18 @@ class StudentsView(SecuredAPIView, ResultMigrationMixin):
         # other_info is handled per-student below (bulk_update_other_info)!
         data.pop("class_info", None)
         #
+        # A photo is saved under the uploader's file name, so it has to really
+        # be an image -- the same check the bulk-photo upload makes.
+        for student_id, update in data.items():
+            image = update.get("image") if isinstance(update, dict) else None
+            if image in (None, ""):
+                continue
+            if not (hasattr(image, "read") and is_safe_image(image)):
+                return Response(
+                    {"message": "Please upload a JPG, PNG or other image file."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        student_fields = self.bulk_editable_fields(Student)
         if school_id:
             student_ids = {id for id in data.keys()}
             if len(student_ids) > 0:
@@ -434,8 +471,10 @@ class StudentsView(SecuredAPIView, ResultMigrationMixin):
                                     continue
                                 if attribute == "image":
                                     std.image.save(value.name, value, save=False)
-                                else:
+                                elif attribute in student_fields:
                                     setattr(std, attribute, value)
+                                else:
+                                    continue
                                 attributes.add(attribute)
                                 changed = True
                             if changed:
@@ -460,12 +499,14 @@ class StudentsView(SecuredAPIView, ResultMigrationMixin):
     def bulk_update_guardian_info(self, students, data):
         attributes = set()
         guardian_infos = []
+        editable = self.bulk_editable_fields(StudentGuardianInfo)
         for student_id, update in data.items():
             std = students.get(student_id)
             update = update.pop("guardian_info", {})
             if std and update:
+                update = {k: v for k, v in update.items() if k in editable}
                 guardian_info = std.guardian_info
-                if guardian_info:
+                if guardian_info and update:
                     for attribute, value in update.items():
                         setattr(guardian_info, attribute, value)
                         attributes.add(attribute)
@@ -485,11 +526,15 @@ class StudentsView(SecuredAPIView, ResultMigrationMixin):
         attributes = set()
         to_update = []
         linked_student_ids = set()
+        editable = self.bulk_editable_fields(StudentOtherInfo)
         for student_id, update in data.items():
             std = students.get(student_id)
             other_info_update = update.pop("other_info", {}) if update else {}
             # drop empty values so we never wipe an existing choice with blanks
-            other_info_update = {k: v for k, v in other_info_update.items() if v != ""}
+            other_info_update = {
+                k: v for k, v in other_info_update.items()
+                if v != "" and k in editable
+            }
             if not (std and other_info_update):
                 continue
             other_info = std.other_info
