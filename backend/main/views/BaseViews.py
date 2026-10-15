@@ -130,11 +130,15 @@ class SecuredAPIView(APIView):
         "staff": "staff",
         "staff_id": "staff",
     }
+    # `?class=` is a class id to the fee, fee-title, ledger and optional-subject
+    # reads, which showed any school's fee structure for it. Query string only:
+    # in a body `class` can be free text ("10" on a character certificate).
+    SCOPED_QUERY_ID_KEYS = {**SCOPED_ID_KEYS, "class": "class_info"}
     _MAX_BODY_DEPTH = 6
     _FORM_KEY_PARTS = re.compile(r"\[([^\]]*)\]")
 
     @classmethod
-    def scoped_kind(cls, key):
+    def scoped_kind(cls, key, keys=None):
         """
         Which record `key` names, if any.
 
@@ -143,14 +147,15 @@ class SecuredAPIView(APIView):
         database just the same -- and those keys never matched by exact name.
         Such a key is read by its last name; `student_id[]` by its own.
         """
-        kind = cls.SCOPED_ID_KEYS.get(key)
+        keys = cls.SCOPED_ID_KEYS if keys is None else keys
+        kind = keys.get(key)
         if kind or not isinstance(key, str) or "[" not in key:
             return kind
         names = [
             part for part in cls._FORM_KEY_PARTS.findall(key)
             if part and not part.isdigit()
         ]
-        return cls.SCOPED_ID_KEYS.get(names[-1] if names else key.split("[", 1)[0])
+        return keys.get(names[-1] if names else key.split("[", 1)[0])
 
     @staticmethod
     def as_record_id(value):
@@ -202,7 +207,7 @@ class SecuredAPIView(APIView):
                     found[kind].add(rid)
 
         for key, values in request.query_params.lists():
-            kind = cls.scoped_kind(key)
+            kind = cls.scoped_kind(key, cls.SCOPED_QUERY_ID_KEYS)
             if kind:
                 take(kind, values)
 
