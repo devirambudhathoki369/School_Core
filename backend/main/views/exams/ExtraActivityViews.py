@@ -21,6 +21,21 @@ from docs.api_docs.api.manage import EXTRA_ACTIVITIES_API
 from docs.api_docs.api.exam_results import EXTRA_ACTIVITIES_ENTRY_API
 
 
+def owns_rows(view, Model, rows):
+    """
+    True when every row that names an `id` names one of the caller's own.
+
+    Rows with an id are saved by `bulk_update`, which matches on the id alone
+    -- so a POST could rename another school's activities or rewrite its
+    students' extra-activity results, which print on their marksheets.
+    """
+    ids = {row.get("id") for row in rows if row.get("id")}
+    if not ids:
+        return True
+    owned = view.scope_to_caller(Model.objects.filter(id__in=ids), view.request)
+    return owned.count() == len(ids)
+
+
 class ExtraActivityView(SecuredAPIView):
     authentication_classes = (AdminTokenAuthentication, StaffTokenAuthentication)
 
@@ -49,6 +64,8 @@ class ExtraActivityView(SecuredAPIView):
         return self.RESPONSE__INVALID_REQUEST
 
     def handle_save(self, data):
+        if not owns_rows(self, ExtraActivity, data):
+            return None
         ret_data = []
         to_create, to_update = [], []
         updated_at = timezone.now()
@@ -123,6 +140,8 @@ class ExtraActivityEntryView(SecuredAPIView):
         return self.RESPONSE__INVALID_REQUEST
 
     def handle_save(self, data):
+        if not owns_rows(self, ExtraActivityEntry, data):
+            return None
         ret_data = []
         to_create, to_update = [], []
         updated_at = timezone.now()
