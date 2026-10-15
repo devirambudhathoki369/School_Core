@@ -22,6 +22,7 @@ from ..models.SchoolAdmin import SchoolAdmin
 from ..models.Staff import Staff
 from ..models.Student import Student
 from .fields import CLASS_DETAILS_FIELDS
+from ..constants.staff_permissions import ANY_STAFF, STAFF_PERMISSIONS
 
 security_logger = logging.getLogger("django.security")
 
@@ -83,6 +84,26 @@ def is_student_request(request):
     return isinstance(getattr(request, "auth", None), StudentAuthToken)
 
 
+def caller_staff_permissions(request):
+    """The permission ids a staff token's account holds; empty for any other."""
+    cached = getattr(request, "_caller_staff_permissions", None)
+    if cached is not None:
+        return cached
+    held = set()
+    if isinstance(getattr(request, "auth", None), StaffAuthToken):
+        rows = Staff.objects.filter(account_id=request.user.pk).values_list(
+            "permissions", flat=True
+        )
+        for permissions in rows:
+            for permission in permissions or ():
+                try:
+                    held.add(int(permission))
+                except (TypeError, ValueError):
+                    pass
+    request._caller_staff_permissions = held
+    return held
+
+
 class SecuredAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     # Handler names ("post", "put", ...) a STUDENT token may call that change
@@ -118,7 +139,52 @@ class SecuredAPIView(APIView):
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
         self.enforce_student_boundary(request)
+        self.enforce_staff_permissions(request)
         self.enforce_named_records_scope(request)
+
+    def enforce_staff_permissions(self, request):
+        """
+        A STAFF token may only make the calls its permissions' screens make.
+
+        A school admin gives each staff member permissions (Manage > Users),
+        and the menu showed them only those screens -- but every API took any
+        staff token, so a teacher allowed to enter marks could post fees, void
+        invoices, read the accounts or send bulk SMS by calling the endpoint.
+        constants/staff_permissions.py lists, per view and method, the
+        permissions whose screens make the call (generated from the frontend;
+        see tools/staff_permissions). A view or method it does not list is
+        the admin's alone.
+
+        ENFORCE_STAFF_PERMISSIONS off: logged as "would refuse", not refused.
+        """
+        if not isinstance(getattr(request, "auth", None), StaffAuthToken):
+            return
+        method = request.method.lower()
+        if method == "options":
+            return
+        if method == "head":
+            method = "get"
+        view = f"{type(self).__module__}.{type(self).__qualname__}"
+        needed = STAFF_PERMISSIONS.get(view, {}).get(method, ())
+        if needed == ANY_STAFF:
+            return
+        held = caller_staff_permissions(request)
+        if held.intersection(needed):
+            return
+        enforce = getattr(settings, "ENFORCE_STAFF_PERMISSIONS", False)
+        security_logger.warning(
+            "staff permission %s: %s %s (%s.%s) by %s needs %s, holds %s",
+            "refused" if enforce else "would refuse",
+            request.method,
+            request.path,
+            view,
+            method,
+            getattr(request.user, "username", "?"),
+            sorted(needed) or "admin",
+            sorted(held),
+        )
+        if enforce:
+            raise PermissionDenied("Your account does not have permission for this.")
 
     # Request keys that name a class / student / staff record, mapped to which.
     SCOPED_ID_KEYS = {
