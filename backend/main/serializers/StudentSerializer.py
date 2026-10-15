@@ -165,9 +165,11 @@ class StudentSerializer(serializers.ModelSerializer, ResultMigrationMixin):
 
     class Meta:
         model = Student
-        exclude = ["created_at"]
+        # `account` is linked only by the student's own registration
+        # (account/serializers.py). Writable here, any school could attach a
+        # student record to whichever login it named by id.
+        exclude = ["created_at", "account"]
         list_serializer_class = StudentListSerializer
-        extra_kwargs = {"account": {"write_only": True}}
 
     def create(self, validated_data):
         academic_year = validated_data.pop("academic_year", None)

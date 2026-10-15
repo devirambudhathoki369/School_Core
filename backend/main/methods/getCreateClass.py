@@ -36,6 +36,12 @@ def get_or_create_class(class_info_data):
     section = class_info_data.get("section")
     course = class_info_data.get("course")
     school = class_info_data.get("school")
+    # The class is looked up by whatever the dict holds. Without a school --
+    # the one value here the authenticator checks against the caller -- an
+    # `id`, or just a level and grade, matched ANY school's class, and
+    # students, fees and postings were written into it.
+    if school in (None, ""):
+        return None, False
     academic_year = class_info_data.pop("academic_year", None)
 
     q = Q(**class_info_data)
