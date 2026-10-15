@@ -26,7 +26,7 @@ from ...serializers.SchoolAdminSerializer import (
     SchoolImageSerializer,
     SchoolImageParamsSerializer,
 )
-from ..BaseViews import SecuredAPIView
+from ..BaseViews import SecuredAPIView, caller_school_ids
 from ...methods.removeImages import clearImages, requestedRemovals
 
 TAGS = ["school admin"]
@@ -55,6 +55,12 @@ class SchoolsView(SecuredAPIView):
         q = Q(test_account=False, is_active=True)
         if id:
             q &= Q(id=id)
+        # Every screen that lists all schools is a superadmin's. Without
+        # `school`, any staff or admin login listed them all -- and with
+        # include_sign, each school's admin username and signature file.
+        own = caller_school_ids(request)
+        if own is not None:
+            q &= Q(id__in=own)
         objects = (
             SchoolAdmin.objects.filter(q)
             .defer("created_at")
