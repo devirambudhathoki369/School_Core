@@ -3,7 +3,7 @@
 import re
 from decimal import Decimal, ROUND_HALF_UP
 from django.db import transaction
-from django.db.models import Q, Value, CharField, Sum, FileField
+from django.db.models import Q, Value, CharField, Sum
 from django.db.models.functions import Concat, Lower, Collate
 from django.utils import timezone
 from rest_framework.response import Response
@@ -42,6 +42,7 @@ from ..methods.sectionChange import is_section_only_change, should_migrate_resul
 from ..methods.nepaliDatetime import ndt_today
 from ..methods.removeImages import clearImages, requestedRemovals
 from ..methods.uploads import is_safe_image
+from ..methods.plainFields import plain_fields
 from ..serializers.StudentSerializer import (
     StudentDiscountInfoSerializer,
     StudentGuardianInfoSerializer,
@@ -380,27 +381,12 @@ class StudentsView(SecuredAPIView, ResultMigrationMixin):
                 object[key] = value
         return object
 
-    @staticmethod
-    def bulk_editable_fields(Model):
-        """
-        The fields a bulk edit may write on `Model`: plain values only.
-
-        Bulk edit used to setattr() whatever attribute name a row carried. A
-        multipart key such as `data[<id>][class_info_id]` never reaches the
-        school-scope check (it reads `class_info_id`, not the bracketed key),
-        so one school could move its students into another school's classes,
-        academic years or bus stations, or point a document field at any file
-        in storage by sending its path as text. Relations, files and ids are
-        never bulk-edited; the photo goes through `image` below.
-        """
-        return {
-            field.name
-            for field in Model._meta.concrete_fields
-            if field.editable
-            and not field.primary_key
-            and not field.is_relation
-            and not isinstance(field, FileField)
-        }
+    # Bulk edit used to setattr() whatever attribute name a row carried, so one
+    # school could move its students into another school's classes, academic
+    # years or bus stations, or point a document field at any stored file by
+    # sending its path as text. Rows now only change plain fields
+    # (methods/plainFields); the photo goes through `image` below.
+    bulk_editable_fields = staticmethod(plain_fields)
 
     def bulk_update(self, data):
         """

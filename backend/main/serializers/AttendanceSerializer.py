@@ -13,6 +13,7 @@ from ..models.ClassInfo import ClassInfo
 from ..models.Staff import Staff
 from ..models.Student import Student
 from ..views.sms.SMSTemplateMixin import SMSTemplateMixin
+from ..methods.plainFields import only_plain
 from ..methods.push import _in_background
 from ..methods.absentSMS import mark_absent_sms_sent
 
@@ -108,12 +109,14 @@ class ClassAttendanceSerializer(serializers.ModelSerializer, SMSTemplateMixin):
                     # NB: rows are persisted unconditionally — they used to be
                     # nested inside the SMS branch, so attendance silently failed
                     # to save whenever the SMS lookup raised.
+                    # only_plain: a row's class_attendance_id would override
+                    # the roll call set here -- another school's, even.
                     attendances = (
                         StudentAttendance(
                             class_attendance=class_attd,
                             student_id=attd.pop("student"),
                             reason=attd.pop("reason", ""),
-                            **attd
+                            **only_plain(StudentAttendance, attd)
                         )
                         for attd in attendances
                     )

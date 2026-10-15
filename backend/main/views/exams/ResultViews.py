@@ -32,6 +32,7 @@ from ...serializers.exams.ResultSerializer import (
 from ...views.search.StudentSearchView import StudentSearchByAcademicYearMixin
 from ...methods.genClassname import getClassDetails
 from ...methods.nameConcat import nameConcat
+from ...methods.plainFields import plain_fields
 from ...methods.nepaliDatetime import nepaliToEnglishDate
 from .ResultCalculation import ResultCalculation
 from docs.api_docs.api.exam_results import RESULTS_API
@@ -1106,18 +1107,18 @@ class ResultView(SecuredAPIView, StudentSearchByAcademicYearMixin, ResultCalcula
         self, school_id, exam_id, class_info_id, result_id, criteria, student_marks
     ):
         crq = Q(id=result_id, exam=exam_id, class_info=class_info_id, is_active=True)
-        try:
-            user_role = getattr(self.request, "user_role", None)
-            if user_role == "staff":
-                if not ClassResult.objects.filter(
-                    crq, published_date__isnull=True
-                ).exists():
-                    return Response(
-                        {"message": "Results Update not allowed!"},
-                        status=status.HTTP_403_FORBIDDEN,
-                    )
-        except:
-            pass
+        # The header has to be this class's (and so this school's) for every
+        # role. Only staff were checked, inside a bare try/except, so an admin
+        # could send another school's result id with their own class and
+        # rewrite that school's marks.
+        if getattr(self.request, "user_role", None) == "staff":
+            crq &= Q(published_date__isnull=True)
+        if not ClassResult.objects.filter(crq).exists():
+            return Response(
+                {"message": "Results Update not allowed!"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        marks_fields = plain_fields(StudentResult)
         with transaction.atomic():
             try:
                 if criteria and isinstance(criteria, dict):
@@ -1165,6 +1166,9 @@ class ResultView(SecuredAPIView, StudentSearchByAcademicYearMixin, ResultCalcula
                         if isinstance(e, dict):
                             id = e.pop("id", None)
                             student_id = e.pop("student", None)
+                            # marks only: a row's class_result_id / student_id
+                            # would re-point it, or a new row, elsewhere
+                            e = {k: v for k, v in e.items() if k in marks_fields}
                             result = results.get(id) if id else None
                             if result is None and student_id is not None:
                                 result = existing_by_student.get(student_id)

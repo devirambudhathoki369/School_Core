@@ -6,6 +6,7 @@ from ...models.Student import Student
 from ...models.exams.Result import ClassResult, StudentResult
 from ...constants.marks_field import MARKS_FIELD_CONFIGS
 from ...methods.subjectScope import is_subject_in_class_scope
+from ...methods.plainFields import only_plain
 
 
 class ClassResultSerializer(serializers.ModelSerializer):
@@ -102,8 +103,14 @@ class ClassResultSerializer(serializers.ModelSerializer):
                         # one row per student, whatever the page sent.
                         continue
                     seen.add(student_id)
+                    # only_plain: a row's class_result_id would override the
+                    # header set here -- another school's, even.
                     rows.append(
-                        StudentResult(class_result=ins, student=student, **res)
+                        StudentResult(
+                            class_result=ins,
+                            student=student,
+                            **only_plain(StudentResult, res),
+                        )
                     )
                 StudentResult.objects.bulk_create(rows)
             # filling an empty shell counts as a save, not an "already exists".
