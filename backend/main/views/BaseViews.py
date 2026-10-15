@@ -1,4 +1,5 @@
 import logging
+import re
 
 from django.conf import settings
 from rest_framework.views import APIView
@@ -130,6 +131,26 @@ class SecuredAPIView(APIView):
         "staff_id": "staff",
     }
     _MAX_BODY_DEPTH = 6
+    _FORM_KEY_PARTS = re.compile(r"\[([^\]]*)\]")
+
+    @classmethod
+    def scoped_kind(cls, key):
+        """
+        Which record `key` names, if any.
+
+        A multipart body flattens its rows into keys like `pairs[0][student]`
+        or `data[12][class_info_id]` -- views unpack them, so the id reaches the
+        database just the same -- and those keys never matched by exact name.
+        Such a key is read by its last name; `student_id[]` by its own.
+        """
+        kind = cls.SCOPED_ID_KEYS.get(key)
+        if kind or not isinstance(key, str) or "[" not in key:
+            return kind
+        names = [
+            part for part in cls._FORM_KEY_PARTS.findall(key)
+            if part and not part.isdigit()
+        ]
+        return cls.SCOPED_ID_KEYS.get(names[-1] if names else key.split("[", 1)[0])
 
     @staticmethod
     def as_record_id(value):
@@ -180,9 +201,10 @@ class SecuredAPIView(APIView):
                 if rid is not None:
                     found[kind].add(rid)
 
-        params = request.query_params
-        for key, kind in cls.SCOPED_ID_KEYS.items():
-            take(kind, params.getlist(key) + params.getlist(f"{key}[]"))
+        for key, values in request.query_params.lists():
+            kind = cls.scoped_kind(key)
+            if kind:
+                take(kind, values)
 
         def walk(node, depth):
             if depth > cls._MAX_BODY_DEPTH:
@@ -190,7 +212,7 @@ class SecuredAPIView(APIView):
             if isinstance(node, dict):
                 items = node.lists() if hasattr(node, "lists") else node.items()
                 for key, value in items:
-                    kind = cls.SCOPED_ID_KEYS.get(key)
+                    kind = cls.scoped_kind(key)
                     if kind:
                         take(kind, value)
                     if isinstance(value, (dict, list, tuple)):
