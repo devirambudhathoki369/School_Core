@@ -1,3 +1,5 @@
+import logging
+
 from django.db.models import Value, CharField, Q
 from django.db.models.functions import Concat, Lower, Collate
 
@@ -15,6 +17,8 @@ from account.auth.Authentication import (
     UserTokenAuthentication,
 )
 
+from account.auth.UserRole import UserRoles
+
 #
 from .BaseViews import SecuredAPIView
 from ..methods.removeImages import clearImages, requestedRemovals
@@ -25,6 +29,8 @@ from ..serializers.StaffSerializer import (
     StaffSerializer,
 )
 from docs.api_docs.api.manage import STAFF_API
+
+security_logger = logging.getLogger("django.security")
 
 STAFF_DETAILS_RETURN_FIELDS = (
     "id",
@@ -37,6 +43,27 @@ STAFF_DETAILS_RETURN_FIELDS = (
 class StaffView(SecuredAPIView):
     authentication_classes = (AdminTokenAuthentication, StaffTokenAuthentication)
     parser_classes = (JSONParser, MultiPartParser)
+
+    def withoutPermissionGrants(self, request):
+        """
+        Drop `permissions` from a STAFF login's write.
+
+        The staff serializer takes every field, so any staff login could set
+        `permissions` on any colleague's record -- its own included -- or
+        enrol a new staff with all of them, and so grant itself whatever the
+        admin had withheld. Only the school admin assigns permissions (Manage
+        > Users, an admin-only page); a value a staff login sends is ignored.
+        """
+        if getattr(request, "user_role", None) != UserRoles.ROLE_STAFF:
+            return
+        if "permissions" in request.data:
+            security_logger.warning(
+                "staff permission grant dropped: %s %s by %s",
+                request.method,
+                request.path,
+                getattr(request.user, "username", "?"),
+            )
+            request.data.pop("permissions")
 
     @swagger_auto_schema(**STAFF_API["get"])
     def get(self, request):
@@ -87,6 +114,7 @@ class StaffView(SecuredAPIView):
 
     @swagger_auto_schema(**STAFF_API["post"], request_body=StaffSerializer)
     def post(self, request):
+        self.withoutPermissionGrants(request)
         s = StaffSerializer(data=request.data)
         if s.is_valid():
             s.save()
@@ -118,6 +146,7 @@ class StaffView(SecuredAPIView):
 
     @swagger_auto_schema(**STAFF_API["put"])
     def put(self, request):
+        self.withoutPermissionGrants(request)
         _response__ok = {"message": "Staff information updated!"}
         if "id" in request.data and "remove" in request.data:
             return self.removeImages(request)

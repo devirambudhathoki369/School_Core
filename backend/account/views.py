@@ -562,6 +562,15 @@ class StaffRegistrationView(InternalRegistrationView):
     perform_authentication = SecuredAPIView.perform_authentication
 
     def post(self, request):
+        # A school admin's to give. A staff login could create a login, with a
+        # password of its choosing, for any colleague who had none yet -- and
+        # then act as them, with their permissions. The page that does this
+        # (Manage > Users) is admin-only.
+        if getattr(request, "user_role", None) == UserRoles.ROLE_STAFF:
+            return Response(
+                {"message": "Only the school admin can create staff logins."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         # the staff record getting the login must be in the caller's school
         schools = caller_school_ids(request)
         staff_id = str(request.data.get("staff") or "")
