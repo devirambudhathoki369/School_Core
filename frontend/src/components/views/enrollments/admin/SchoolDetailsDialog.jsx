@@ -4,6 +4,7 @@ import { BuildingOffice2Icon, KeyIcon, PencilIcon, XMarkIcon } from "@heroicons/
 import Badge from "@/components/Badge";
 import { useEnrollmentContext } from "@/contexts/EnrollmentContext";
 import useLastValue from "@/hooks/lastValue";
+import { SCHOOL_MODULES } from "@/configs/moduleGates";
 
 // A switch reads from its boolean when the row carries one, else from the
 // "yes"/"no" text the list sends beside it. `null` = the row does not say.
@@ -54,6 +55,11 @@ function SchoolDetailsDialog() {
         ['Time set required', flagOf(school, 'time_set_required')],
         ['Testing profile', isTest],
     ].filter(([, on]) => on !== null);
+    // only what the row really carries: a school listed by an older server
+    // says nothing about facilities, and "No" would then be a guess
+    const facilities = SCHOOL_MODULES
+        .filter(({ flag }) => typeof school?.[flag] === 'boolean')
+        .map(({ flag, label }) => [label, school[flag]]);
 
     return (
         <Dialog open={!!viewedAdmin} handler={close} size="lg" aria-labelledby={titleId}
@@ -101,6 +107,18 @@ function SchoolDetailsDialog() {
                             <Item label="Username" value={school?.account__username} />
                         </dl>
                     </Group>
+
+                    {facilities.length > 0 &&
+                        <Group title="Facilities">
+                            <ul className="flex flex-wrap gap-2">
+                                {facilities.map(([label, on]) => (
+                                    <li key={label} className="app-record-flag">
+                                        <span className="app-record-flag-name">{label}</span>
+                                        <Badge status={on} dot={false}>{on ? 'Yes' : 'No'}</Badge>
+                                    </li>
+                                ))}
+                            </ul>
+                        </Group>}
 
                     {flags.length > 0 &&
                         <Group title="Options">

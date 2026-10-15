@@ -26,6 +26,9 @@ function makeRows(n) {
             slogan: id % 4 === 0 ? "" : "Education for a brighter tomorrow", about_us: id % 2 ? "A community school serving the valley since its founding.\nRuns classes from play group to grade twelve." : "",
             test_account: test, uses_mobile_app: app, time_set_required: time,
             test_account_str: yn(test), uses_mobile_app_str: yn(app), time_set_required_str: yn(time), uses_sms_str: "no",
+            // facilities, as GET /api/admins lists them
+            uses_exams: true, uses_payroll: id % 6 !== 0, uses_accounting: id % 5 !== 0, uses_library: id % 2 === 1,
+            uses_inventory: id % 7 !== 0, uses_hostel: id % 8 === 0, uses_extra_billing: id % 10 === 0,
         };
     });
 }
