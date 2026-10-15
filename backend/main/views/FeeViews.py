@@ -20,6 +20,7 @@ from .fields import CLASS_DETAILS_FIELDS
 
 
 class FeeView(SecuredAPIView):
+    scoped_fields = {"title": (FeeTitle, "school")}
     """
     - Save fee setups i.e. title and amount along with class details; \\
     - Get fee setups, or fee setup for specific student(extracting student's grade detail) and school

@@ -113,6 +113,11 @@ class SecuredAPIView(APIView):
     # scoped by library.methods.guestSchools), so the students and staff they
     # name may belong to another school by design.
     allow_other_school_people = False
+    # Other request keys this view reads as ids of school-owned records,
+    # {key: (Model, path to its school)} -- checked like class_info/student/
+    # staff by enforce_named_records_scope. Per view, because the same key is
+    # a plain value elsewhere (a fee `title` here, a notice's there).
+    scoped_fields = {}
     # authentication_classes=()
     RESPONSE__INVALID_REQUEST = Response(
         {"message": "Invalid request!"}, status=status.HTTP_400_BAD_REQUEST
@@ -256,14 +261,17 @@ class SecuredAPIView(APIView):
         return rid
 
     @classmethod
-    def _named_record_ids(cls, request):
+    def _named_record_ids(cls, request, keys=None, query_keys=None):
         """
         {"class_info": ids, "student": ids, "staff": ids} for every such id the
         request names: query string (incl. `key[]` lists), the body's top level,
         and rows nested inside it (a posting's student ledgers, an attendance
         roll, marks rows) — a nested row reaches the database just the same.
+        `keys` / `query_keys` swap in another {request key: kind} map.
         """
-        found = {"class_info": set(), "student": set(), "staff": set()}
+        keys = cls.SCOPED_ID_KEYS if keys is None else keys
+        query_keys = cls.SCOPED_QUERY_ID_KEYS if query_keys is None else query_keys
+        found = {kind: set() for kind in {*keys.values(), *query_keys.values()}}
 
         def take(kind, value):
             values = value if isinstance(value, (list, tuple)) else [value]
@@ -273,7 +281,7 @@ class SecuredAPIView(APIView):
                     found[kind].add(rid)
 
         for key, values in request.query_params.lists():
-            kind = cls.scoped_kind(key, cls.SCOPED_QUERY_ID_KEYS)
+            kind = cls.scoped_kind(key, query_keys)
             if kind:
                 take(kind, values)
 
@@ -283,7 +291,7 @@ class SecuredAPIView(APIView):
             if isinstance(node, dict):
                 items = node.lists() if hasattr(node, "lists") else node.items()
                 for key, value in items:
-                    kind = cls.scoped_kind(key)
+                    kind = cls.scoped_kind(key, keys)
                     if kind:
                         take(kind, value)
                     if isinstance(value, (dict, list, tuple)):
@@ -319,6 +327,14 @@ class SecuredAPIView(APIView):
                 ("staff", Staff, "school__in"),
             ]
         named = self._named_record_ids(request)
+        if self.scoped_fields:
+            # this view's own keys: {key: (Model, path to its school)}
+            own = {key: key for key in self.scoped_fields}
+            named.update(self._named_record_ids(request, own, own))
+            checks += [
+                (key, Model, f"{school_path}__in")
+                for key, (Model, school_path) in self.scoped_fields.items()
+            ]
         for key, Model, school_lookup in checks:
             ids = named[key]
             if ids and (

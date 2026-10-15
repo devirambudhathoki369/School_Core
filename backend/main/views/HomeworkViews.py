@@ -17,6 +17,7 @@ from account.auth.Authentication import (
 from account.auth.UserRole import UserRoles
 from .BaseViews import SecuredAPIView, caller_student_id, is_student_request
 from ..models.Homework import Homework, HomeworkSubmission
+from ..models.Subject import Subject
 from ..methods.push import notify_class_students
 from ..serializers.HomeworkSerializer import (
     HomeworkSerializer,
@@ -29,6 +30,7 @@ from ..serializers.HomeworkSerializer import (
 
 
 class HomeworkView(SecuredAPIView):
+    scoped_fields = {"subject": (Subject, "school")}
     authentication_classes = (
         StudentTokenAuthentication,
         StaffTokenAuthentication,

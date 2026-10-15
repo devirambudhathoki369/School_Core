@@ -13,6 +13,7 @@ from account.auth.Authentication import (
 
 #
 from ...models.exams.Exam import Exam
+from ...models.FiscalYears import AcademicYear
 from ...serializers.exams.ExamSerializer import ExamSerializer
 from ..BaseViews import SecuredAPIView
 
@@ -21,6 +22,7 @@ from docs.api_docs.api.exam_results import EXAMS_API
 
 #
 class ExamView(SecuredAPIView):
+    scoped_fields = {"academic_year": (AcademicYear, "school")}
     authentication_classes = (
         AdminTokenAuthentication,
         StaffTokenAuthentication,

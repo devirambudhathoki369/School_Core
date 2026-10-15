@@ -33,6 +33,7 @@ from ...models.inventory.Inventory import (
     TXN_ADJUSTMENT,
     TXN_WASTAGE,
 )
+from ...models.FiscalYears import AcademicYear
 from ..BaseViews import SecuredAPIView
 
 _AUTH = (
@@ -139,6 +140,7 @@ class InventoryCategoryView(SecuredAPIView):
 
 
 class InventoryItemView(SecuredAPIView):
+    scoped_fields = {"category": (InventoryCategory, "school")}
     authentication_classes = _AUTH
 
     def get(self, request):
@@ -223,6 +225,11 @@ def _txn_total(data):
 
 
 class InventoryTransactionView(SecuredAPIView):
+    scoped_fields = {
+        "item": (InventoryItem, "school"),
+        "category": (InventoryCategory, "school"),
+        "academic_year": (AcademicYear, "school"),
+    }
     authentication_classes = _AUTH
 
     def get(self, request):

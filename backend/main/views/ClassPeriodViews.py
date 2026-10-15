@@ -18,11 +18,13 @@ from ..models.ClassPeriod import ClassPeriod
 from ..models.ClassInfo import ClassInfo
 from ..models.Subject import Subject
 from ..models.Staff import Staff
+from ..models.FiscalYears import AcademicYear
 from ..serializers.ClassPeriodSerializer import ClassPeriodSerializer
 from docs.api_docs.api.manage import CLASS_PERIOD_API
 
 
 class ClassPeriodView(SecuredAPIView):
+    scoped_fields = {"academic_year": (AcademicYear, "school")}
     authentication_classes = (
         AdminTokenAuthentication,
         StaffTokenAuthentication,

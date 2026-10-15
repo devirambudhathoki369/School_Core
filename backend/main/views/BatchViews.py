@@ -27,6 +27,8 @@ from account.auth.Authentication import (
 from ..models.Batch import Batch
 from ..models.ClassInfo import ClassInfo
 from ..models.Student import Student
+from ..models.Course import Course
+from ..models.FiscalYears import AcademicYear
 from ..methods.referential import first_blocking_reference
 from .BaseViews import SecuredAPIView
 
@@ -50,6 +52,10 @@ def _serialize_batch(row):
 
 
 class BatchView(SecuredAPIView):
+    scoped_fields = {
+        "course": (Course, "school"),
+        "start_academic_year": (AcademicYear, "school"),
+    }
     authentication_classes = (
         AdminTokenAuthentication,
         StaffTokenAuthentication,
