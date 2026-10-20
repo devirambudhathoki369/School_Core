@@ -438,7 +438,7 @@ if academic_year and includes_education_level:
 2. **Section changes mid-year**: if a student's section was changed mid-year (via the `isSectionChange` branch in `promoteClass`), they'll have ledger postings under multiple `class_info_id`s for the same AY. The view picks **the latest posting** (largest `id`) as the historical class — i.e. the class they were in at the end of the period. Document this rule if you ever change it.
 3. **Date / `created_at` sorting**: Enrollment History orders by enrollment date (`created_at` of the Student row). That stays stable across promotions — no concern.
 4. **`detailed=true` payload**: the existing `formatEnrollments` returns rich enrollment-history fields. Approach B's roster IDs feed cleanly into the same downstream code — no changes needed below the branching point.
-5. **CLASSNAME column override (UX precision)**: in historical view, the `class_info` field on each returned student is **overridden** with their class *at the time of the selected AY* — not their current class. Without this, a student who was Grade 9 in AY 2080 and is now Grade 10 would appear under "Grade 10" in the report, which contradicts the filter the user picked. The override happens after `.values(...)` materialisation, using a `{student_id: historical_class_info_id}` map built from the same `StudentLedger ⋈ LedgerPosting.class_info` query that produced the roster.
+5. **CLASSNAME column override (UX precision)**: in historical view, the `class_info` field on each returned student is **overridden** with their class _at the time of the selected AY_ — not their current class. Without this, a student who was Grade 9 in AY 2080 and is now Grade 10 would appear under "Grade 10" in the report, which contradicts the filter the user picked. The override happens after `.values(...)` materialisation, using a `{student_id: historical_class_info_id}` map built from the same `StudentLedger ⋈ LedgerPosting.class_info` query that produced the roster.
 
 ### 4.7 Logic TL;DR
 
@@ -628,7 +628,7 @@ Format each row through `formatStudentInvoiceDetails` / `formatStudentLedgerDeta
 
 ### 5.9 Trial-balance view — Class + Academic Year columns (UI surface)
 
-The data was already preserved (§5.1) but the *Student's Trial Balance* table on **Payment → Student → Student Ledger** only showed `S.N | Invoice no. | Date | Particular | Dr. | Cr. | Balance | Months`. Two new columns surface the historical context:
+The data was already preserved (§5.1) but the _Student's Trial Balance_ table on **Payment → Student → Student Ledger** only showed `S.N | Invoice no. | Date | Particular | Dr. | Cr. | Balance | Months`. Two new columns surface the historical context:
 
 - **Class** — for ledger rows comes directly from `LedgerPosting.class_info` (immutable snapshot); for invoice rows derived from the matching ledger in the same AY via a `{academic_year_id: latest_class_info_id}` map built inside `InvoiceViews.getTrialBalance`. Resolved to human-readable name via the existing `cacheClassname` helper.
 - **Academic Year** — straight from each row's `academic_year__name`, populated for both ledgers and invoices.

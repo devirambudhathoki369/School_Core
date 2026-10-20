@@ -6,7 +6,6 @@
 > what every part does, who uses it, the rules and edge cases behind it, the exact data it
 > stores, and **how access and security work**. Grounded in the actual codebase
 > (Django/DRF + Next.js + PostgreSQL), not a generic template.
->
 > **Why it exists.** This is the **blueprint for the next-generation system** — a separate,
 > ground-up rebuild aiming to be _the most secure school platform_. Treat this as the
 > source of truth for _what the product must do_ and _which trust boundaries it must
