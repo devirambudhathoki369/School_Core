@@ -8,6 +8,7 @@ import PermissionsTab from "./tabs/Permissions";
 import FinanceInfoTab from "./tabs/FinanceInfo";
 import StaffAccountTab from "./tabs/AccountInfo";
 import ProfileAttendance from "../attendance";
+import StaffHeader from "./StaffHeader";
 
 const tabs = {
     personal: { label: 'Personal Info', key: 'staff-personal-info', db_key: null },
@@ -42,6 +43,7 @@ function StaffProfile() {
         <>
             {staff ?
                 <>
+                    <StaffHeader />
                     <div className={`p-3 px-0 rounded-md !m-0 w-[99%] shadow-default`}>
                         <Tabs value='staff-personal-info'>
                             <TabsHeader className="border-b-2 border-blue-gray-50 p-0 bg-transparent overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
