@@ -96,7 +96,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--school-name", default="Demo Secondary School")
-        parser.add_argument("--admin-username", default="demo")
+        parser.add_argument("--admin-username", default="demoschool")  # the sign-in form wants 6-25 characters
         parser.add_argument("--superadmin-username", default="superadmin")
         parser.add_argument("--password", default="SchoolCore@2083",
                             help="password for every demo login; change it after signing in")
