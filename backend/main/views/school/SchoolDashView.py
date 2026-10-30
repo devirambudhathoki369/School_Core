@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from main.methods.collections import collection_totals
 from rest_framework.response import Response
 from django.db.models import (
@@ -30,7 +32,8 @@ from account.auth.Authentication import (
 #
 from ...models.BusStation import BusStation
 from ...models.Course import Course
-from ...models.Invoice import StudentInvoice
+from ...models.Invoice import StudentInvoice, PAYMENT_MODES_MAPPING
+from extra_billing.models.Billing import ExtraInvoice
 from ...models.Student import Student, StudentDiscountInfo, StudentTransportationInfo
 from ...models.Staff import Staff
 from ...models.Attendance import StudentAttendance, StaffAttendance
@@ -46,6 +49,50 @@ def _attendance_block(total, present):
         "total": total,
         "present": present,
         "absent": max(total - present, 0),
+    }
+
+
+# The grades a head teacher says by name; every other grade is "Class N",
+# counted from one (GRADE_CHOICES numbers "one" as 4).
+_GRADE_NAMES = {16: "Play group", 1: "Nursery", 2: "LKG", 3: "UKG"}
+
+
+def class_label(grade, course):
+    """What the dashboard calls a class: its grade, its grade and course when a
+    grade runs more than one (Class 11 · Science), or its course alone when the
+    class has no grade (higher education)."""
+    name = _GRADE_NAMES.get(grade) or (f"Class {grade - 3}" if grade else None)
+    if name and course:
+        return f"{name} · {course}"
+    return name or course or "Other"
+
+
+def _class_order(grade, course):
+    # Play group (16) comes before Nursery (1); courses after every grade.
+    if grade == 16:
+        return (0, -1, course or "")
+    if grade:
+        return (0, grade, course or "")
+    return (1, 0, course or "")
+
+
+def collected_on(school_id, date):
+    """Money received on one day, once per receipt: the amount, how many
+    receipts carried it, and how it splits by payment mode (cash, bank, …)."""
+    query = Q(school=school_id, date=date)
+    by_mode = collection_totals(query, "mode")
+    receipts = sum(
+        model.objects.filter(query, is_active=True).count()
+        for model in (StudentInvoice, ExtraInvoice)
+    )
+    return {
+        "date": date,
+        "amount": sum(by_mode.values(), Decimal("0")),
+        "receipts": receipts,
+        "by_mode": [
+            {"mode": mode, "label": PAYMENT_MODES_MAPPING.get(mode, str(mode)), "amount": amount}
+            for mode, amount in by_mode.items()
+        ],
     }
 
 
@@ -163,6 +210,9 @@ class SchoolDashView(SecuredAPIView):
                     "published_results": published_results_count,
                 },
                 "collections": collections,
+                # Today's money, read at request time like the rest of this
+                # view (it is not cached), so it moves as receipts are cut.
+                "collected_today": collected_on(school_id, ndt_today()),
                 "transportation_services": transportation_services,
             }
         )
@@ -347,7 +397,11 @@ class SchoolAttendanceTodayView(SecuredAPIView):
 
     GET ?school=<id>  ->
         { "date", "students": {total, present, absent},
-                   "staff":    {total, present, absent} }
+                   "staff":    {total, present, absent},
+                   "classes":  [{name, total, present, absent}, ...] }
+
+    "classes" splits the students by grade, sections together ("Class 8", not
+    "8 A" and "8 B" apart), in school order; a class with no grade is its course.
 
     "present" = a member who has at least one present (status=True) attendance
     record today (any RFID punch counts). "absent" = active roster minus present.
@@ -373,19 +427,16 @@ class SchoolAttendanceTodayView(SecuredAPIView):
             status=self.STATUS_RUNNING,
             is_active=True,
         ).count()
-        students_present = (
-            StudentAttendance.objects.filter(
-                class_attendance__school__id=school_id,
-                class_attendance__date=today,
-                status=True,
-                is_active=True,
-                student__is_active=True,
-                student__status=self.STATUS_RUNNING,
-            )
-            .values("student")
-            .distinct()
-            .count()
+        present_rows = StudentAttendance.objects.filter(
+            class_attendance__school__id=school_id,
+            class_attendance__date=today,
+            status=True,
+            is_active=True,
+            student__is_active=True,
+            student__status=self.STATUS_RUNNING,
         )
+        students_present = present_rows.values("student").distinct().count()
+        classes = self._by_class(school_id, present_rows)
 
         staff_total = Staff.objects.filter(
             school__id=school_id,
@@ -411,5 +462,36 @@ class SchoolAttendanceTodayView(SecuredAPIView):
                 "date": today,
                 "students": _attendance_block(students_total, students_present),
                 "staff": _attendance_block(staff_total, staff_present),
+                "classes": classes,
             }
         )
+
+    def _by_class(self, school_id, present_rows):
+        """The roster and today's present count per class, in school order.
+        A student marked present twice (a card punch over a paper roll) is
+        one present student."""
+        key = ("class_info__grade", "class_info__course__course")
+        roster = (
+            Student.objects.filter(
+                class_info__school__id=school_id,
+                status=self.STATUS_RUNNING,
+                is_active=True,
+            )
+            .order_by()
+            .values(*key)
+            .annotate(total=Count("id"))
+        )
+        present = {
+            (row["student__class_info__grade"], row["student__class_info__course__course"]): row["present"]
+            for row in present_rows.order_by()
+            .values("student__class_info__grade", "student__class_info__course__course")
+            .annotate(present=Count("student", distinct=True))
+        }
+        rows = sorted(roster, key=lambda r: _class_order(r[key[0]], r[key[1]]))
+        return [
+            {
+                "name": class_label(r[key[0]], r[key[1]]),
+                **_attendance_block(r["total"], present.get((r[key[0]], r[key[1]]), 0)),
+            }
+            for r in rows
+        ]
