@@ -5714,3 +5714,27 @@ button.app-att-day { cursor: pointer; }
     /* An unticked box is found by its edge too. */
     :root input[type="checkbox"].peer:not(:checked) { border-color: var(--field-line) !important; }
 }
+
+/* ============================ RAIL SECTIONS ===============================
+   The headings the rail is grouped under (Daily, People, Finance…). In the
+   mini rail a heading has no room for words, so it becomes a hairline that
+   still says "a new group starts here". -- */
+[data-ui-theme] .app-rail p.app-rail-section {
+    margin: 0;
+    padding: 1rem .75rem .3rem;
+    font-size: .6875rem !important;
+    line-height: 1rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--t-rail-dim);
+}
+[data-ui-theme] .app-rail p.app-rail-section:first-child { padding-top: .25rem; }
+[data-ui-theme] .app-rail-mini p.app-rail-section {
+    height: 1px;
+    margin: .5rem .6rem;
+    padding: 0;
+    overflow: hidden;
+    font-size: 0 !important;
+    background: var(--t-rail-line);
+}

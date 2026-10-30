@@ -12,7 +12,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import { ArrowRightStartOnRectangleIcon, MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import logout from "@/services/functions/auth/logout";
 import Users from "@/configs/Users";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import OurLogo from "./OurLogo";
 import { collectMenuLeaves, filterMenuTree, pruneUnopenableMenus } from "@/methods/menuTree";
@@ -363,17 +363,29 @@ export default function AppSidebar({ menus }) {
                     <hr />
                     {/* actual-menu  */}
                     <List>
-                        {
-                            visibleMenus?.map((menu, i) => {
+                        {(() => {
+                            // The rail is grouped by the job a page serves (Daily,
+                            // People, Finance…): a top-level row carries its
+                            // `section`, and a heading is drawn where the section
+                            // changes. Grouping is presentation only — every view
+                            // path is the one it always was, so links, shortcuts
+                            // and the staff-permission map do not move. A search
+                            // keeps the heading of whatever section still matches.
+                            let lastSection = null;
+                            return visibleMenus?.map((menu, i) => {
                                 if (menu?.onlySuperuser && user?.role != 'superuser') {
                                     return null;
                                 }
+                                const heading = menu?.section && menu.section !== lastSection ? menu.section : null;
+                                if (menu?.section) lastSection = menu.section;
                                 return (
-                                    <CustomAccordionMenu key={menu?.view || menu?.action || i}
-                                        parent={null} menu={menu} forceOpen={filtering} />
+                                    <Fragment key={menu?.view || menu?.action || i}>
+                                        {heading && <p className="app-rail-section">{heading}</p>}
+                                        <CustomAccordionMenu parent={null} menu={menu} forceOpen={filtering} />
+                                    </Fragment>
                                 )
-                            })
-                        }
+                            });
+                        })()}
                         {/* A search that matches nothing has to SAY so. Without
                             this the rail simply empties, which reads as the menu
                             having broken rather than as a word being wrong. */}
