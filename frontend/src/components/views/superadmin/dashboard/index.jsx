@@ -138,14 +138,14 @@ function Renewals({ lapsed, dueSoon }) {
             </div>
             {rows.length === 0
                 ? <div className="flex flex-1 flex-col items-center justify-center gap-2 py-8 text-center">
-                    <CheckCircleIcon className="h-8 w-8 text-[#12723F]" aria-hidden="true" />
+                    <CheckCircleIcon className="h-8 w-8 text-[var(--st-ok-ink)]" aria-hidden="true" />
                     <p className="text-[0.9375rem] font-semibold text-[var(--ink-900)]">Every licence is current</p>
                     <p className="max-w-[16rem] text-[0.8125rem] leading-5 text-[var(--ink-600)]">No school renews within the next month.</p>
                 </div>
                 : <ul className="flex flex-col">
                     {shown.map((s) => (
                         <li key={s.id} className="app-dash-attention flex items-center gap-3 border-t border-[var(--line-soft)] py-3">
-                            <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${s.state === "lapsed" ? "bg-[#FDECEA] text-[#B42318]" : "bg-[#FFF4E0] text-[#8A5300]"}`}>
+                            <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${s.state === "lapsed" ? "bg-[var(--st-bad-bg)] text-[var(--st-bad-ink)]" : "bg-[var(--st-warn-bg)] text-[var(--st-warn-ink)]"}`}>
                                 {s.state === "lapsed"
                                     ? <ExclamationTriangleIcon className="h-4 w-4" aria-hidden="true" />
                                     : <ClockIcon className="h-4 w-4" aria-hidden="true" />}
@@ -243,7 +243,7 @@ function SuperAdminDashboard() {
                 </Tile>
                 <Tile label="Renewal date passed" Icon={ExclamationTriangleIcon}>
                     <span className="app-kpi-value text-[1.75rem] leading-9">{lapsed.length}</span>
-                    <span className={`app-kpi-sub mt-auto text-[0.8125rem] leading-5 ${lapsed.length ? "!text-[#B42318]" : ""}`}>
+                    <span className={`app-kpi-sub mt-auto text-[0.8125rem] leading-5 ${lapsed.length ? "!text-[var(--st-bad-ink)]" : ""}`}>
                         {lapsed.length ? "Renew, or correct the date" : "Every licence is current"}
                     </span>
                 </Tile>
@@ -297,8 +297,8 @@ function SuperAdminDashboard() {
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                     {CAREFUL.map(({ name, view }) => (
                         <Link key={view} href={`#${view}`}
-                            className="app-quicklink-danger flex items-center gap-2 rounded-[10px] border border-[#F6C9C4]
-                                bg-[#FDECEA] px-3 py-2.5 text-[0.875rem] text-[#8F1C13] transition-colors hover:bg-[#FBDDD9]">
+                            className="app-quicklink-danger flex items-center gap-2 rounded-[10px] border border-[var(--st-bad-line)]
+                                bg-[var(--st-bad-bg)] px-3 py-2.5 text-[0.875rem] text-[var(--st-bad-ink)] transition-colors hover:bg-[var(--st-bad-bg-hover)]">
                             <ArrowUturnLeftIcon className="h-5 w-5 shrink-0" aria-hidden="true" />
                             <span className="min-w-0 truncate">{name}</span>
                         </Link>

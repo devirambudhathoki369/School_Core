@@ -62,7 +62,7 @@ export function IdChip({ label, value }) {
             <span className="text-[0.6875rem] uppercase tracking-wide text-[var(--ink-500)]">{label}</span>
             <span className="font-mono tabular-nums">{value}</span>
             {copied
-                ? <CheckIcon className="h-3.5 w-3.5 text-[#12723F]" />
+                ? <CheckIcon className="h-3.5 w-3.5 text-[var(--st-ok-ink)]" />
                 : <Square2StackIcon className="h-3.5 w-3.5 text-[var(--ink-500)] opacity-0 transition-opacity group-hover:opacity-100" />}
         </button>
     );

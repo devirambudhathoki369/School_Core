@@ -15,10 +15,10 @@ const ROLE_STAFF = 2;
 // is at least 5:1 on its own tint. Employed is calm, on leave a caution,
 // retired informational, departed neutral.
 const STATUS_STYLES = {
-    1: "bg-[#E8F5EE] text-[#12723F] ring-[#BFE3CC]",
-    2: "bg-[#EEF0F4] text-[#374151] ring-[#E3E6EB]",
+    1: "bg-[var(--st-ok-bg)] text-[var(--st-ok-ink)] ring-[var(--st-ok-line)]",
+    2: "bg-[var(--line-soft)] text-[var(--ink-700)] ring-[var(--line)]",
     3: "bg-[var(--t-brand-tint)] text-[var(--t-brand-ink)] ring-[var(--t-brand-line)]",
-    4: "bg-[#FFF4E0] text-[#8A5300] ring-[#F3D28A]",
+    4: "bg-[var(--st-warn-bg)] text-[var(--st-warn-ink)] ring-[var(--st-warn-line)]",
 };
 const STATUS_DOT = { 1: "bg-emerald-400", 2: "bg-gray-400", 3: "bg-sky-400", 4: "bg-amber-400" };
 

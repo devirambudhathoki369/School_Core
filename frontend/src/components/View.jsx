@@ -1,7 +1,7 @@
 import { Button, IconButton, Tooltip, Typography } from "@material-tailwind/react";
 import { useAppContext } from "@/contexts/AppContext";
 import { MapPinIcon, PhoneIcon } from "@heroicons/react/24/solid";
-import { BellIcon, Bars3Icon, CalendarIcon, HomeIcon, Squares2X2Icon, ChatBubbleLeftIcon, ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import { BellIcon, Bars3Icon, CalendarIcon, HomeIcon, Squares2X2Icon, ChatBubbleLeftIcon, ChevronDownIcon, ChevronRightIcon, MoonIcon, SunIcon } from "@heroicons/react/24/outline";
 import { Fragment, useEffect, useState } from "react";
 import Head from "next/head";
 import ShortcutsView from "./ShortcutsView";
@@ -15,6 +15,20 @@ import Users from "@/configs/Users";
 import OurLogo from "@/components/OurLogo";
 import { formatImagePath } from "@/methods/formatMediaPath";
 import BusTrackingHeaderLink from "./views/bus_tracking/HeaderLink";
+import { useColorMode } from "@/configs/colorMode";
+
+// Light or dark, for whoever is at this screen (configs/colorMode.js).
+function ModeButton({ mode, toggle, className = "" }) {
+    const dark = mode === "dark";
+    return (
+        <Tooltip content={dark ? "Light mode" : "Dark mode"} className="text-xs">
+            <Button aria-label={dark ? "Switch to light mode" : "Switch to dark mode"} aria-pressed={dark}
+                className={`app-tool-btn shrink-0 ${className}`} type="button" variant="text" onClick={toggle}>
+                {dark ? <SunIcon className="icon" /> : <MoonIcon className="icon" />}
+            </Button>
+        </Tooltip>
+    );
+}
 
 function View({ type, children, selectedMenu }) {
     const { sidebar: { sidebarOpened, setSidebarOpened },
@@ -23,6 +37,7 @@ function View({ type, children, selectedMenu }) {
         notification: { updateNotification },
         prompt: { toggleConfirmationPrompt } } = useAppContext();
     // 
+    const { mode, toggle: toggleMode } = useColorMode();
     const [showShortcuts, setShowShortcuts] = useState(false);
     function toggleShortcuts() {
         setShowShortcuts(state => !state);
@@ -130,6 +145,7 @@ function View({ type, children, selectedMenu }) {
                                 </div>
                                 {/* the same order as the wide bar: years, then shortcuts */}
                                 <BusTrackingHeaderLink />
+                                <ModeButton mode={mode} toggle={toggleMode} />
                                 <Tooltip content={fiscalYearSet ? "Fiscal years" : "Fiscal years — one is not set"} className="text-xs">
                                     <Button aria-label="select fiscal years"
                                         className={`app-tool-btn app-year-chip shrink-0 ${fiscalYearColor}`}
@@ -245,6 +261,7 @@ function View({ type, children, selectedMenu }) {
                                                     <ChevronDownIcon className="app-year-chip-caret hidden lg:block" aria-hidden="true" />
                                                 </Button>
                                             </Tooltip>
+                                            <ModeButton mode={mode} toggle={toggleMode} />
                                             <Tooltip content={"Shortcuts"} className="text-xs">
                                                 <Button aria-label="menu shortcuts"
                                                     className="app-tool-btn" type="button" variant="text"
@@ -344,8 +361,9 @@ function View({ type, children, selectedMenu }) {
                                         <span className="app-page-title truncate" aria-current="page">{pageTitle}</span>
                                     </div>
                                 </div>
-                                <div className="hidden md:flex items-center shrink-0">
-                                    <NpDatetimeView />
+                                <div className="flex items-center gap-x-2 shrink-0">
+                                    <span className="hidden md:flex items-center"><NpDatetimeView /></span>
+                                    <ModeButton mode={mode} toggle={toggleMode} />
                                 </div>
                             </div>
                             <nav aria-label="Breadcrumb" className="app-crumbs xl:hidden flex items-center justify-between gap-x-3 px-3 py-1.5 bg-white overflow-x-auto">
@@ -378,6 +396,7 @@ function View({ type, children, selectedMenu }) {
                                 </div>
                                 <div className="flex items-center gap-x-2 shrink-0">
                                     <NpDatetimeView />
+                                    <ModeButton mode={mode} toggle={toggleMode} />
                                     <Typography className="hidden lg:block truncate max-w-[12rem] text-sm font-semibold text-gray-600">
                                         {user?.username || ''}
                                     </Typography>

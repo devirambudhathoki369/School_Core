@@ -19,9 +19,9 @@ const domain = typeof window !== "undefined" ? window.location.origin : "";
 // colour: running is calm, passed out is informational, dropped out a warning.
 // Each ink is at least 5:1 on its own tint.
 const STATUS_STYLES = {
-    1: "bg-[#E8F5EE] text-[#12723F] ring-[#BFE3CC]",
+    1: "bg-[var(--st-ok-bg)] text-[var(--st-ok-ink)] ring-[var(--st-ok-line)]",
     2: "bg-[var(--t-brand-tint)] text-[var(--t-brand-ink)] ring-[var(--t-brand-line)]",
-    3: "bg-[#FDECEA] text-[#B42318] ring-[#F6C9C4]",
+    3: "bg-[var(--st-bad-bg)] text-[var(--st-bad-ink)] ring-[var(--st-bad-line)]",
 };
 // …and the same three states as a dot on the portrait, so the card says which
 // one it is even when the chip has scrolled out of view on a phone.

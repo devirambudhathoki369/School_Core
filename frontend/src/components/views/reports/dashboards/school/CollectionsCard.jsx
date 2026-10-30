@@ -32,14 +32,14 @@ function useThemeColour(variable, fallback) {
         };
         read();
         const watch = new MutationObserver(read);
-        watch.observe(document.documentElement, { attributes: true, attributeFilter: ["data-ui-theme"] });
+        watch.observe(document.documentElement, { attributes: true, attributeFilter: ["data-ui-theme", "data-ui-mode"] });
         return () => watch.disconnect();
     }, [variable, fallback]);
     return colour;
 }
 // The months behind the current one, de-emphasised: one grey, the same on
-// every theme, so the colour on the chart is only ever "this month".
-const DEEMPH = "#C3C9D2";
+// every theme, so the colour on the chart is only ever "this month". Read from
+// --viz-deemph (and the chrome from --viz-*), so dark mode has its own steps.
 
 function Figure({ label, value, strong = false }) {
     return (
@@ -69,6 +69,10 @@ function Figure({ label, value, strong = false }) {
 function CollectionsCard({ monthsList, amounts, yearName, today }) {
     const colour = useThemeColour("--t-brand-solid", "rgb(59, 91, 219)");
     const [asTable, setAsTable] = useState(false);
+    const DEEMPH = useThemeColour("--viz-deemph", "rgb(195, 201, 210)");
+    const axis = useThemeColour("--viz-axis", "rgb(205, 210, 218)");
+    const tick = useThemeColour("--viz-text", "rgb(100, 107, 120)");
+    const grid = useThemeColour("--viz-grid", "rgb(238, 240, 244)");
     const rows = useMemo(() => (monthsList || []).map((m, i) => ({ month: parseInt(m, 10), amount: Number(amounts?.[i]) || 0 })), [monthsList, amounts]);
     const total = rows.reduce((n, r) => n + r.amount, 0);
     const current = parseInt(`${today || ""}`.split("-")[1], 10) || null;
@@ -143,7 +147,7 @@ function CollectionsCard({ monthsList, amounts, yearName, today }) {
                                     // emphasis: this month in the accent, the rest grey; a
                                     // year with no current month is one plain series
                                     backgroundColor: rows.map((r) => (!marksCurrent || r.month === current ? colour : DEEMPH)),
-                                    hoverBackgroundColor: rows.map((r) => (!marksCurrent || r.month === current ? colour : "#AEB5C0")),
+                                    hoverBackgroundColor: rows.map((r) => (!marksCurrent || r.month === current ? colour : DEEMPH)),
                                     // a 4px rounded data-end, square on the baseline
                                     borderRadius: { topLeft: 4, topRight: 4 },
                                     borderSkipped: "bottom",
@@ -173,14 +177,14 @@ function CollectionsCard({ monthsList, amounts, yearName, today }) {
                                 scales: {
                                     x: {
                                         grid: { display: false },
-                                        border: { color: "#CDD2DA", width: 1 },
-                                        ticks: { color: "#646B78", font: { size: 11, weight: "500" }, maxRotation: 0, autoSkipPadding: 6 },
+                                        border: { color: axis, width: 1 },
+                                        ticks: { color: tick, font: { size: 11, weight: "500" }, maxRotation: 0, autoSkipPadding: 6 },
                                     },
                                     y: {
                                         beginAtZero: true,
                                         border: { display: false },
-                                        grid: { color: "#EEF0F4", lineWidth: 1 },
-                                        ticks: { color: "#646B78", font: { size: 11 }, maxTicksLimit: 5, callback: (value) => compact(value) },
+                                        grid: { color: grid, lineWidth: 1 },
+                                        ticks: { color: tick, font: { size: 11 }, maxTicksLimit: 5, callback: (value) => compact(value) },
                                     },
                                 },
                             }}

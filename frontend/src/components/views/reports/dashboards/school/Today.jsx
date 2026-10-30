@@ -132,7 +132,7 @@ export function SmsTile({ value, note, low }) {
             <span className="app-kpi-value text-[1.75rem] leading-9">
                 {typeof value === "number" ? value.toLocaleString("en-IN") : value}
             </span>
-            <span className={`app-kpi-sub mt-auto text-[0.8125rem] leading-5 ${low ? "!text-[#8A5300]" : ""}`}>
+            <span className={`app-kpi-sub mt-auto text-[0.8125rem] leading-5 ${low ? "!text-[var(--st-warn-ink)]" : ""}`}>
                 {low ? `Running low · ${note}` : note}
             </span>
         </Tile>
@@ -204,7 +204,7 @@ export function ClassAttendance({ att }) {
                 <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.75rem] text-[var(--ink-600)]">
                     <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[3px] bg-[var(--viz-accent)]" aria-hidden="true" />At or above target</span>
                     <span className="inline-flex items-center gap-1.5">
-                        <ExclamationTriangleIcon className="h-3.5 w-3.5 text-[#8A5300]" aria-hidden="true" />Below target
+                        <ExclamationTriangleIcon className="h-3.5 w-3.5 text-[var(--st-warn-ink)]" aria-hidden="true" />Below target
                     </span>
                     <span className="inline-flex items-center gap-1.5"><span className="h-3 w-[2px] rounded-full bg-[var(--ink-500)]" aria-hidden="true" />{TARGET}% target</span>
                 </span>
@@ -243,7 +243,7 @@ export function ClassAttendance({ att }) {
                                         <td className="w-[4.5rem] py-[5px] text-right text-[0.8125rem] font-semibold tabular-nums text-[var(--ink-900)]">
                                             <span className="inline-flex items-center justify-end gap-1">
                                                 {low && <>
-                                                    <ExclamationTriangleIcon className="h-3.5 w-3.5 text-[#8A5300]" aria-hidden="true" />
+                                                    <ExclamationTriangleIcon className="h-3.5 w-3.5 text-[var(--st-warn-ink)]" aria-hidden="true" />
                                                     <span className="sr-only">below target, </span>
                                                 </>}
                                                 {c.present ? `${share.toFixed(1)}%` : "–"}
@@ -341,8 +341,8 @@ export function NeedsAttention({ school, att, smsInfo }) {
     }
 
     const tones = {
-        bad: "bg-[#FDECEA] text-[#B42318]",
-        warn: "bg-[#FFF4E0] text-[#8A5300]",
+        bad: "bg-[var(--st-bad-bg)] text-[var(--st-bad-ink)]",
+        warn: "bg-[var(--st-warn-bg)] text-[var(--st-warn-ink)]",
         info: "bg-[var(--t-brand-tint)] text-[var(--t-brand-ink)]",
     };
     const ready = devices !== null && att;
@@ -357,7 +357,7 @@ export function NeedsAttention({ school, att, smsInfo }) {
                 ? <p className="py-3 text-[0.875rem] text-[var(--ink-500)]">Checking…</p>
                 : items.length === 0
                     ? <div className="flex flex-1 flex-col items-center justify-center gap-2 py-8 text-center">
-                        <CheckCircleIcon className="h-8 w-8 text-[#12723F]" aria-hidden="true" />
+                        <CheckCircleIcon className="h-8 w-8 text-[var(--st-ok-ink)]" aria-hidden="true" />
                         <p className="text-[0.9375rem] font-semibold text-[var(--ink-900)]">All clear</p>
                         <p className="max-w-[16rem] text-[0.8125rem] leading-5 text-[var(--ink-600)]">Readers are online, the years are set and today&apos;s roll looks normal.</p>
                     </div>
