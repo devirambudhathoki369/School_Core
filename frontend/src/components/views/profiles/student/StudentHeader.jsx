@@ -14,12 +14,13 @@ import {
 
 const domain = typeof window !== "undefined" ? window.location.origin : "";
 
-// Status drives the only strong colour on the card, so it reads at a glance:
-// running is calm, passed out is celebratory, dropped out is a warning.
+// Status is the one coloured chip on the card, said in words as well as
+// colour: running is calm, passed out is informational, dropped out a warning.
+// Each ink is at least 5:1 on its own tint.
 const STATUS_STYLES = {
-    1: "bg-emerald-400/25 text-emerald-50 ring-emerald-200/50",
-    2: "bg-sky-400/25 text-sky-50 ring-sky-200/50",
-    3: "bg-rose-400/25 text-rose-50 ring-rose-200/50",
+    1: "bg-[#E8F5EE] text-[#12723F] ring-[#BFE3CC]",
+    2: "bg-[var(--t-brand-tint)] text-[var(--t-brand-ink)] ring-[var(--t-brand-line)]",
+    3: "bg-[#FDECEA] text-[#B42318] ring-[#F6C9C4]",
 };
 // …and the same three states as a dot on the portrait, so the card says which
 // one it is even when the chip has scrolled out of view on a phone.
@@ -33,16 +34,17 @@ function Fact({ icon: Icon, label, value, href }) {
     // facts on this card that exist to be ACTED on, and they were flat text.
     const body = (
         <div title={value}
-            className={`mt-1 break-words text-[0.88rem] font-semibold leading-[1.3] text-blue-gray-800
+            className={`mt-1 break-words text-[0.875rem] font-semibold leading-[1.3] text-[var(--ink-900)]
                 ${href ? 'underline decoration-teal-300 decoration-2 underline-offset-2 hover:text-teal-700' : ''}`}>
             {value}
         </div>
     );
     return (
-        <div className="flex min-w-0 items-start gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-blue-gray-50/70">
+        <div className="flex min-w-0 items-start gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-[var(--surface-soft)]">
             <Icon className="mt-[3px] h-4 w-4 shrink-0 text-teal-600" />
             <div className="min-w-0">
-                <div className="text-[0.66rem] font-semibold uppercase leading-3 tracking-[0.07em] text-blue-gray-400">{label}</div>
+                {/* muted ink, not the old 3:1 grey: a label is text and is read */}
+                <div className="text-[0.6875rem] font-semibold uppercase leading-4 tracking-[0.06em] text-[var(--ink-500)]">{label}</div>
                 {/* Wrap, never clip. A contact number cut to "986864…" and a date
                     cut to "2074-1…" are the two facts on this card people actually
                     come to read, and truncation made both useless. */}
@@ -78,14 +80,14 @@ function IdChip({ label, value }) {
         <button type="button" onClick={copy}
             title={copied ? 'Copied' : `Copy ${label}`}
             aria-label={`${label} ${value}. Copy`}
-            className="group inline-flex items-center gap-1.5 rounded-full bg-white/15 py-1 pl-2.5 pr-2
-                text-[0.72rem] font-semibold text-white ring-1 ring-white/25 backdrop-blur-[2px]
-                transition-colors hover:bg-white/25">
-            <span className="uppercase tracking-wide opacity-75">{label}</span>
-            <span className="tabular-nums">{value}</span>
+            className="group inline-flex items-center gap-1.5 rounded-full bg-white py-1 pl-2.5 pr-2
+                text-[0.75rem] font-semibold text-[var(--ink-800)] ring-1 ring-[var(--line)]
+                transition-colors hover:bg-[var(--surface-soft)] hover:ring-[var(--field-line)]">
+            <span className="text-[0.6875rem] uppercase tracking-wide text-[var(--ink-500)]">{label}</span>
+            <span className="font-mono tabular-nums">{value}</span>
             {copied
-                ? <CheckIcon className="h-3.5 w-3.5 text-emerald-200" />
-                : <Square2StackIcon className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-70" />}
+                ? <CheckIcon className="h-3.5 w-3.5 text-[#12723F]" />
+                : <Square2StackIcon className="h-3.5 w-3.5 text-[var(--ink-500)] opacity-0 transition-opacity group-hover:opacity-100" />}
         </button>
     );
 }
@@ -127,12 +129,12 @@ function StudentHeader() {
     const photo = student?.image ? formatImagePath(student.image) : "";
 
     return (
-        <div className="mb-4 overflow-hidden rounded-2xl border border-blue-gray-100 bg-white shadow-md">
-            {/* Identity band — the one place the student is named, so it carries
-                the colour and everything below it stays quiet. One flat fill in
-                the palette's accent (`app-profile-hero` is repainted per theme);
-                it was a teal→sky→blue sweep with two radial "lights" over it. */}
-            <div className="app-profile-hero relative bg-[var(--t-brand-solid)] px-4 py-5 sm:px-6">
+        <div className="mb-4 overflow-hidden rounded-xl border border-[var(--line)] bg-white">
+            {/* Identity band — the one place the student is named. A soft tint
+                of the school's colour with dark text on it: the band says whose
+                profile this is without a slab of saturated colour (it was a full
+                accent fill with white text, the loudest thing in the app). */}
+            <div className="app-profile-hero relative bg-[var(--t-brand-tint)] px-4 py-5 sm:px-6">
 
                 <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center">
                     <div className="relative mx-auto shrink-0 sm:mx-0">
@@ -142,12 +144,12 @@ function StudentHeader() {
                                 src={photo}
                                 alt={fullName || "student"}
                                 width={96} height={96}
-                                className="h-20 w-20 rounded-2xl object-cover ring-4 ring-white/40 bg-white/20 sm:h-24 sm:w-24"
+                                className="h-20 w-20 rounded-2xl object-cover ring-4 ring-white bg-white sm:h-24 sm:w-24"
                             />
                         ) : (
                             <div aria-hidden="true"
-                                className="grid h-20 w-20 place-items-center rounded-2xl bg-white/20 text-2xl font-bold
-                                    text-white ring-4 ring-white/40 sm:h-24 sm:w-24 sm:text-3xl">
+                                className="grid h-20 w-20 place-items-center rounded-2xl bg-white text-2xl font-semibold
+                                    text-[var(--t-brand-ink)] ring-4 ring-white sm:h-24 sm:w-24 sm:text-3xl">
                                 {initials || "?"}
                             </div>
                         )}
@@ -159,19 +161,19 @@ function StudentHeader() {
                     </div>
 
                     <div className="min-w-0 flex-1 text-center sm:text-left">
-                        <h1 className="text-xl font-bold capitalize leading-tight text-white sm:text-2xl">
+                        <h1 className="text-[1.375rem] font-semibold capitalize leading-tight tracking-[-0.01em] text-[var(--ink-900)] sm:text-[1.625rem]">
                             {fullName || "—"}
                         </h1>
                         {/* Who they are, in the order the office asks: which class,
                             which roll, and whether they are still with the school. */}
                         <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5 sm:justify-start">
                             {classname && (
-                                <span className="rounded-full bg-white/20 px-2.5 py-1 text-[0.75rem] font-semibold capitalize text-white ring-1 ring-white/30">
+                                <span className="rounded-full bg-white px-2.5 py-1 text-[0.75rem] font-semibold capitalize text-[var(--ink-800)] ring-1 ring-[var(--line)]">
                                     {classname}
                                 </span>
                             )}
                             {student?.roll_no && (
-                                <span className="rounded-full bg-white/20 px-2.5 py-1 text-[0.75rem] font-semibold text-white ring-1 ring-white/30">
+                                <span className="rounded-full bg-white px-2.5 py-1 text-[0.75rem] font-semibold text-[var(--ink-800)] ring-1 ring-[var(--line)]">
                                     Roll {student.roll_no}
                                 </span>
                             )}
@@ -194,10 +196,10 @@ function StudentHeader() {
                     {/* Scannable straight off the screen — no need to open the tab. */}
                     <a href={qrUrl} target="_blank" rel="noreferrer"
                         title="Open this student's public profile"
-                        className="mx-auto flex shrink-0 flex-col items-center gap-1 rounded-xl bg-white p-2 shadow-lg
+                        className="mx-auto flex shrink-0 flex-col items-center gap-1 rounded-xl bg-white p-2 ring-1 ring-[var(--line)]
                             transition-transform duration-150 hover:scale-105 sm:mx-0">
                         <QRCode value={qrUrl} size={56} />
-                        <span className="text-[0.65rem] font-semibold uppercase tracking-wide text-blue-gray-600">
+                        <span className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[var(--ink-600)]">
                             Digital ID
                         </span>
                     </a>
@@ -207,7 +209,7 @@ function StudentHeader() {
                 with three filled fields used to get three sixth-width columns and
                 every value was clipped. Now each fact keeps a readable minimum
                 and the row simply fits as many as the screen allows. */}
-            <div className="grid gap-x-4 gap-y-1 border-t border-blue-gray-100 bg-blue-gray-50/40 px-3 py-3 sm:px-5
+            <div className="grid gap-x-4 gap-y-1 border-t border-[var(--line)] bg-white px-3 py-3 sm:px-5
                 grid-cols-[repeat(auto-fit,minmax(10.5rem,1fr))]">
                 <Fact icon={PhoneIcon} label="Contact" value={student?.contact}
                     href={student?.contact ? `tel:${student.contact}` : undefined} />

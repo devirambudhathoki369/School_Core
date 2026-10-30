@@ -1088,7 +1088,7 @@ button.bg-teal-500 {
    layout are untouched; only the paint moves.
    ====================================================================== */
 [data-ui-theme] .app-profile-hero {
-    background: var(--t-brand) !important;
+    background: var(--t-brand-tint) !important;
 }
 [data-ui-theme] .app-profile-tab-active {
     background: var(--t-brand-solid) !important;
@@ -5661,3 +5661,56 @@ button.app-att-day { cursor: pointer; }
 /* A part of a segmented bar answers the pointer: the hovered mark lifts. */
 .app-dash-seg { transition: filter var(--m-fast) var(--ease-out); }
 .app-dash-seg:hover { filter: brightness(1.12) saturate(1.05); }
+
+/* ============================ SECTIONS ====================================
+   A section's heading is a title and a line under it -- not a tinted strip
+   with a coloured bar down its left edge, the one decoration the redesign
+   retired everywhere else. -- */
+@media screen {
+    :root .app-section > .section-header {
+        padding: 0 0 .85rem;
+        background: transparent;
+        border-radius: 0;
+        border-bottom: 1px solid var(--line-soft);
+    }
+    :root .app-section-accent { display: none; }
+    :root .app-section-title,
+    :root .app-section-title * {
+        font-size: 1rem !important;
+        line-height: 1.5rem;
+        font-weight: 600;
+        letter-spacing: -.005em;
+        color: var(--ink-900);
+    }
+    :root .app-section-desc {
+        padding-left: 0 !important;
+        font-size: .8125rem !important;
+        line-height: 1.25rem;
+        color: var(--ink-600);
+    }
+}
+
+/* ============================ LIBRARY FIELDS ==============================
+   Material Tailwind's outlined text areas and inputs (33 call sites) drew
+   their edge in blue-gray-200, about 1.9:1 on white. They take the field line
+   (3.09:1) here. Their top edge is NOTCHED: with a value in the field the top
+   border is transparent and the floating label's ::before/::after draw it on
+   either side of the label, so the sides, the bottom and the label segments
+   are set apart -- one blanket border-color would close the notch. An error
+   (red) and focus keep the library's own colours. -- */
+@media screen {
+    :root :is(textarea.peer, input.peer:not([type="checkbox"]):not([type="radio"])):not(:focus):not([class*="border-red"]) {
+        border-left-color: var(--field-line) !important;
+        border-right-color: var(--field-line) !important;
+        border-bottom-color: var(--field-line) !important;
+    }
+    :root :is(textarea.peer, input.peer:not([type="checkbox"]):not([type="radio"])):placeholder-shown:not(:focus):not([class*="border-red"]) {
+        border-top-color: var(--field-line) !important;
+    }
+    :root :is(textarea.peer, input.peer:not([type="checkbox"]):not([type="radio"])):not(:placeholder-shown):not(:focus):not([class*="border-red"]) ~ label::before,
+    :root :is(textarea.peer, input.peer:not([type="checkbox"]):not([type="radio"])):not(:placeholder-shown):not(:focus):not([class*="border-red"]) ~ label::after {
+        border-color: var(--field-line) !important;
+    }
+    /* An unticked box is found by its edge too. */
+    :root input[type="checkbox"].peer:not(:checked) { border-color: var(--field-line) !important; }
+}
