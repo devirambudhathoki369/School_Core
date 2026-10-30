@@ -34,7 +34,7 @@
 /**
  * The facilities a superadmin can give a school, in the order the school form
  * lists them. `on`: ticked for a new school until the superadmin says otherwise
- * (every school has always had the first five; the last two are sold apart).
+ * (every school has always had the first five; the rest are sold apart).
  */
 export const SCHOOL_MODULES = [
     { flag: 'uses_exams', label: 'Exams & results', on: true,
@@ -51,6 +51,8 @@ export const SCHOOL_MODULES = [
         hint: 'Residents, rooms and beds, roll call, gate passes, mess and hostel billing.' },
     { flag: 'uses_extra_billing', label: 'Extra billing', on: false,
         hint: 'Bills and receipts for people who are not students — tenants, contractors.' },
+    { flag: 'uses_canteen', label: 'Canteen', on: false,
+        hint: 'Counter sales, card accounts, monthly posting at class-wise rates and item-wise collection — its own billing, apart from the fee bills.' },
 ];
 
 export const MODULE_GATES = {
@@ -70,6 +72,9 @@ export const MODULE_GATES = {
     // (shutter tenants, canteen contractors, offices renting school property).
     // Student billing is a different branch entirely and is never gated on this.
     'extra-billing': 'uses_extra_billing',
+    // Canteen — the counter, card accounts, monthly posting and item-wise
+    // collection: the canteen's own billing, apart from the fee bills.
+    canteen: 'uses_canteen',
 };
 
 /**
@@ -84,6 +89,7 @@ export const PERMISSION_CATEGORY_GATES = {
     INVENTORY: 'uses_inventory',
     HOSTEL: 'uses_hostel',
     EXTRA_BILLING: 'uses_extra_billing',
+    CANTEEN: 'uses_canteen',
 };
 export const PERMISSION_ID_GATES = {
     // STAFF: payment, salary posting, ledger/invoice deletion, pay slips, salary sheet
@@ -129,4 +135,36 @@ export function filterViewsByModules(views, profile) {
 export function permissionAllowed(category, id, profile) {
     const flag = PERMISSION_CATEGORY_GATES[category] || PERMISSION_ID_GATES[id];
     return !flag || Boolean(profile?.[flag]);
+}
+
+/**
+ * What the menu is drawn from, out of a profile: the school's modules and, for
+ * staff and canteen users, their own pages.
+ *
+ * The menu is drawn once, at sign-in. A school the superadmin grants the
+ * canteen to while its portal is open — or a member of staff given a page —
+ * would otherwise see nothing until they signed in again. The portal's own
+ * session check (`[role].jsx`) reads a fresh profile anyway, so it hands these
+ * on when they change and the menu is drawn again (AppContext).
+ *
+ * Returns null for no profile at all, so a thin answer never clears the menu.
+ */
+export function menuAccessOf(profile) {
+    if (!profile || typeof profile !== 'object') return null;
+    const access = [...new Set(Object.values(MODULE_GATES))].reduce((acc, flag) => {
+        acc[flag] = Boolean(profile[flag]);
+        return acc;
+    }, {});
+    if (Array.isArray(profile.permissions)) access.permissions = profile.permissions;
+    return access;
+}
+
+/** A comparable key for `menuAccessOf` — equal keys draw the same menu. */
+export function menuAccessKey(profile) {
+    const access = menuAccessOf(profile);
+    if (!access) return '';
+    return JSON.stringify({
+        ...access,
+        ...(access.permissions ? { permissions: [...access.permissions].map(Number).sort((a, b) => a - b) } : {}),
+    });
 }

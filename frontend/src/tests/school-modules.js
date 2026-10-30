@@ -54,6 +54,9 @@ check('the rest of Manage does not',
     moduleAllowed('manage.fees', NONE), true);
 check('a page of no module is every school\'s', moduleAllowed('payment.student', NONE), true);
 check('a profile without the flag at all has no module', moduleAllowed('library.books', {}), false);
+check('the canteen\'s pages follow the canteen', moduleAllowed('canteen.counter', { ...ALL, uses_canteen: false }), false);
+check('a canteen user\'s profile carries only that flag, and opens them',
+    moduleAllowed('canteen.collect', { uses_canteen: true }), true);
 
 const VIEWS = {
     'dashboard': 1, 'payroll.staff': 2, 'payroll.pay-slips': 3, 'exams.setup': 4,
@@ -72,6 +75,7 @@ check('no salary posting (204) without payroll', permissionAllowed(null, 204, { 
 check('staff enrolment (201) is not payroll', permissionAllowed(null, 201, NONE), true);
 check('extra activities setup (508) follows exams', permissionAllowed(null, 508, { ...ALL, uses_exams: false }), false);
 check('a category of no module is every school\'s', permissionAllowed('STUDENT', null, NONE), true);
+check('no canteen permissions without the canteen', permissionAllowed('CANTEEN', null, { ...ALL, uses_canteen: false }), false);
 
 // ------------------------------------------------- the backend agrees --
 const backend = readFileSync(join(HERE, '..', '..', '..', 'backend', 'main', 'constants', 'school_modules.py'), 'utf8');
@@ -102,7 +106,8 @@ function viewKeys(file) {
     return keys;
 }
 const cfg = (...parts) => join(HERE, '..', 'configs', 'views', ...parts);
-const pages = ['admin.jsx', 'exam.jsx', 'accounting.jsx', 'inventory.jsx', 'library.jsx', 'hostel.jsx', 'extra_billing.jsx']
+const pages = ['admin.jsx', 'exam.jsx', 'accounting.jsx', 'inventory.jsx', 'library.jsx', 'hostel.jsx', 'extra_billing.jsx',
+    'canteen.jsx']
     .flatMap(f => [...viewKeys(cfg(f))]);
 for (const gate of Object.keys(MODULE_GATES)) {
     check(`the gate "${gate}" names pages that exist`,

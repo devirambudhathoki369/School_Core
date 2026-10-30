@@ -23,6 +23,7 @@ const InterfaceTheme = dynamic(() => import("@/components/views/superadmin/ui_th
 const LibraryAccess = dynamic(() => import("@/components/views/superadmin/library_access"));
 const ExtraBillingAccess = dynamic(() => import("@/components/views/superadmin/extra_billing_access"));
 const HostelAccess = dynamic(() => import("@/components/views/superadmin/hostel_access"));
+const CanteenAccess = dynamic(() => import("@/components/views/superadmin/canteen_access"));
 const SchoolFiscalYears = dynamic(() => import("@/components/views/superadmin/fiscal_years"));
 const SupportDetails = dynamic(() => import("@/components/views/superadmin/support"));
 const GuidesManagement = dynamic(() => import("@/components/views/superadmin/guides"));
@@ -43,6 +44,7 @@ const superAdminViews = {
     // which schools have the hostel module at all
     'setup.hostel-access': <HostelAccess />,
     'setup.extra-billing-access': <ExtraBillingAccess />,
+    'setup.canteen-access': <CanteenAccess />,
     //
     'manage.undo-academic-year-close': <UndoAcademicYearClosing />,
     'manage.undo-accounting-economic-year-close': <UndoAccountingEconomicYearClosing />,

@@ -1,3 +1,4 @@
 import adminViews from "./admin";
 import superAdminViews from "./superadmin";
-export { adminViews, superAdminViews };
+import canteenViews from "./canteen";
+export { adminViews, superAdminViews, canteenViews };

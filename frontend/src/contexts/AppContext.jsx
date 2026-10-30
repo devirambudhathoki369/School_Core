@@ -1,6 +1,6 @@
-import { adminMenu, superAdminMenu } from "@/configs/menus";
+import { adminMenu, superAdminMenu, canteenUserMenu } from "@/configs/menus";
 import { TESTED_PERMISSIONS } from "@/configs/permissions";
-import { adminViews, superAdminViews } from "@/configs/views";
+import { adminViews, superAdminViews, canteenViews } from "@/configs/views";
 import useFiscalYears from "@/hooks/fiscalYears";
 import filterViews from "@/methods/filterViews";
 import { getAccountingEconomicYears, getClosedAccountingEconomicYears } from "@/services/functions/accounting/accounting_economic_year";
@@ -12,7 +12,7 @@ import TempStateContextProvider from "./TempStateContext";
 import { options, gradeOptions2, yearOptions, semesterOptions } from "@/components/inputs/options/education";
 import { enableSentry, disableSentry } from "@/methods/sentry-setup";
 import { applyTheme, safeTheme, UI_THEME_CONSOLE } from "@/configs/uiThemes";
-import { filterViewsByModules, moduleAllowed } from "@/configs/moduleGates";
+import { filterViewsByModules, menuAccessKey, moduleAllowed } from "@/configs/moduleGates";
 
 const AppContext = createContext({});
 
@@ -126,7 +126,10 @@ const AppContextProvider = ({ children }) => {
         'staff': 'dashboard',
         'student': 'dashboard',
         'superadmin': 'dashboard',
-        'superuser': 'dashboard'
+        'superuser': 'dashboard',
+        // A canteen user has no dashboard: they open on the first canteen page
+        // they hold (the counter, for most of them).
+        'canteen': canteenLanding(user),
     };
     const router = useRouter();
     useEffect(() => {
@@ -265,7 +268,15 @@ const AppContextProvider = ({ children }) => {
         let _menus = {};
         const role = user.role;
 
-        if (!PAGE?.[role]) {
+        if (role === "canteen") {
+            // The canteen and nothing else: its own rail, its own pages, each
+            // one this user was given (the server refuses the rest anyway).
+            const { menu, views } = filterViews(canteenUserMenu, canteenViews, user?.profile?.permissions || []);
+            _menus = {
+                menu: filterMenuByProfileFlags(menu, user?.profile),
+                views: filterViewsByModules(views, user?.profile),
+            };
+        } else if (!PAGE?.[role]) {
             const { menu, views } = filterViews(
                 adminMenu,
                 adminViews,
@@ -418,6 +429,15 @@ const AppContextProvider = ({ children }) => {
             disableSentry();
         }
     }, [user?.username]);
+    // A module granted or taken away, or a page given, while the portal is
+    // open: the session check in `[role].jsx` brings it into the profile, and
+    // the menu is drawn again from it. Only once set up — the first drawing is
+    // the sign-in's own, above.
+    const menuAccess = menuAccessKey(user?.profile);
+    useEffect(() => {
+        if (setupDone && user?.username) assignMenu(user);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [menuAccess]);
     // 
     return (
         <AppContext.Provider value={{
@@ -442,6 +462,13 @@ const AppContextProvider = ({ children }) => {
 }
 
 const academic_year_access_roles = ["admin", "staff"];
+
+/** The first page on a canteen user's rail that they hold. */
+function canteenLanding(user) {
+    const held = new Set((user?.profile?.permissions || []).map(Number));
+    const first = canteenUserMenu.find((page) => !page.id || held.has(page.id));
+    return first?.view || 'canteen.my-password';
+}
 
 export default AppContextProvider;
 export { useAppContext }

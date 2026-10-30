@@ -296,6 +296,65 @@ function View({ type, children, selectedMenu }) {
                         and no way to collapse the rail. It gets the same shell
                         the schools have, minus the parts that need a school:
                         no logo, no address, no fiscal-year picker. */}
+                    {/* A CANTEEN USER signs in to the canteen alone: the
+                        school's name plate and who is at the counter, the page,
+                        the date — and none of the school's tools (years,
+                        shortcuts, the bus), which their sign-in cannot open. */}
+                    {type === Users.CANTEEN &&
+                        <div className="view-header">
+                            <div className="app-topbar w-full flex items-center justify-between gap-x-3">
+                                <div className="flex items-center gap-x-2.5 min-w-0 flex-1">
+                                    <Tooltip content={sidebarOpened ? "Collapse menu" : "Expand menu"} className="text-xs">
+                                        <IconButton aria-label="toggle sidebar" aria-expanded={sidebarOpened}
+                                            variant="text" className="app-rail-toggle shrink-0 rounded-lg relative z-20"
+                                            onClick={() => setSidebarOpened((s) => !s)}>
+                                            <Bars3Icon className="h-6 w-6" />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <div className="app-plate flex items-center gap-x-3 min-w-0">
+                                        {schoolLogo ?
+                                            <Image unoptimized alt={"CentEducation SMSYS"} width={42} height={42}
+                                                src={formatImagePath(schoolLogo)}
+                                                className="app-school-logo h-8 w-8 md:h-[42px] md:w-[42px] shrink-0"
+                                                onContextMenu={(e) => { e.preventDefault() }} loading="lazy" />
+                                            : <OurLogo size={32} />
+                                        }
+                                        <div className="school_info flex flex-col min-w-0">
+                                            <p className="app-school-name truncate"
+                                                title={[user?.profile?.school_name, user?.profile?.name].filter(Boolean).join(' · ')}>
+                                                {user?.profile?.school_name || "Canteen"}
+                                            </p>
+                                            <p className="app-school-meta truncate">
+                                                Canteen · {user?.profile?.name || user?.username}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span className="app-topbar-rule hidden xl:block" aria-hidden="true"></span>
+                                    <div className="app-page hidden xl:flex flex-col min-w-0">
+                                        <nav aria-label="Breadcrumb" className="app-page-trail">
+                                            <span>Home</span>
+                                            {pageParents.map((menu, i) => (
+                                                <Fragment key={i}>
+                                                    <ChevronRightIcon aria-hidden="true" />
+                                                    <span>{menu}</span>
+                                                </Fragment>
+                                            ))}
+                                            <ChevronRightIcon aria-hidden="true" />
+                                        </nav>
+                                        <span className="app-page-title truncate" aria-current="page">{pageTitle}</span>
+                                    </div>
+                                </div>
+                                <div className="hidden md:flex items-center shrink-0">
+                                    <NpDatetimeView />
+                                </div>
+                            </div>
+                            <nav aria-label="Breadcrumb" className="app-crumbs xl:hidden flex items-center justify-between gap-x-3 px-3 py-1.5 bg-white overflow-x-auto">
+                                <div className="app-crumb-trail">{crumbTrail}</div>
+                                {user?.today &&
+                                    <span className="app-crumbs-date md:hidden shrink-0 tabular-nums">{user.today}</span>}
+                            </nav>
+                        </div>
+                    }
                     {type === Users.SUPERADMIN &&
                         <div className="view-header">
                             <div className="app-topbar w-full flex items-center justify-between gap-x-3">

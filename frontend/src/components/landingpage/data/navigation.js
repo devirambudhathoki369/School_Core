@@ -7,12 +7,13 @@ export const navigationItems = [
     { name: "Contact", href: "/contact" },
 ]
 
-// The three portals a visitor can sign in to. These are full page loads into
+// The portals a visitor can sign in to. These are full page loads into
 // the portal, not pages of the website.
 export const signInLinks = [
     { name: "School admin", hint: "The office, accounts and setup", href: "/admin" },
     { name: "Staff", hint: "Teachers and other staff", href: "/staff" },
     { name: "Student", hint: "Students and their parents", href: "/student" },
+    { name: "Canteen", hint: "The canteen counter and its billing", href: "/canteen" },
 ]
 
 export const footerLinks = {

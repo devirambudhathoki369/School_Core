@@ -12,6 +12,7 @@ import { useAppContext } from "@/contexts/AppContext";
 // right-chevron-in-a-circle said "next".
 import { ArrowRightStartOnRectangleIcon, MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import logout from "@/services/functions/auth/logout";
+import Users from "@/configs/Users";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import OurLogo from "./OurLogo";
@@ -327,7 +328,9 @@ export default function AppSidebar({ menus }) {
                                 CentIT
                             </Typography>
                         </div>
-                        <FiscalYearNames />
+                        {/* A canteen user works in no academic or fiscal year
+                            of their own: the canteen files by today's date. */}
+                        {user?.role !== Users.CANTEEN && <FiscalYearNames />}
                         {/* Search sits IN the masthead, which is `sticky top-0`,
                             so it stays put while a hundred rows scroll under
                             it — a filter you have to scroll back up to reach is

@@ -12,7 +12,7 @@ import { validateToken } from "@/services/functions/auth/login";
  */
 
 // Every portal role a session can belong to.
-const PORTAL_ROLES = [Users.ADMIN, Users.STAFF, Users.STUDENT, Users.SUPERADMIN];
+const PORTAL_ROLES = [Users.ADMIN, Users.STAFF, Users.STUDENT, Users.SUPERADMIN, Users.CANTEEN];
 
 /**
  * Which role is signed in on this browser?

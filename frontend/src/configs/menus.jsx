@@ -24,12 +24,27 @@ import {
     ArrowDownTrayIcon, PresentationChartLineIcon, ServerStackIcon, ShieldCheckIcon,
     UserPlusIcon, LifebuoyIcon,
     HomeModernIcon, KeyIcon, ClipboardIcon, WrenchScrewdriverIcon,
+    ShoppingCartIcon, ShoppingBagIcon, WalletIcon, TagIcon,
 } from "@heroicons/react/24/outline";
 import { PERMISSIONS } from "./permissions";
 
 /*
 TODO: submenu with id: null must be managed in other ways!
 */
+
+// The canteen's pages. The school's own rail files them under "Canteen"; a
+// canteen user's rail (`canteenUserMenu` below) is these and nothing else.
+const canteenPages = [
+    { id: PERMISSIONS.CANTEEN.COUNTER, name: "Counter", prefix: <ShoppingCartIcon className="icon" />, view: 'counter' },
+    { id: PERMISSIONS.CANTEEN.ITEMS, name: "Items & Rates", prefix: <QueueListIcon className="icon" />, view: 'items' },
+    { id: PERMISSIONS.CANTEEN.USE_TYPES, name: "Use Types", prefix: <TagIcon className="icon" />, view: 'use-types' },
+    { id: PERMISSIONS.CANTEEN.MONTHLY_POSTING, name: "Monthly Posting", prefix: <CalendarDaysIcon className="icon" />, view: 'monthly-posting' },
+    { id: PERMISSIONS.CANTEEN.COLLECT, name: "Collect & Receipt", prefix: <BanknotesIcon className="icon" />, view: 'collect' },
+    { id: PERMISSIONS.CANTEEN.ACCOUNTS, name: "Card Accounts", prefix: <WalletIcon className="icon" />, view: 'accounts' },
+    { id: PERMISSIONS.CANTEEN.REPORTS, name: "Canteen Reports", prefix: <DocumentChartBarIcon className="icon" />, view: 'reports' },
+    { id: PERMISSIONS.CANTEEN.SETUP, name: "Canteen Setup", prefix: <Cog6ToothIcon className="icon" />, view: 'setup' },
+    { id: PERMISSIONS.CANTEEN.USERS, name: "Canteen Users", prefix: <UserPlusIcon className="icon" />, view: 'users' },
+];
 
 // 
 const adminMenu = [
@@ -99,6 +114,18 @@ const adminMenu = [
             { id: PERMISSIONS.EXTRA_BILLING.PAYMENT, name: "Collect & Receipt", prefix: <BanknotesIcon className="icon" />, view: 'payment' },
             { id: PERMISSIONS.EXTRA_BILLING.REPORTS, name: "Records & Dues", prefix: <DocumentChartBarIcon className="icon" />, view: 'reports' },
         ]
+    },
+    {
+        // CANTEEN — the school's own counter and its OWN billing: items with
+        // class-wise monthly rates, use types and regular users, monthly
+        // posting, item-wise collection and receipts, card accounts. Nothing
+        // here touches the student fee bills.
+        // Per-school, exactly like Extra Billing: `profileFlag` drops the
+        // branch, `configs/moduleGates.js` drops its pages, and every /canteen
+        // endpoint refuses a school without it (canteen/views/BaseViews.py).
+        name: "Canteen", view: 'canteen', profileFlag: 'uses_canteen',
+        prefix: <ShoppingBagIcon className="icon" />,
+        submenu: canteenPages,
     },
     {
         name: "Manage", view: "manage",
@@ -394,6 +421,7 @@ const superAdminMenu = [
             { name: "Library Access", prefix: <BuildingLibraryIcon className="icon" />, view: 'library-access' },
             { name: "Hostel Access", prefix: <HomeModernIcon className="icon" />, view: 'hostel-access' },
             { name: "Extra Billing Access", prefix: <BuildingStorefrontIcon className="icon" />, view: 'extra-billing-access' },
+            { name: "Canteen Access", prefix: <ShoppingBagIcon className="icon" />, view: 'canteen-access' },
         ]
     },
     { name: "Interface Theme", view: 'ui-theme', prefix: <PaintBrushIcon className="icon" /> },
@@ -448,4 +476,15 @@ const superAdminMenu = [
     }
 ];
 
-export { adminMenu, superAdminMenu };
+/**
+ * A CANTEEN USER's rail (`/canteen`): the canteen's pages laid out flat — they
+ * have no other menu to file them under — each still addressed `canteen.<page>`,
+ * so the same views open and the module gate (configs/moduleGates.js) still
+ * covers them. Filtered by the user's own pages like a member of staff's.
+ */
+const canteenUserMenu = [
+    ...canteenPages.map((page) => ({ ...page, view: `canteen.${page.view}` })),
+    { name: "My Password", view: 'canteen.my-password', prefix: <KeyIcon className="icon" /> },
+];
+
+export { adminMenu, superAdminMenu, canteenUserMenu };

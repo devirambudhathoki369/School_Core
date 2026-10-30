@@ -8,22 +8,23 @@ import {
     CheckCircleIcon, SparklesIcon, CheckBadgeIcon,
     ExclamationTriangleIcon, ExclamationCircleIcon, LockClosedIcon,
     BuildingLibraryIcon, UserGroupIcon, AcademicCapIcon, ShieldCheckIcon,
-    CalendarDaysIcon, ChatBubbleLeftRightIcon,
+    CalendarDaysIcon, ChatBubbleLeftRightIcon, ShoppingBagIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
 
 const formState = { username: '', password: '' }; // DON'T DELETE THIS;
 
 // What the person signing in is being told they are signing in AS. The portal
-// is one form on four addresses (`/admin`, `/staff`, `/student`, `/superadmin`)
-// and the only thing that distinguished them was the word dropped into "Hello
-// {role}" — including the literal string "superadmin", which is a database
-// value, not a greeting.
+// is one form on five addresses (`/admin`, `/staff`, `/student`, `/superadmin`,
+// `/canteen`) and the only thing that distinguished them was the word dropped
+// into "Hello {role}" — including the literal string "superadmin", which is a
+// database value, not a greeting.
 const ROLE_COPY = {
     admin: "School administration",
     staff: "Staff portal",
     student: "Student & parent portal",
     superadmin: "Operator console",
+    canteen: "Canteen",
 };
 
 // The mark beside the name of the portal: which door this is, at a glance.
@@ -32,6 +33,7 @@ const ROLE_ICON = {
     staff: UserGroupIcon,
     student: AcademicCapIcon,
     superadmin: ShieldCheckIcon,
+    canteen: ShoppingBagIcon,
 };
 
 // What the product covers, in the words of its own summary line.

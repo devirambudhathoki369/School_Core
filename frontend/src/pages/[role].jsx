@@ -15,6 +15,7 @@ import Loader from "@/components/Loader";
 import EmptyState from "@/components/EmptyState";
 import { MapIcon } from "@heroicons/react/24/outline";
 import { isSchoolBlocked } from "@/configs/blockedSchools";
+import { menuAccessKey, menuAccessOf } from "@/configs/moduleGates";
 
 const ALLOWED_ROLES = process.env.NEXT_PUBLIC_ALLOWED_ROLES.split(',');
 
@@ -131,9 +132,21 @@ export default function Page({ role }) {
                         : "Your session has ended. Please sign in again.");
                 } else if (holder?.today) {
                     const { today, today_npt } = holder;
-                    setUser(state => (state && (state.today !== today || state.today_npt !== today_npt))
-                        ? { ...state, today, today_npt }
-                        : state);
+                    // The same answer says what the menu is drawn from: a module
+                    // the superadmin granted (or took away) since sign-in, or a
+                    // page given to this member of staff, shows without signing
+                    // in again (configs/moduleGates.js `menuAccessOf`).
+                    const access = menuAccessOf(holder.profile);
+                    setUser(state => {
+                        if (!state) return state;
+                        const newDay = state.today !== today || state.today_npt !== today_npt;
+                        const newAccess = !!access && menuAccessKey(holder.profile) !== menuAccessKey(state.profile);
+                        if (!newDay && !newAccess) return state;
+                        return {
+                            ...state, today, today_npt,
+                            ...(newAccess ? { profile: { ...state.profile, ...access } } : {}),
+                        };
+                    });
                 }
             } catch (e) { /* keep the current date; try again next time */ }
             busy = false;
@@ -251,8 +264,10 @@ export default function Page({ role }) {
                     so they would paint OVER a blanked-out portal — a held
                     school has to see nothing at all. */}
                 {(showNotices && !isBlocked) && <MessageFromOrg items={messages || []} />}
-                {/* superadmin login splash (once per session, auto-closes) */}
-                {(user?.username && !isBlocked) && <SplashModal />}
+                {/* superadmin login splash (once per session, auto-closes). Not
+                    for a canteen user: their sign-in opens the canteen alone,
+                    and the splash endpoint rightly refuses it. */}
+                {(user?.username && !isBlocked && role !== Users.CANTEEN) && <SplashModal />}
             </>
         </main>
     )

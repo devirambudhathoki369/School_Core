@@ -98,6 +98,7 @@ import inventoryViews from "./inventory";
 import libraryViews from "./library";
 import hostelViews from "./hostel";
 import extraBillingViews from "./extra_billing";
+import canteenViews from "./canteen";
 // 
 const Support = dynamic(() => import("@/components/views/support"));
 const Guides = dynamic(() => import("@/components/views/guides"));
@@ -200,6 +201,8 @@ const adminViews = {
     ...hostelViews,
     // extra billing — people who are not students (per-school module)
     ...extraBillingViews,
+    // canteen (per-school module — see configs/moduleGates.js)
+    ...canteenViews,
     // 
     'app.attendance.entry': () => <AttendanceEntry />,
     'app.attendance.management': () => <AttendanceManagement />,

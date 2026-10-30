@@ -76,7 +76,7 @@ const AUTH_ENDPOINTS = /\/auth\/(?:[a-z]+\/)?(?:signin|obtain|logout)$/i;
  * session's data on screen. A reload drops all of it, and `[role].jsx` then
  * renders the login form because `validateToken` no longer resolves.
  */
-const PORTAL_ROLES = ["superadmin", "admin", "staff", "student"];
+const PORTAL_ROLES = ["superadmin", "admin", "staff", "student", "canteen"];
 const SESSION_OK_FOR_MS = 60 * 1000;
 const REDIRECT_COOLDOWN_MS = 30 * 1000;
 const LAST_TEARDOWN_KEY = "session-ended-at";

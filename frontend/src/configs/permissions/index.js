@@ -194,6 +194,24 @@ const PERMISSIONS = {
         PAYMENT: 2603,   // collecting, receipts
         REPORTS: 2604,   // dues, statements, collection
     },
+    // CANTEEN_ID: 2701-2800
+    //
+    // The SECOND gate, not the first: a staff member only ever sees any of this
+    // if their school has the module at all (its `canteen` grant, given
+    // by the superadmin). A counter hand typically gets COUNTER alone; the
+    // office keeps accounts, posting, collection, setup and the records.
+    CANTEEN: {
+        COUNTER: 2701,      // ring up sales, void today's mistakes
+        ITEMS: 2702,        // categories, items, prices, class-wise monthly rates
+        ACCOUNTS: 2703,     // top-ups, refunds, limits, blocked cards
+        // 2704 retired (it posted canteen owing onto the fee bill); never reuse it
+        REPORTS: 2705,      // sales, item-wise, cashier closing, receipts, dues, postings
+        SETUP: 2706,        // how buyers pay, limits, slip
+        USE_TYPES: 2707,    // day care, tiffin monthly, tiffin cash or due; regular users
+        MONTHLY_POSTING: 2708, // the months' charges onto regular users' canteen accounts
+        COLLECT: 2709,      // collect canteen dues item-wise, receipts
+        USERS: 2710,        // canteen users: sign-ins that open the canteen only
+    },
     HOSTEL: {
         SETUP: 2501,        // hostels, blocks, room types
         ROOMS: 2502,        // rooms and beds
@@ -230,6 +248,7 @@ const TESTED_PERMISSIONS = [1,
     2201, 2202, 2203, 2204,
     2501, 2502, 2503, 2504, 2505, 2506, 2507, 2508, 2509, 2510,
     2601, 2602, 2603, 2604,
+    2701, 2702, 2703, 2705, 2706, 2707, 2708, 2709,
 ];
 
 /*
