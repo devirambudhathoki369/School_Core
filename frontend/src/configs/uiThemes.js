@@ -18,38 +18,51 @@ export const UI_THEME_CLASSIC = 'classic';
  */
 export const UI_THEME_CONSOLE = 'console';
 
+// Five palettes on one layout. The keys are the ones schools already have
+// stored, so moving to the SchoolCore design changed no school's setting, only
+// what each key paints: `classic` is Core, `vivid` is Himalaya, `daylight` is
+// Phewa, `evergreen` is Terai. `swatches` are, in order, the brand, its tint,
+// the page and the second chart colour.
 export const UI_THEMES = [
     {
         value: UI_THEME_CLASSIC,
-        name: 'Classic',
-        blurb: 'The teal look the system has always had. Every school starts here.',
-        swatches: ['#ccfbf1', '#bae6fd', '#dbeafe', '#14b8a6'],
-        rail: '#ffffff',
-        railInk: '#334155',
+        name: 'Core',
+        blurb: 'Indigo on clean white with a light menu. Calm and neutral for a full day at the desk. Every school starts here.',
+        swatches: ['#3B5BDB', '#EDF1FD', '#F5F6F8', '#D9730D'],
+        rail: '#FFFFFF',
+        railInk: '#374151',
     },
     {
         value: 'vivid',
-        name: 'CentIT Colour',
-        blurb: 'Deep teal rail, saturated summary cards, gradient panel headers. Changes the layout, not just the palette.',
-        swatches: ['#0d9488', '#06b6d4', '#4f46e5', '#f59e0b'],
-        rail: '#0f766e',
-        railInk: '#c3e4e0',
+        name: 'Himalaya',
+        blurb: 'Night-sky menu, glacier teal and a saffron second colour. Bold without shouting.',
+        swatches: ['#0E6F8C', '#E3F2F7', '#F2F5F9', '#E0661B'],
+        rail: '#13223F',
+        railInk: '#E4EAF5',
     },
     {
         value: 'daylight',
-        name: 'Daylight Blue',
-        blurb: 'Light blue page with a solid blue sidebar.',
-        swatches: ['#dbeafe', '#bfdbfe', '#e0e7ff', '#2272c9'],
-        rail: '#17518c',
-        railInk: '#eef4fb',
+        name: 'Phewa',
+        blurb: 'Deep-lake menu, clear sky blue and a sunset orange. Bright and trustworthy.',
+        swatches: ['#0369A1', '#E3F1FA', '#F1F6FA', '#E06A26'],
+        rail: '#0A3550',
+        railInk: '#E3EEF6',
     },
     {
         value: 'evergreen',
-        name: 'Evergreen',
-        blurb: 'Soft green page with a deep green sidebar.',
-        swatches: ['#d1fae5', '#99f6e4', '#d1fae5', '#0a8a6a'],
-        rail: '#0f3d3a',
-        railInk: '#eef4fb',
+        name: 'Terai',
+        blurb: 'Deep forest menu, field green and paddy gold. Grounded and fresh.',
+        swatches: ['#15803D', '#E6F4EA', '#F3F6F2', '#BF8410'],
+        rail: '#0F2E24',
+        railInk: '#E2F0E8',
+    },
+    {
+        value: 'laliguras',
+        name: 'Laliguras',
+        blurb: 'Rhododendron crimson on warm white with gold for the second chart colour. Warm and confident.',
+        swatches: ['#BE123C', '#FCE9EE', '#FAF7F6', '#B7860B'],
+        rail: '#FFFFFF',
+        railInk: '#3F3236',
     },
 ];
 
@@ -68,10 +81,10 @@ export function themeMeta(value) {
 /**
  * Paint a theme onto a root element.
  *
- * `classic` is the absence of a theme rather than a theme of its own — the
- * plain stylesheet already is classic — so it removes the attribute instead of
- * setting it. That keeps the guarantee visible in the DOM: a classic school has
- * no `data-ui-theme` at all, and therefore cannot match a single themed rule.
+ * Every value sets the attribute, `classic` included. Classic used to be the
+ * absence of a theme so that a school nobody had touched kept its original
+ * look; the SchoolCore design replaced that look everywhere, and Classic is now
+ * simply the Core palette, so it needs the attribute like any other.
  *
  * `console` is passed straight through: it is the one value that is a real
  * theme without being a selectable one, so it must skip `safeTheme` (which
@@ -83,6 +96,5 @@ export function themeMeta(value) {
 export function applyTheme(el, value) {
     if (!el) return;
     const theme = value === UI_THEME_CONSOLE ? UI_THEME_CONSOLE : safeTheme(value);
-    if (theme === UI_THEME_CLASSIC) el.removeAttribute('data-ui-theme');
-    else el.setAttribute('data-ui-theme', theme);
+    el.setAttribute('data-ui-theme', theme);
 }

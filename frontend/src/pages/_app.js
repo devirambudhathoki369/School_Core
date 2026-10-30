@@ -6,17 +6,20 @@ import { ConfirmHost } from '@/components/ConfirmDialog';
 import '@/styles/globals.css';
 import '@/styles/loader.css';
 import customTheme from "@/configs/theme";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { IBM_Plex_Sans, IBM_Plex_Sans_Devanagari } from "next/font/google";
 
-// The app's typeface. `next/font` downloads it at BUILD time and serves it from
-// our own origin, so a school on a slow line never waits on Google. It is only
-// published as a variable here; globals.css decides where it applies (the
-// screen, never a printed document).
-const appFont = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], display: "swap" });
+// The app's typeface: IBM Plex Sans, with its Devanagari companion so a Nepali
+// name or label is drawn in the same family as the English beside it instead
+// of falling through to whatever the system has. `next/font` downloads both at
+// BUILD time and serves them from our own origin, so a school on a slow line
+// never waits on Google. They are only published as a variable here;
+// globals.css decides where it applies (the screen, never a printed document).
+const appFont = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], display: "swap" });
+const appFontDevanagari = IBM_Plex_Sans_Devanagari({ subsets: ["devanagari"], weight: ["400", "500", "600", "700"], display: "swap" });
 
 export const metadata = {
-  title: "CentEducation SMSys",
-  description: "CentEducation is a school management and analysis system for modern era.",
+  title: "SchoolCore",
+  description: "SchoolCore runs a school's attendance, fees, exams, payroll, library, hostel and canteen in one place.",
 }
 
 export default function App({ Component, pageProps }) {
@@ -28,10 +31,10 @@ export default function App({ Component, pageProps }) {
             _document is outside that manager, so every page served the same
             title however hard it tried to set its own. */}
         <Head>
-          <title>CentEducation</title>
+          <title>SchoolCore</title>
         </Head>
         {/* on :root, so menus and dialogs drawn outside the page tree get it too */}
-        <style jsx global>{`:root { --font-app: ${appFont.style.fontFamily}; }`}</style>
+        <style jsx global>{`:root { --font-app: ${appFont.style.fontFamily}, ${appFontDevanagari.style.fontFamily}; }`}</style>
         <Component {...pageProps} />
         <Notification />
         {/* Renders nothing until a destructive action asks for confirmation.

@@ -1,5 +1,4 @@
 import { useAppContext } from "@/contexts/AppContext";
-import { UI_THEME_CLASSIC } from "@/configs/uiThemes";
 import { SkeletonCards, SkeletonText } from "@/components/Skeleton";
 import { getSummary } from "@/services/functions/analysis/summary";
 import { useLayoutEffect, useState } from "react";
@@ -86,8 +85,7 @@ function SMSCreditsView({ user }) {
 }
 
 function SchoolSummary() {
-    const { user: { user }, fiscalYear: { year }, theme } = useAppContext();
-    const themed = !!(theme?.uiTheme && theme.uiTheme !== UI_THEME_CLASSIC);
+    const { user: { user }, fiscalYear: { year } } = useAppContext();
     const [summary, setSummary] = useState();
     const school = user?.profile?.school || user?.profile?.id;
 
@@ -112,7 +110,7 @@ function SchoolSummary() {
     // zero students, zero staff and four empty charts, then snapped to the real
     // figures. Showing a zero you have not measured is worse than showing
     // nothing: a head teacher opening the page saw their school as empty.
-    if (themed && !summary) {
+    if (!summary) {
         return (
             <div className="flex flex-col gap-y-4 mb-5" role="status" aria-busy="true">
                 <span className="sr-only">Loading dashboard…</span>

@@ -40,7 +40,7 @@ import { getSupportInfo } from "@/services/functions/help";
 
 const FALLBACK = {
     name: "Cent IT Solutions Pvt. Ltd.",
-    product: "CentEducation · School Management System",
+    product: "SchoolCore · School Management System",
     address: "Madannagar, Tulsipur-6, Dang, Lumbini",
     open_days: "Sunday – Friday",
     open_time: "9:00 AM – 5:00 PM",
@@ -178,9 +178,9 @@ function Support() {
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 pb-6">
 
             {/* ── masthead ─────────────────────────────────────────────────
-                One flat panel in the palette's accent — teal on Classic and
-                CentIT Colour, blue on Daylight, green on Evergreen — with no
-                per-theme markup. (It was a gradient with two decorative light
+                One flat panel in the palette's accent — indigo on Core, teal
+                on Himalaya, blue on Phewa, green on Terai, crimson on
+                Laliguras — with no per-theme markup. (It was a gradient with two decorative light
                 discs; the product has dropped both.) */}
             <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
                 <div className="relative px-5 py-6 sm:px-7 sm:py-7"
@@ -271,7 +271,7 @@ function Support() {
                     )}
 
                     {info.email && (
-                        <ChannelCard href={`mailto:${info.email}?subject=CentEducation support request`}
+                        <ChannelCard href={`mailto:${info.email}?subject=SchoolCore support request`}
                             color={AMBER}
                             icon={<EnvelopeIcon className="h-5 w-5" />}
                             label="Email" value={info.email}

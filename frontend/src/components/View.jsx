@@ -89,7 +89,7 @@ function View({ type, children, selectedMenu }) {
     return (
         <>
             <Head>
-                <title>{[...selectedMenu].reverse().join(' · ') || 'CentEducation'}</title>
+                <title>{[...selectedMenu, 'SchoolCore'].reverse().join(' · ')}</title>
             </Head>
             <div className={`view flex flex-col h-screen max-h-screen min-w-0 flex-1 overflow-hidden`}>
                 {/*  */}
@@ -118,7 +118,7 @@ function View({ type, children, selectedMenu }) {
                                         // unoptimized: the backend media host is Cloudflare-fronted and
                                         // the on-VPS optimizer gets bot-challenged fetching it (upstream
                                         // 403), so let the browser fetch it directly like ReportHeader.
-                                        <Image unoptimized alt={"CentEducation SMSYS"} width={32} height={32}
+                                        <Image unoptimized alt="School logo" width={32} height={32}
                                             src={formatImagePath(schoolLogo)}
                                             className="app-school-logo h-8 w-8 shrink-0"
                                             onContextMenu={(e) => { e.preventDefault() }} loading="lazy" />
@@ -171,7 +171,7 @@ function View({ type, children, selectedMenu }) {
                                             colour — one object, not three loose items. */}
                                         <div className="app-plate flex items-center gap-x-3 min-w-0">
                                             {schoolLogo ?
-                                                <Image unoptimized alt={"CentEducation SMSYS"} width={42} height={42}
+                                                <Image unoptimized alt="School logo" width={42} height={42}
                                                     src={formatImagePath(schoolLogo)}
                                                     className="app-school-logo h-[42px] w-[42px] shrink-0"
                                                     onContextMenu={(e) => { e.preventDefault() }} loading="lazy" />
@@ -313,7 +313,7 @@ function View({ type, children, selectedMenu }) {
                                     </Tooltip>
                                     <div className="app-plate flex items-center gap-x-3 min-w-0">
                                         {schoolLogo ?
-                                            <Image unoptimized alt={"CentEducation SMSYS"} width={42} height={42}
+                                            <Image unoptimized alt="School logo" width={42} height={42}
                                                 src={formatImagePath(schoolLogo)}
                                                 className="app-school-logo h-8 w-8 md:h-[42px] md:w-[42px] shrink-0"
                                                 onContextMenu={(e) => { e.preventDefault() }} loading="lazy" />
@@ -369,7 +369,7 @@ function View({ type, children, selectedMenu }) {
                                     <OurLogo size={30} />
                                     <div className="min-w-0">
                                         <Typography className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-gray-500 leading-3">
-                                            Cent IT Solutions
+                                            SchoolCore
                                         </Typography>
                                         <Typography className="truncate text-base font-bold text-gray-800 leading-5">
                                             Superadmin Console
@@ -415,7 +415,13 @@ function View({ type, children, selectedMenu }) {
                             clears the error instead of pinning the failure over
                             whatever screen is opened next. */}
                         <ErrorBoundary resetKey={selectedMenu?.join('.')}>
-                            {children}
+                            {/* Keyed on the page so it remounts on every
+                                navigation and the page settles in (a short rise
+                                and fade, `.app-view-enter` in globals.css)
+                                instead of swapping in a single frame. */}
+                            <div key={selectedMenu?.join('.')} className="app-view-enter h-full">
+                                {children}
+                            </div>
                         </ErrorBoundary>
                     </div>
                 </>

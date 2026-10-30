@@ -61,14 +61,14 @@ function ProductWindow() {
     // label, mark, the tile's role colour (the dashboard's own --k1..4), its
     // tint, its soft bar, then the two bar lengths
     const tiles = [
-        ["Total students", AcademicCapIcon, "#0d9488", "#e3f3f1", "#bfe3de", 54, 72],
+        ["Total students", AcademicCapIcon, "#3B5BDB", "#EDF1FD", "#CCD4F6", 54, 72],
         ["Total staff", UserGroupIcon, "#0284c7", "#e0f0fa", "#cfe4f5", 32, 80],
         ["Economic year", CalendarDaysIcon, "#059669", "#dff3ea", "#c5e8d8", 78, 58],
         ["SMS credits", ChatBubbleLeftRightIcon, "#b45309", "#fbefdc", "#f3dfbd", 46, 66],
     ];
     // a year of months: eight collected, the eighth in progress, four to come
     const columns = [36, 58, 46, 74, 54, 82, 64, 94, 0, 0, 0, 0];
-    const stations = [[5.5, 90, "#0d9488"], [4.25, 68, "#5fb8ae"], [5, 49, "#8fcec6"], [3.5, 31, "#bfe3de"]];
+    const stations = [[5.5, 90, "#3B5BDB"], [4.25, 68, "#7289E5"], [5, 49, "#A7B5EF"], [3.5, 31, "#CCD4F6"]];
     const ring = (colour, track, dash) => (
         <svg viewBox="0 0 50 50" className="pub-window-ring -rotate-90 shrink-0">
             <circle cx="25" cy="25" r="20" fill="none" strokeWidth="6" stroke={track} />
@@ -92,7 +92,7 @@ function ProductWindow() {
             <div className="pub-window-row">
                 <div className="pub-window-cell">
                     <span className="pub-window-label">Today&apos;s attendance</span>
-                    {[["#0d9488", "#d6eeea", 108, 62, 84], ["#2a78d6", "#dbe8fa", 116, 44, 70]].map(([colour, track, dash, first, second]) => (
+                    {[["#3B5BDB", "#E4E8FA", 108, 62, 84], ["#D9730D", "#FBE8D6", 116, 44, 70]].map(([colour, track, dash, first, second]) => (
                         <div key={colour} className="flex items-center gap-x-3.5">
                             {ring(colour, track, dash)}
                             <div className="flex min-w-0 flex-1 flex-col gap-y-2">
@@ -113,7 +113,7 @@ function ProductWindow() {
                         {columns.map((height, i) => (
                             <span key={i} className="flex-1 rounded-t-[5px]"
                                 style={height
-                                    ? { height: `${height}%`, background: i === 7 ? "#0d9488" : "#bfe3de" }
+                                    ? { height: `${height}%`, background: i === 7 ? "#3B5BDB" : "#CCD4F6" }
                                     : { height: 4, background: "#e2e8f0" }}></span>
                         ))}
                     </div>
@@ -123,11 +123,11 @@ function ProductWindow() {
                 <div className="pub-window-cell">
                     <span className="pub-window-label">Running students · by gender</span>
                     <div className="flex h-3 gap-x-[3px]">
-                        <span className="rounded-l-full bg-[#0d9488]" style={{ flex: 52 }}></span>
-                        <span className="bg-[#2a78d6]" style={{ flex: 45 }}></span>
+                        <span className="rounded-l-full bg-[#3B5BDB]" style={{ flex: 52 }}></span>
+                        <span className="bg-[#D9730D]" style={{ flex: 45 }}></span>
                         <span className="rounded-r-full bg-[#94a3b8]" style={{ flex: 3 }}></span>
                     </div>
-                    {[["#0d9488", 3, 2.25], ["#2a78d6", 3.75, 2.25], ["#94a3b8", 2.75, 1.5]].map(([colour, name, count]) => (
+                    {[["#3B5BDB", 3, 2.25], ["#D9730D", 3.75, 2.25], ["#94a3b8", 2.75, 1.5]].map(([colour, name, count]) => (
                         <div key={colour} className="flex items-center gap-x-2.5">
                             <span className="h-[9px] w-[9px] shrink-0 rounded-[3px]" style={{ background: colour }}></span>
                             <span className="pub-window-bar h-2 bg-[#cbd5e1]" style={{ width: `${name}rem` }}></span>
@@ -160,15 +160,15 @@ function Glance() {
             <div className="pub-glance-cell">
                 <span className="pub-glance-label">Attendance</span>
                 <svg width="40" height="40" viewBox="0 0 50 50" className="-rotate-90">
-                    <circle cx="25" cy="25" r="20" fill="none" strokeWidth="7" stroke="#d6eeea" />
-                    <circle cx="25" cy="25" r="20" fill="none" strokeWidth="7" stroke="#0d9488" strokeLinecap="round" strokeDasharray="108 126" />
+                    <circle cx="25" cy="25" r="20" fill="none" strokeWidth="7" stroke="#E4E8FA" />
+                    <circle cx="25" cy="25" r="20" fill="none" strokeWidth="7" stroke="#3B5BDB" strokeLinecap="round" strokeDasharray="108 126" />
                 </svg>
             </div>
             <div className="pub-glance-cell">
                 <span className="pub-glance-label">Fees</span>
                 <div className="flex h-10 items-end gap-x-1 border-b border-[#e2e8f0]">
                     {[40, 66, 52, 90].map((height, i) => (
-                        <span key={i} className="flex-1 rounded-t-[3px]" style={{ height: `${height}%`, background: i === 3 ? "#0d9488" : "#bfe3de" }}></span>
+                        <span key={i} className="flex-1 rounded-t-[3px]" style={{ height: `${height}%`, background: i === 3 ? "#3B5BDB" : "#CCD4F6" }}></span>
                     ))}
                 </div>
             </div>
@@ -390,7 +390,7 @@ function Login({ role }) {
                         <OurLogo size={32} />
                     </span>
                     <div className="leading-tight">
-                        <p className="text-[1.15rem] font-bold tracking-tight">CentEducation</p>
+                        <p className="text-[1.15rem] font-bold tracking-tight">SchoolCore</p>
                         <p className="pub-eyebrow" style={{ color: 'var(--pub-ink-dim)' }}>
                             by Cent IT Solutions
                         </p>
@@ -422,7 +422,7 @@ function Login({ role }) {
                             <OurLogo size={36} />
                         </span>
                         <div>
-                            <p className="text-[1.3rem] font-bold leading-[1.2] tracking-tight 2xl:text-[1.4rem]">CentEducation</p>
+                            <p className="text-[1.3rem] font-bold leading-[1.2] tracking-tight 2xl:text-[1.4rem]">SchoolCore</p>
                             <p className="pub-eyebrow mt-0.5" style={{ color: 'var(--pub-ink-soft)' }}>
                                 by Cent IT Solutions
                             </p>

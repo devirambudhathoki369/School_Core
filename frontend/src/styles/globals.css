@@ -22,168 +22,19 @@
 }
 
 /* ---------------------------------------------------------------------------
-   THE BASE PALETTE TOKEN — Classic's own teal.
+   THE PALETTES live at the foot of this file, in the SCHOOLCORE layer.
 
-   The shared state components (the empty state, the skeletons, the retry
-   button, the keyboard focus ring) are all drawn from `--t-brand-solid`, and it
-   used to be declared ONLY inside the `[data-ui-theme]` blocks below. That is
-   the whole reason those components had to be withheld from Classic schools: no
-   attribute, no variable, so `color-mix(in srgb, var(--t-brand-solid) 9%, …)`
-   was invalid and the parser dropped the rule. Declaring Classic's own value as
-   the base makes every one of them resolve on every school.
+   Every school renders on a theme now: `classic` is a real `data-ui-theme`
+   value (the Core palette) rather than the absence of one, so the themed
+   composition in this file is the one layout every school gets. `:root`
+   carries Core's values too, for the pages drawn before sign-in, where no
+   school — and so no theme — is known yet.
 
-   POSITION IS LOAD-BEARING. `:root` and `[data-ui-theme="vivid"]` have IDENTICAL
-   specificity (0,1,0), so whichever comes LAST wins. Declared after the theme
-   blocks this would silently repaint every themed school back to Classic teal.
-   It must stay above them. Same reason a theme must never be given a rule here.
+   They sit at the foot, not here, because the derived tokens further down
+   (`--t-brand-tint` and friends, written as `color-mix()` of the accent) share
+   their specificity: whichever is declared LAST wins, and each palette states
+   its own measured tint and ink rather than a mix.
    --------------------------------------------------------------------------- */
-:root {
-    --t-brand-solid: #0d9488;
-    /* Classic's four summary-tile roles (teal, sky, emerald, amber). A theme
-       restates them from its own palette further down — which is why they
-       live HERE, above the theme blocks, and not with the tile rules. */
-    --k1: #0d9488;
-    --k2: #0284c7;
-    --k3: #059669;
-    --k4: #d97706;
-}
-
-/* ===========================================================================
-   INTERFACE THEMES
-
-   One layout, three palettes. Every rule below is scoped to `[data-ui-theme]`,
-   an attribute that is only ever present when a superadmin has deliberately
-   moved a school (or a superadmin's own console) onto a theme. `classic` is the
-   absence of the attribute, so it cannot match a single rule here and keeps the
-   look it has always had.
-
-   The structure matters: the LAYOUT is written once against the bare
-   `[data-ui-theme]` selector, and each named theme supplies only variables.
-   That is what makes the themes uniform with each other — a fix to the rail or
-   a table lands in all of them at once, and they can never drift into three
-   unrelated paint jobs.
-
-   Colour discipline, held across every palette:
-     · four hues with a defined role (primary, secondary, tertiary, warning),
-       never one hue smeared over everything;
-     · `--t-active-*` is DIFFERENT in each theme, so the selected menu item
-       reads as that theme's own accent rather than a shared highlight;
-     · green and red are reserved for present/absent and never decorative;
-     · tables, forms and every printed document stay on white — `.bill`,
-       `.voucher`, `.result`, `.marks-slip`, `.certificate`, `.report-table`
-       and every `.doc-*` rule are untouched, so bills and marksheets print
-       identically on all themes.
-   =========================================================================== */
-
-/* --- CentIT Colour: teal → cyan → indigo → violet, amber as the warm note --- */
-[data-ui-theme="vivid"] {
-    --t-rail: #0e5e59;
-    --t-rail-head: #0e5e59;
-    --t-rail-ink: #e3f2ef;
-    --t-rail-dim: #a9cfc9;
-    --t-accent: #22d3ee;
-    --t-active-bg: rgba(34, 211, 238, .22);
-    --t-active-ink: #ecfeff;
-    --t-group-bg: rgba(255, 255, 255, .07);
-    --t-canvas: #eaf2fa;
-    --t-aura-1: rgba(13, 148, 136, .13);
-    --t-aura-2: rgba(79, 70, 229, .12);
-    --t-brand: #0d9488;
-    --t-brand-solid: #0d9488;
-    --t-k1: #0d9488;
-    --t-k2: #4f46e5;
-    --t-k3: #7c3aed;
-    --t-k4: #d97706;
-    --t-clock: #f0fdfa;
-    --t-clock-line: #cffafe;
-    --t-clock-ink: #0f766e;
-}
-
-/* --- Daylight Blue: blue → sky → indigo, amber as the warm note --- */
-[data-ui-theme="daylight"] {
-    --t-rail: #1b3a80;
-    --t-rail-head: #1b3a80;
-    --t-rail-ink: #e6eefc;
-    --t-rail-dim: #b3c9ee;
-    --t-accent: #60a5fa;
-    --t-active-bg: rgba(96, 165, 250, .26);
-    --t-active-ink: #eff6ff;
-    --t-group-bg: rgba(255, 255, 255, .07);
-    --t-canvas: #eef4fd;
-    --t-aura-1: rgba(37, 99, 235, .13);
-    --t-aura-2: rgba(14, 165, 233, .12);
-    --t-brand: #2563eb;
-    --t-brand-solid: #2563eb;
-    --t-k1: #2563eb;
-    --t-k2: #4338ca;
-    --t-k3: #0e7490;
-    --t-k4: #d97706;
-    --t-clock: #eff6ff;
-    --t-clock-line: #bfdbfe;
-    --t-clock-ink: #1d4ed8;
-}
-
-/* --- Evergreen: green → emerald → teal, amber as the warm note --- */
-[data-ui-theme="evergreen"] {
-    --t-rail: #125634;
-    --t-rail-head: #125634;
-    --t-rail-ink: #e4f5ea;
-    --t-rail-dim: #b6d9c2;
-    --t-accent: #4ade80;
-    --t-active-bg: rgba(74, 222, 128, .24);
-    --t-active-ink: #f0fdf4;
-    --t-group-bg: rgba(255, 255, 255, .07);
-    --t-canvas: #eef7f1;
-    --t-aura-1: rgba(22, 163, 74, .13);
-    --t-aura-2: rgba(13, 148, 136, .12);
-    --t-brand: #15803d;
-    --t-brand-solid: #15803d;
-    --t-k1: #15803d;
-    --t-k2: #0d9488;
-    --t-k3: #4f46e5;
-    --t-k4: #d97706;
-    --t-clock: #f0fdf4;
-    --t-clock-line: #bbf7d0;
-    --t-clock-ink: #15803d;
-}
-
-/* --- Console: the superadmin's own, and not offered to any school ----------
-   Every school palette is a light, friendly one built around teal, blue or
-   green. The console is the one screen where the operator is acting ACROSS
-   schools — closing years, rewriting ledgers, taking backups — so it is
-   deliberately cooler and heavier: a graphite rail instead of a coloured one,
-   and indigo→violet as the accent, which none of the four school themes use.
-   You should be able to tell at a glance, from a screenshot with no text in it,
-   that you are looking at the console and not at a school.
-
-   It is not in `UI_THEMES`, so it can never be picked for a school; it is
-   applied permanently by AppContext whenever the signed-in role is a
-   superadmin. --------------------------------------------------------------- */
-[data-ui-theme="console"] {
-    /* The rail carries a violet cast as it descends rather than fading to flat
-       charcoal — graphite alone reads as "unstyled dark", which is the one
-       thing the console should never look like. */
-    --t-rail: #1e2638;
-    --t-rail-head: #1e2638;
-    --t-rail-ink: #eaeefa;
-    --t-rail-dim: #aab6d2;
-    --t-accent: #a5b4fc;
-    --t-active-bg: rgba(129, 140, 248, .26);
-    --t-active-ink: #eef2ff;
-    --t-group-bg: rgba(255, 255, 255, .06);
-    --t-canvas: #f1f3fa;
-    --t-aura-1: rgba(99, 102, 241, .16);
-    --t-aura-2: rgba(139, 92, 246, .13);
-    --t-brand: #4f46e5;
-    --t-brand-solid: #4f46e5;
-    --t-k1: #4f46e5;
-    --t-k2: #7c3aed;
-    --t-k3: #0e7490;
-    --t-k4: #d97706;
-    --t-clock: #eef2ff;
-    --t-clock-line: #c7d2fe;
-    --t-clock-ink: #4338ca;
-}
 
 /* --- depth and detail shared by every theme ---------------------------------
    Each palette below is only a set of variables, which is what keeps the four
@@ -1185,10 +1036,10 @@ button.bg-teal-500 {
 .app-rail-brand img { flex: 0 0 auto; }
 /* the academic year carries the accent — it is the one that changes */
 .app-year-chip-accent {
-    background: rgb(13 148 136 / .12);
-    border-color: rgb(13 148 136 / .30);
+    background: rgb(var(--brand-500) / .12);
+    border-color: rgb(var(--brand-500) / .30);
 }
-.app-year-chip-accent .app-year-chip-key { background: rgb(13 148 136 / .22); }
+.app-year-chip-accent .app-year-chip-key { background: rgb(var(--brand-500) / .22); }
 /* …and turns into a warning when it is unset — in place, at the same size, with
    the caption badge going solid so the alarm is unmistakable without the chip
    having to grow or shout in capitals across the whole rail */
@@ -1268,8 +1119,8 @@ button.bg-teal-500 {
 }
 .app-rail-search:focus-within {
     background: #fff;
-    border-color: rgb(13 148 136 / .55);
-    box-shadow: 0 0 0 3px rgb(13 148 136 / .18);
+    border-color: rgb(var(--brand-500) / .55);
+    box-shadow: 0 0 0 3px rgb(var(--brand-500) / .18);
 }
 .app-rail-search-icon {
     flex: 0 0 auto;
@@ -2104,7 +1955,7 @@ body {
    visual cost to anyone else. -- */
 :is(button, a, [role="button"], summary):focus-visible,
 :is(input, select, textarea):focus-visible {
-    outline: 2px solid var(--t-brand-solid, #0f766e);
+    outline: 2px solid var(--t-brand-solid, #3B5BDB);
     outline-offset: 2px;
     border-radius: 6px;
 }
@@ -3337,7 +3188,7 @@ html:not([data-ui-theme]) .app-rail .app-menu-item-active :is(span, p, svg) {
     margin-top: .2rem;
     /* teal-200, not teal-300. A tick drawn in a near-neighbour of the ground it
        sits on reads as texture rather than as a mark. */
-    color: #99f6e4;
+    color: #C9D3F5;
 }
 
 /* -- waiting for the feature list ------------------------------------------
@@ -3414,7 +3265,7 @@ html:not([data-ui-theme]) .app-rail .app-menu-item-active :is(span, p, svg) {
    which on these pages is drawn ON that same teal and is therefore invisible.
    Anything sitting directly on the ground takes a light ring instead. ------- */
 .pub-page :is(button, a, [role="button"], summary):focus-visible {
-    outline: 2px solid #99f6e4;
+    outline: 2px solid #C9D3F5;
     outline-offset: 2px;
 }
 /* …but inside the white card the default is correct again. */
@@ -3486,8 +3337,8 @@ html:not([data-ui-theme]) .app-rail .app-menu-item-active :is(span, p, svg) {
     /* -- fields: a faint tint at rest, clean white and a brand ring in use ---- */
     :root .app-field-shell,
     :root .app-select {
-        background-color: #fbfcfe !important;
-        border-color: #d5dee9 !important;
+        background-color: #ffffff !important;
+        border-color: var(--field-line) !important;
         border-radius: 10px !important;
         transition: border-color var(--t-fast, 140ms ease), box-shadow var(--t-fast, 140ms ease), background-color var(--t-fast, 140ms ease);
     }
@@ -3544,7 +3395,7 @@ html:not([data-ui-theme]) .app-rail .app-menu-item-active :is(span, p, svg) {
           on every element; this ties it and comes later. Devanagari and anything
           else the face lacks falls through to the same system stack. ---------- */
     :root * {
-        font-family: var(--font-app, "Plus Jakarta Sans"), -apple-system, BlinkMacSystemFont, "Segoe UI Adjusted", "Segoe UI", "Liberation Sans", sans-serif;
+        font-family: var(--font-app, "IBM Plex Sans"), -apple-system, BlinkMacSystemFont, "Segoe UI Adjusted", "Segoe UI", "Liberation Sans", sans-serif;
     }
     /* A document keeps the face it PRINTS in, on screen as well, so its preview
        wraps exactly where the paper will. `:where()` keeps this as weak as the
@@ -3641,8 +3492,8 @@ html:not([data-ui-theme]) .app-rail .app-menu-item-active :is(span, p, svg) {
 
     /* -- the table's own search box is a field like any other ----------------- */
     :root .app-table-search {
-        background-color: #fbfcfe !important;
-        border-color: #d5dee9 !important;
+        background-color: #ffffff !important;
+        border-color: var(--field-line) !important;
         border-radius: 10px !important;
     }
     :root .app-table-search:focus-within {
@@ -3860,7 +3711,7 @@ html:not([data-ui-theme]) .app-rail .app-menu-item-active :is(span, p, svg) {
     :root .app-filter-chip {
         background: #ffffff !important;
         color: var(--ink-800) !important;
-        border: 1px solid #d5dee9 !important;
+        border: 1px solid var(--line) !important;
         border-radius: 999px !important;
         box-shadow: none !important;
         --tw-ring-shadow: 0 0 #0000 !important;
@@ -4183,7 +4034,7 @@ html:not([data-ui-theme]) .app-rail .app-menu-item-active :is(span, p, svg) {
     padding: .36rem .8rem;
     border-radius: 999px;
     background: #ffffff;
-    color: #0f766e;
+    color: var(--t-brand-ink);
     font-size: .78rem !important;
     line-height: 1.15rem;
     font-weight: 700;
@@ -4403,10 +4254,10 @@ html:not([data-ui-theme]) .app-rail .app-menu-item-active :is(span, p, svg) {
     gap: .4rem;
     padding: .28rem .7rem .28rem .5rem;
     border-radius: 999px;
-    background: #e3f3f1;
-    color: #0f766e;
+    background: var(--t-brand-tint);
+    color: var(--t-brand-ink);
 }
-.pub-role span { font-size: .78rem !important; line-height: 1.1rem; font-weight: 700; color: #0f766e; }
+.pub-role span { font-size: .78rem !important; line-height: 1.1rem; font-weight: 700; color: var(--t-brand-ink); }
 .pub-role svg { width: .95rem; height: .95rem; flex: 0 0 auto; }
 
 .pub-signin-foot {
@@ -4419,7 +4270,7 @@ html:not([data-ui-theme]) .app-rail .app-menu-item-active :is(span, p, svg) {
 }
 .pub-signin-foot,
 .pub-signin-foot * { font-size: .76rem !important; }
-.pub-signin-foot a { color: #0f766e; font-weight: 600; text-decoration: none; }
+.pub-signin-foot a { color: var(--t-brand-ink); font-weight: 600; text-decoration: none; }
 .pub-signin-foot a:hover { text-decoration: underline; text-underline-offset: 2px; }
 
 
@@ -5010,3 +4861,708 @@ button.app-att-day { cursor: pointer; }
 /* The profile's tab strip, pinned (`.app-idpin`): the band is the page's own
    ground, so nothing shows in the gap above the strip or beside it. */
 .app-profile-tabs { padding-block: .4rem; margin-bottom: .35rem; }
+
+/* ===========================================================================
+   SCHOOLCORE (2026-10-30) — the redesign layer
+   The product is SchoolCore now, and every screen wears one design: calm
+   neutral ground, white cards drawn by a hairline, one accent per palette,
+   IBM Plex (Latin and Devanagari) and short, decelerating motion.
+
+   PALETTES. One block per `data-ui-theme` key; the keys are the ones schools
+   already have stored, so no school's setting moves — only what it paints:
+       classic   → Core       indigo, light rail (the default)
+       vivid     → Himalaya   night-sky rail, glacier teal, saffron
+       daylight  → Phewa      deep-lake rail, sky blue, sunset orange
+       evergreen → Terai      forest rail, field green, paddy gold
+       laliguras → Laliguras  rhododendron crimson and gold, light rail
+       console   → Console    deep violet; the superadmin's alone
+   Every pair was measured, not eyeballed: brand under white text, menu text
+   on its rail, the selected item, links and tints all at 5:1 or better, and
+   the two chart colours of each palette at 3:1 on white and apart in
+   lightness so they never rely on hue alone.
+
+   `--brand-50 … 900` are the same accent as a ten-step scale in "R G B"
+   channels. tailwind.config.js points `teal-*` at them, so the ~330 teal
+   utilities written across the app follow the school's palette instead of
+   staying teal on an indigo, crimson or green screen.
+   =========================================================================== */
+
+/* Core */
+:root, [data-ui-theme="classic"] {
+    --brand-50: 237 241 253;
+    --brand-100: 228 232 250;
+    --brand-200: 204 212 246;
+    --brand-300: 167 181 239;
+    --brand-400: 114 137 229;
+    --brand-500: 59 91 219;
+    --brand-600: 50 80 202;
+    --brand-700: 42 68 184;
+    --brand-800: 35 57 148;
+    --brand-900: 28 46 113;
+    --t-rail: #FFFFFF;
+    --t-rail-head: #FFFFFF;
+    --t-rail-ink: #374151;
+    --t-rail-dim: #646B78;
+    --t-rail-line: #E3E6EB;
+    --t-rail-hover: #F3F4F6;
+    --t-rail-strong: #111827;
+    --t-rail-mark: #3B5BDB;
+    --t-rail-mark-ink: #FFFFFF;
+    --t-accent: #3B5BDB;
+    --t-active-bg: #EDF1FD;
+    --t-active-ink: #2A44B8;
+    --t-group-bg: #F5F6F8;
+    --t-canvas: #F5F6F8;
+    --t-brand: #3B5BDB;
+    --t-brand-solid: #3B5BDB;
+    --t-brand-hover: #3551C2;
+    --t-brand-ink: #2A44B8;
+    --t-brand-tint: #EDF1FD;
+    --t-brand-tint-strong: #E4E8FA;
+    --t-brand-line: #CCD4F6;
+    --t-ring: rgb(59 91 219 / .22);
+    --t-k1: #3B5BDB;
+    --t-k2: #D9730D;
+    --t-k3: #0E7490;
+    --t-k4: #7C3AED;
+    --t-clock: #FFFFFF;
+    --t-clock-line: #E3E6EB;
+    --t-clock-ink: #374151;
+    --t-thead-bg: #F9FAFB;
+    --t-thead-ink: #4B5563;
+    --t-aura-1: transparent;
+    --t-aura-2: transparent;
+}
+
+/* Himalaya */
+[data-ui-theme="vivid"] {
+    --brand-50: 227 242 247;
+    --brand-100: 221 235 239;
+    --brand-200: 192 218 225;
+    --brand-300: 147 190 203;
+    --brand-400: 81 151 172;
+    --brand-500: 14 111 140;
+    --brand-600: 12 100 127;
+    --brand-700: 11 90 114;
+    --brand-800: 12 73 96;
+    --brand-900: 13 56 78;
+    --t-rail: #13223F;
+    --t-rail-head: #13223F;
+    --t-rail-ink: #E4EAF5;
+    --t-rail-dim: #A3B2CE;
+    --t-rail-line: rgb(255 255 255 / .08);
+    --t-rail-hover: rgb(255 255 255 / .07);
+    --t-rail-strong: #FFFFFF;
+    --t-rail-mark: #5CC8E0;
+    --t-rail-mark-ink: #13223F;
+    --t-accent: #5CC8E0;
+    --t-active-bg: #22385F;
+    --t-active-ink: #FFFFFF;
+    --t-group-bg: rgb(255 255 255 / .05);
+    --t-canvas: #F2F5F9;
+    --t-brand: #0E6F8C;
+    --t-brand-solid: #0E6F8C;
+    --t-brand-hover: #0E637E;
+    --t-brand-ink: #0B5A72;
+    --t-brand-tint: #E3F2F7;
+    --t-brand-tint-strong: #DDEBEF;
+    --t-brand-line: #C0DAE1;
+    --t-ring: rgb(14 111 140 / .22);
+    --t-k1: #0E6F8C;
+    --t-k2: #E0661B;
+    --t-k3: #3B5BDB;
+    --t-k4: #7C3AED;
+    --t-clock: #FFFFFF;
+    --t-clock-line: #E3E6EB;
+    --t-clock-ink: #374151;
+    --t-thead-bg: #F9FAFB;
+    --t-thead-ink: #4B5563;
+    --t-aura-1: transparent;
+    --t-aura-2: transparent;
+}
+
+/* Phewa */
+[data-ui-theme="daylight"] {
+    --brand-50: 227 241 250;
+    --brand-100: 220 234 242;
+    --brand-200: 189 216 231;
+    --brand-300: 142 188 213;
+    --brand-400: 74 147 187;
+    --brand-500: 3 105 161;
+    --brand-600: 5 97 147;
+    --brand-700: 7 89 133;
+    --brand-800: 9 72 110;
+    --brand-900: 11 56 88;
+    --t-rail: #0A3550;
+    --t-rail-head: #0A3550;
+    --t-rail-ink: #E3EEF6;
+    --t-rail-dim: #9DBBD0;
+    --t-rail-line: rgb(255 255 255 / .08);
+    --t-rail-hover: rgb(255 255 255 / .07);
+    --t-rail-strong: #FFFFFF;
+    --t-rail-mark: #5BB8EC;
+    --t-rail-mark-ink: #0A3550;
+    --t-accent: #5BB8EC;
+    --t-active-bg: #14506F;
+    --t-active-ink: #FFFFFF;
+    --t-group-bg: rgb(255 255 255 / .05);
+    --t-canvas: #F1F6FA;
+    --t-brand: #0369A1;
+    --t-brand-solid: #0369A1;
+    --t-brand-hover: #055E90;
+    --t-brand-ink: #075985;
+    --t-brand-tint: #E3F1FA;
+    --t-brand-tint-strong: #DCEAF2;
+    --t-brand-line: #BDD8E7;
+    --t-ring: rgb(3 105 161 / .22);
+    --t-k1: #0369A1;
+    --t-k2: #E06A26;
+    --t-k3: #0E7490;
+    --t-k4: #7C3AED;
+    --t-clock: #FFFFFF;
+    --t-clock-line: #E3E6EB;
+    --t-clock-ink: #374151;
+    --t-thead-bg: #F9FAFB;
+    --t-thead-ink: #4B5563;
+    --t-aura-1: transparent;
+    --t-aura-2: transparent;
+}
+
+/* Terai */
+[data-ui-theme="evergreen"] {
+    --brand-50: 230 244 234;
+    --brand-100: 222 237 228;
+    --brand-200: 194 222 205;
+    --brand-300: 150 198 168;
+    --brand-400: 87 164 115;
+    --brand-500: 21 128 61;
+    --brand-600: 19 115 56;
+    --brand-700: 17 102 50;
+    --brand-800: 16 82 48;
+    --brand-900: 16 62 46;
+    --t-rail: #0F2E24;
+    --t-rail-head: #0F2E24;
+    --t-rail-ink: #E2F0E8;
+    --t-rail-dim: #9EC3B0;
+    --t-rail-line: rgb(255 255 255 / .08);
+    --t-rail-hover: rgb(255 255 255 / .07);
+    --t-rail-strong: #FFFFFF;
+    --t-rail-mark: #6FD39B;
+    --t-rail-mark-ink: #0F2E24;
+    --t-accent: #6FD39B;
+    --t-active-bg: #1C4A3A;
+    --t-active-ink: #FFFFFF;
+    --t-group-bg: rgb(255 255 255 / .05);
+    --t-canvas: #F3F6F2;
+    --t-brand: #15803D;
+    --t-brand-solid: #15803D;
+    --t-brand-hover: #14713A;
+    --t-brand-ink: #116632;
+    --t-brand-tint: #E6F4EA;
+    --t-brand-tint-strong: #DEEDE4;
+    --t-brand-line: #C2DECD;
+    --t-ring: rgb(21 128 61 / .22);
+    --t-k1: #15803D;
+    --t-k2: #BF8410;
+    --t-k3: #0369A1;
+    --t-k4: #7C3AED;
+    --t-clock: #FFFFFF;
+    --t-clock-line: #E3E6EB;
+    --t-clock-ink: #374151;
+    --t-thead-bg: #F9FAFB;
+    --t-thead-ink: #4B5563;
+    --t-aura-1: transparent;
+    --t-aura-2: transparent;
+}
+
+/* Laliguras */
+[data-ui-theme="laliguras"] {
+    --brand-50: 252 233 238;
+    --brand-100: 246 222 228;
+    --brand-200: 238 193 204;
+    --brand-300: 226 148 167;
+    --brand-400: 208 84 115;
+    --brand-500: 190 18 60;
+    --brand-600: 174 18 58;
+    --brand-700: 159 18 57;
+    --brand-800: 123 19 53;
+    --brand-900: 87 20 50;
+    --t-rail: #FFFFFF;
+    --t-rail-head: #FFFFFF;
+    --t-rail-ink: #3F3236;
+    --t-rail-dim: #6E6266;
+    --t-rail-line: #EDE4E6;
+    --t-rail-hover: #F7F1F2;
+    --t-rail-strong: #1C1416;
+    --t-rail-mark: #BE123C;
+    --t-rail-mark-ink: #FFFFFF;
+    --t-accent: #BE123C;
+    --t-active-bg: #FCE9EE;
+    --t-active-ink: #9F1239;
+    --t-group-bg: #FAF7F6;
+    --t-canvas: #FAF7F6;
+    --t-brand: #BE123C;
+    --t-brand-solid: #BE123C;
+    --t-brand-hover: #A61339;
+    --t-brand-ink: #9F1239;
+    --t-brand-tint: #FCE9EE;
+    --t-brand-tint-strong: #F6DEE4;
+    --t-brand-line: #EEC1CC;
+    --t-ring: rgb(190 18 60 / .22);
+    --t-k1: #BE123C;
+    --t-k2: #B7860B;
+    --t-k3: #0F766E;
+    --t-k4: #6941C6;
+    --t-clock: #FFFFFF;
+    --t-clock-line: #E3E6EB;
+    --t-clock-ink: #374151;
+    --t-thead-bg: #F9FAFB;
+    --t-thead-ink: #4B5563;
+    --t-aura-1: transparent;
+    --t-aura-2: transparent;
+}
+
+/* Console */
+[data-ui-theme="console"] {
+    --brand-50: 240 235 251;
+    --brand-100: 234 228 247;
+    --brand-200: 216 206 240;
+    --brand-300: 188 170 229;
+    --brand-400: 147 118 214;
+    --brand-500: 105 65 198;
+    --brand-600: 94 60 178;
+    --brand-700: 83 56 158;
+    --brand-800: 66 48 129;
+    --brand-900: 49 40 100;
+    --t-rail: #1B1730;
+    --t-rail-head: #1B1730;
+    --t-rail-ink: #E7E3F7;
+    --t-rail-dim: #ABA3CC;
+    --t-rail-line: rgb(255 255 255 / .08);
+    --t-rail-hover: rgb(255 255 255 / .07);
+    --t-rail-strong: #FFFFFF;
+    --t-rail-mark: #B9A6F5;
+    --t-rail-mark-ink: #1B1730;
+    --t-accent: #B9A6F5;
+    --t-active-bg: #2E2752;
+    --t-active-ink: #FFFFFF;
+    --t-group-bg: rgb(255 255 255 / .05);
+    --t-canvas: #F4F3F8;
+    --t-brand: #6941C6;
+    --t-brand-solid: #6941C6;
+    --t-brand-hover: #5C3BB0;
+    --t-brand-ink: #53389E;
+    --t-brand-tint: #F0EBFB;
+    --t-brand-tint-strong: #EAE4F7;
+    --t-brand-line: #D8CEF0;
+    --t-ring: rgb(105 65 198 / .22);
+    --t-k1: #6941C6;
+    --t-k2: #2496A6;
+    --t-k3: #D9730D;
+    --t-k4: #12723F;
+    --t-clock: #FFFFFF;
+    --t-clock-line: #E3E6EB;
+    --t-clock-ink: #374151;
+    --t-thead-bg: #F9FAFB;
+    --t-thead-ink: #4B5563;
+    --t-aura-1: transparent;
+    --t-aura-2: transparent;
+}
+
+/* -- the neutrals every palette shares, and the motion every surface uses -- */
+:root {
+    --ink-900: #111827;
+    --ink-800: #1F2937;
+    --ink-700: #374151;
+    --ink-600: #4B5563;
+    --ink-500: #646B78;
+    --ink-400: #8C939F;
+    --line: #E3E6EB;
+    --line-soft: #EEF0F4;
+    /* 3.09:1 on white — the WCAG 3:1 a field's edge needs to be seen at all.
+       The old #cfd8e3 was 1.5:1: a field was found by its label, not its box. */
+    --field-line: #8C939F;
+    --field-line-hover: #646B78;
+    --surface-soft: #F9FAFB;
+    --canvas-classic: #F5F6F8;
+    /* Cards are drawn by their border; only things that FLOAT cast a shadow. */
+    --shadow-card: 0 1px 2px rgb(17 24 39 / .04);
+    --shadow-pop: 0 8px 24px rgb(17 24 39 / .12), 0 0 0 1px rgb(17 24 39 / .06);
+    --e-rest: 0 1px 2px rgb(17 24 39 / .04);
+    --e-raise: 0 1px 2px rgb(17 24 39 / .04), 0 8px 20px -12px rgb(17 24 39 / .22);
+    --e-float: 0 8px 24px rgb(17 24 39 / .12), 0 0 0 1px rgb(17 24 39 / .06);
+    --r-md: 12px;
+    --r-lg: 16px;
+    --k1: var(--t-k1);
+    --k2: var(--t-k2);
+    --k3: var(--t-k3);
+    --k4: var(--t-k4);
+
+    /* Motion. Short, and it decelerates: something that arrives should settle,
+       not bounce. 120ms for what answers the pointer, 180 for what changes
+       state, 260 for what enters the screen. A school office uses this all day,
+       so nothing here is slower than it needs to be to be SEEN. The spring is
+       for small things only (a pressed chip, a badge), never for a panel. */
+    --ease-out: cubic-bezier(.2, .8, .2, 1);
+    --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+    --ease-spring: cubic-bezier(.34, 1.4, .64, 1);
+    --m-fast: 120ms;
+    --m-base: 180ms;
+    --m-slow: 260ms;
+    --t-fast: var(--m-fast) var(--ease-out);
+
+    /* The pages before sign-in wear the product's own navy: the same ground as
+       the SchoolCore lockup, 12.05:1 under white. */
+    --pub-ground: #1E2F7A;
+    --pub-ink: #FFFFFF;
+    --pub-ink-soft: #C9D3F5;
+    --pub-ink-dim: #AAB8EA;
+    --pub-hairline: rgb(255 255 255 / .14);
+    --pub-glass: rgb(255 255 255 / .08);
+    --pub-card-ink: #111827;
+    --pub-card-ink-soft: #4B5563;
+    --pub-card-line: #E3E6EB;
+    --pub-radius: 12px;
+}
+
+/* A brand button is the brand colour itself — every palette's is at least
+   5:1 under white, so the old darkening mix is no longer needed to pass. */
+:root,
+:root[data-ui-theme] {
+    --t-btn: var(--t-brand-solid);
+    --t-btn-hover: var(--t-brand-hover);
+}
+[data-ui-theme] { --k1: var(--t-k1); --k2: var(--t-k2); --k3: var(--t-k3); --k4: var(--t-k4); }
+
+/* ============================ THE RAIL ==================================== */
+[data-ui-theme] .app-rail {
+    background: var(--t-rail);
+    border-right: 1px solid var(--t-rail-line);
+    box-shadow: none;
+    transition-timing-function: var(--ease-out);
+}
+[data-ui-theme="console"] .app-rail { box-shadow: none; }
+[data-ui-theme] .app-rail ::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--t-rail-ink) 22%, transparent);
+    background-clip: content-box;
+}
+[data-ui-theme] .app-rail-head {
+    background-color: var(--t-rail-head) !important;
+    background-image: none !important;
+    border-bottom: 1px solid var(--t-rail-line) !important;
+    box-shadow: none !important;
+}
+[data-ui-theme] .app-rail-head :is(h1, h2, h3, h4, h5, h6, span) { color: var(--t-rail-strong); }
+[data-ui-theme] .app-rail-head .app-rail-wordmark {
+    font-size: 1.15rem !important;
+    line-height: 1.5rem;
+    font-weight: 600 !important;
+    letter-spacing: -.01em;
+    color: var(--t-rail-strong) !important;
+}
+/* `inherit`: the universal `* { font-size: .9rem }` rule would otherwise
+   shrink the second half of the wordmark to body size. */
+[data-ui-theme] .app-rail-head .app-rail-wordmark-core { color: var(--t-rail-mark) !important; font-size: inherit !important; }
+/* The masthead's own hairline closes it; the <hr> under it drew a second,
+   heavier rule. */
+[data-ui-theme] .app-rail > hr { display: none; }
+[data-ui-theme] .app-rail-head button { background-color: transparent; }
+
+/* -- menu rows: a quiet hover, a tinted "you are here", no edge bar -- */
+[data-ui-theme] .app-rail .app-menu-item,
+[data-ui-theme] .app-rail .app-menu-group > * {
+    border-radius: 8px;
+    transition:
+        background-color var(--m-fast) var(--ease-out),
+        color var(--m-fast) var(--ease-out),
+        scale var(--m-fast) var(--ease-out);
+}
+[data-ui-theme] .app-rail .app-menu-item:hover,
+[data-ui-theme] .app-rail .app-menu-group > *:hover { background-color: var(--t-rail-hover); }
+[data-ui-theme] .app-rail .app-menu-item :is(span, p),
+[data-ui-theme] .app-rail .app-menu-group :is(span, p) { font-size: .875rem !important; font-weight: 500; }
+[data-ui-theme] .app-rail .app-menu-item svg { transition: transform var(--m-fast) var(--ease-out); }
+:root[data-ui-theme] .app-rail .app-menu-item-active,
+:root[data-ui-theme] .app-rail .app-menu-item-active:hover,
+:root[data-ui-theme] .app-rail .app-menu-item-active:focus {
+    background-color: var(--t-active-bg) !important;
+    box-shadow: none !important;
+}
+:root[data-ui-theme] .app-rail .app-menu-item-active,
+:root[data-ui-theme] .app-rail .app-menu-item-active :is(span, p, svg) {
+    color: var(--t-active-ink) !important;
+    font-weight: 600;
+}
+/* An open group is a container, not a destination: no fill, just its title
+   in the rail's strongest ink so the eye finds where the list branches. */
+[data-ui-theme] .app-menu-group-open,
+[data-ui-theme] .app-menu-group[class*="selected"] { background-color: transparent !important; }
+[data-ui-theme] .app-menu-group :is(p, span, svg) { color: var(--t-rail-ink); }
+[data-ui-theme] .app-menu-group-open :is(p, span, svg) { color: var(--t-rail-strong); }
+[data-ui-theme] .app-menu-group-open > * :is(p) { font-weight: 600; }
+
+/* -- the rail's search: a filled well on either a light or a dark rail -- */
+[data-ui-theme] .app-rail-search {
+    min-height: 2.5rem;
+    padding: .45rem .65rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--t-rail-ink) 7%, var(--t-rail));
+    border: 1px solid var(--t-rail-line);
+    transition:
+        background-color var(--m-fast) var(--ease-out),
+        border-color var(--m-fast) var(--ease-out),
+        box-shadow var(--m-base) var(--ease-out);
+}
+[data-ui-theme] .app-rail-search:focus-within {
+    background: var(--t-rail);
+    border-color: var(--t-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--t-accent) 24%, transparent);
+}
+/* `:root[data-ui-theme] .app-rail …` outranks the kit's "plain white field"
+   rule, which left a white slab on every dark rail. */
+:root[data-ui-theme] .app-rail .app-rail-search {
+    background: color-mix(in srgb, var(--t-rail-ink) 7%, var(--t-rail)) !important;
+    border-color: var(--t-rail-line) !important;
+}
+:root[data-ui-theme] .app-rail .app-rail-search:focus-within {
+    background: var(--t-rail) !important;
+    border-color: var(--t-accent) !important;
+}
+:root[data-ui-theme] .app-rail .app-rail-search-input { font-size: .875rem; color: var(--t-rail-strong) !important; }
+:root[data-ui-theme] .app-rail .app-rail-search-input::placeholder { color: var(--t-rail-dim) !important; opacity: 1; }
+:root[data-ui-theme] .app-rail .app-rail-search-icon { opacity: 1; color: var(--t-rail-dim) !important; }
+[data-ui-theme] .app-rail-search-clear { background: color-mix(in srgb, var(--t-rail-ink) 12%, transparent); }
+
+/* -- the two year chips under the lockup -- */
+[data-ui-theme] .app-rail-years .app-year-chip {
+    background: color-mix(in srgb, var(--t-rail-ink) 6%, var(--t-rail));
+    border: 1px solid var(--t-rail-line);
+    color: var(--t-rail-ink);
+}
+[data-ui-theme] .app-rail-years .app-year-chip-accent {
+    background: color-mix(in srgb, var(--t-accent) 14%, var(--t-rail));
+    border-color: color-mix(in srgb, var(--t-accent) 34%, var(--t-rail));
+}
+[data-ui-theme] .app-rail-years .app-year-chip-accent .app-year-chip-key {
+    background: color-mix(in srgb, var(--t-accent) 24%, var(--t-rail));
+}
+
+/* ============================ THE TOP BAR ================================= */
+@media screen {
+    .view-header {
+        background: #FFFFFF;
+        border-bottom: 1px solid var(--line) !important;
+        box-shadow: none !important;
+    }
+    .app-topbar {
+        min-height: 4rem;
+        background: #FFFFFF !important;
+    }
+    /* The school is named plainly, not on a tinted plate: one accent per
+       screen, and it belongs to the page's main action. */
+    .app-plate {
+        background: transparent !important;
+        padding: .25rem .5rem .25rem .25rem;
+    }
+    .app-plate .app-school-logo,
+    .app-school-logo {
+        border-radius: 10px !important;
+        border-color: var(--line) !important;
+        box-shadow: none !important;
+    }
+    .app-school-name,
+    .app-school-name * {
+        font-size: 1rem !important;
+        line-height: 1.375rem;
+        font-weight: 600;
+        letter-spacing: -.01em;
+        color: var(--ink-900);
+    }
+    .app-school-name .app-school-sub { font-weight: 400; color: var(--ink-500); }
+    .app-school-meta,
+    .app-school-meta * { font-size: .78rem !important; font-weight: 400; color: var(--ink-500); }
+    .app-page-trail,
+    .app-page-trail * { font-weight: 500; color: var(--ink-500); }
+    .app-page-title {
+        font-size: 1.05rem !important;
+        line-height: 1.4rem;
+        font-weight: 600;
+        letter-spacing: -.01em;
+        color: var(--ink-900);
+    }
+    .app-tool-btn {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 10px !important;
+        border: 1px solid var(--line) !important;
+        background: #FFFFFF !important;
+        color: var(--ink-600) !important;
+    }
+    .app-tool-btn:hover {
+        background: var(--surface-soft) !important;
+        border-color: var(--field-line) !important;
+        color: var(--ink-900) !important;
+    }
+    .app-tool-btn.app-year-chip { min-width: 2.5rem; }
+    .app-tool-btn.app-year-chip.is-ok {
+        background: var(--t-brand-tint) !important;
+        border-color: var(--t-brand-line) !important;
+        color: var(--t-brand-ink) !important;
+    }
+    .app-rail-toggle {
+        border-radius: 10px !important;
+        color: var(--ink-600) !important;
+        transition: background-color var(--m-fast) var(--ease-out), color var(--m-fast) var(--ease-out);
+    }
+    .app-rail-toggle:hover { background: var(--surface-soft) !important; color: var(--ink-900) !important; }
+    /* The date: a leaf in the brand's tint rather than a solid band. */
+    .app-clock-leaf { border-color: var(--line); border-radius: 10px; }
+    .app-clock-leaf .app-clock-month {
+        background: var(--t-brand-tint);
+        color: var(--t-brand-ink);
+        font-weight: 700;
+    }
+    .app-clock-leaf .app-clock-day { font-weight: 600; }
+    .view-header .app-crumbs {
+        background: #FFFFFF !important;
+        border-top: 1px solid var(--line-soft) !important;
+    }
+    .app-crumb-trail .app-crumb-current { font-weight: 600; }
+}
+
+/* ============================ SURFACES ==================================== */
+/* One card everywhere: white, a 1px border, 12px corners, no shadow. Shadows
+   are kept for what floats over the page (menus, dialogs, toasts). */
+:root .app-pagehead,
+:root .app-panel,
+:root .app-subpanel,
+:root .app-tile,
+:root .app-kpi,
+:root .app-table-card,
+:root .app-section,
+:root .app-empty {
+    border: 1px solid var(--line) !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    background-image: none !important;
+}
+:root .app-topbar { box-shadow: none !important; }
+:root .app-kpi { transition: border-color var(--m-base) var(--ease-out); }
+:root .app-kpi:hover { border-color: var(--field-line) !important; }
+:root .app-kpi .app-kpi-label {
+    font-size: .8125rem !important;
+    font-weight: 500 !important;
+    color: var(--ink-600) !important;
+}
+:root .app-kpi .app-kpi-value {
+    font-weight: 600 !important;
+    letter-spacing: -.015em;
+    color: var(--ink-900) !important;
+}
+:root .app-kpi .app-kpi-sub { font-weight: 400; color: var(--ink-600) !important; }
+:root .app-toolbar { border-bottom: 1px solid var(--line-soft) !important; }
+
+/* ============================ TABLES (screen) ============================= */
+@media screen {
+    /* A heading row is a label, not a banner: neutral ground, secondary ink,
+       one hairline under it. Every themed table gets it — not only the ones
+       built on `.report-table`. */
+    :root[data-ui-theme] .bg-table-header,
+    :root .report-table thead.bg-table-header,
+    :root .report-table thead.bg-table-header th,
+    :root[data-ui-theme] .report-table thead th {
+        background: var(--t-thead-bg) !important;
+        box-shadow: inset 0 -1px 0 var(--line) !important;
+    }
+    :root[data-ui-theme] .bg-table-header,
+    :root[data-ui-theme] .bg-table-header *,
+    :root .report-table thead.bg-table-header th,
+    :root .report-table thead.bg-table-header th *,
+    :root .report-table thead.bg-table-header th button {
+        color: var(--t-thead-ink) !important;
+    }
+    :root .report-table thead.bg-table-header th,
+    :root .report-table thead.bg-table-header th * {
+        font-size: .75rem !important;
+        font-weight: 600 !important;
+        letter-spacing: .02em;
+    }
+    :root .report-table tbody tr:not([class^="bg-"]):not([class*=" bg-"]):nth-child(even) { background: #FAFBFC; }
+    :root .report-table tbody tr { transition: background-color var(--m-fast) var(--ease-out); }
+    :root .report-table tbody tr:hover { background: color-mix(in srgb, var(--t-brand-solid) 5%, #fff) !important; }
+}
+
+/* ============================ FIELDS AND BUTTONS ========================== */
+.app-field-shell,
+.app-select,
+.app-table-search { border-radius: 10px !important; }
+.app-field-shell > input::placeholder,
+.app-select::placeholder { color: var(--ink-500); }
+.app-field-shell,
+.app-select,
+.app-table-search {
+    transition:
+        border-color var(--m-fast) var(--ease-out),
+        box-shadow var(--m-base) var(--ease-out),
+        background-color var(--m-fast) var(--ease-out);
+}
+:root .app-actions button,
+:root .app-toolbar button { border-radius: 10px !important; }
+:root .app-row-action { border-radius: 8px !important; }
+
+/* ============================ MOTION ======================================
+   Everything here is under `no-preference`: anyone who has asked their system
+   for less motion gets none of it, and the older reduce rule still zeroes any
+   duration that slips through. ------------------------------------------- */
+@keyframes sc-rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes sc-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes sc-pill {
+    from { background-color: transparent; }
+}
+@keyframes sc-pop {
+    from { opacity: 0; transform: translateY(4px) scale(.98); }
+    to { opacity: 1; transform: none; }
+}
+@media screen and (prefers-reduced-motion: no-preference) {
+    /* A page that opens settles into place: a short rise and fade, keyed on
+       the page itself in View.jsx so it runs on every navigation. */
+    .app-view-enter { animation: sc-rise var(--m-slow) var(--ease-out) both; }
+
+    /* Summary tiles arrive in reading order, 40ms apart — the eye follows
+       them left to right instead of taking the row in as one block. */
+    .app-view-enter .grid > :is(.app-kpi, :has(> .app-kpi)) { animation: sc-pop var(--m-slow) var(--ease-out) both; }
+    .app-view-enter .grid > :is(.app-kpi, :has(> .app-kpi)):nth-child(2) { animation-delay: 40ms; }
+    .app-view-enter .grid > :is(.app-kpi, :has(> .app-kpi)):nth-child(3) { animation-delay: 80ms; }
+    .app-view-enter .grid > :is(.app-kpi, :has(> .app-kpi)):nth-child(4) { animation-delay: 120ms; }
+    .app-view-enter .grid > :is(.app-kpi, :has(> .app-kpi)):nth-child(n+5) { animation-delay: 160ms; }
+
+    /* The page you just chose takes its tint with a short fade, so the rail
+       confirms the click instead of simply changing. */
+    :root[data-ui-theme] .app-rail .app-menu-item-active { animation: sc-pill var(--m-base) var(--ease-out); }
+    [data-ui-theme] .app-rail .app-menu-item:hover svg { transform: translateX(1px); }
+
+    /* Pressing answers the finger: buttons and rows give 2% under the
+       pointer and spring back. `scale`, not `transform`, so it stacks on a
+       button already positioned with a translate instead of replacing it —
+       a centred close button must not jump when it is pressed. */
+    :root :is(button, [role="button"]):not(:disabled):active,
+    [data-ui-theme] .app-rail .app-menu-item:active { scale: .98; }
+    :root button:not(:disabled) {
+        transition:
+            background-color var(--m-fast) var(--ease-out),
+            border-color var(--m-fast) var(--ease-out),
+            color var(--m-fast) var(--ease-out),
+            box-shadow var(--m-base) var(--ease-out),
+            scale var(--m-fast) var(--ease-spring);
+    }
+
+    /* A form or record shown over its list, the empty state and the page
+       header fade in rather than appearing in one frame. */
+    :root :is(.app-empty, .app-pagehead) { animation: sc-fade var(--m-base) var(--ease-out) both; }
+}

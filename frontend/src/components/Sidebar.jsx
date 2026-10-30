@@ -1,6 +1,5 @@
 import {
     Card,
-    Typography,
     List,
     Tooltip
 } from "@material-tailwind/react";
@@ -317,16 +316,16 @@ export default function AppSidebar({ menus }) {
                 ${sidebarOpened ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
                 ${sidebarOpened ? 'md:w-72' : 'app-rail-mini md:w-[4.25rem] md:px-1'}`}>
                     {/* sidebar-menu-section */}
-                    <div className="app-rail-head relative flex flex-col items-center gap-2.5 py-4 px-2 sticky top-0 z-10 bg-teal-100 border-b-2 border-white">
+                    <div className="app-rail-head relative flex flex-col items-center gap-2.5 py-4 px-2 sticky top-0 z-10">
                         {/* brand lockup: the mark and the wordmark are one unit,
                             centred on their own line, so the years below have a
                             line of their own instead of being wedged into the
                             gap beside the logo */}
-                        <div className="app-rail-brand flex items-center justify-center gap-2">
-                            <OurLogo size={38} />
-                            <Typography variant="h4" color="teal" className="app-rail-wordmark leading-none">
-                                CentIT
-                            </Typography>
+                        <div className="app-rail-brand flex items-center justify-center gap-2.5">
+                            <OurLogo size={30} tone="rail" />
+                            <span className="app-rail-wordmark leading-none">
+                                School<span className="app-rail-wordmark-core">Core</span>
+                            </span>
                         </div>
                         {/* A canteen user works in no academic or fiscal year
                             of their own: the canteen files by today's date. */}

@@ -37,14 +37,11 @@ export const Menu = memo(function Menu({ menu, viewName, onClick, isClicked = fa
                 // forty links is the open one. The pill said it visually and
                 // said nothing at all otherwise.
                 <Link href={`#${viewName}`} title={hint} aria-current={isClicked ? 'page' : undefined}>
-                    {/* `app-menu-item[-active]` are inert hooks: with no theme
-                        selected they carry no rules, so the pill below is
-                        exactly the one that has always shipped. A theme needs
-                        them because the active state is an arbitrary value
-                        (`!bg-[#b2dfdb]`) that no colour-based selector can
-                        reach, and on a dark rail a pale pill has to be
-                        restated or its label becomes unreadable. */}
-                    <ListItem className={`app-menu-item py-2 ${isClicked ? 'app-menu-item-active !bg-[#b2dfdb] font-semibold py-2.5' : 'bg-transparent font-normal'}`}>
+                    {/* `app-menu-item[-active]` carry the whole look: every
+                        school renders on a palette now, and each one states
+                        its own hover and selected tint for its own rail
+                        (globals.css, SCHOOLCORE layer). */}
+                    <ListItem className={`app-menu-item py-2 ${isClicked ? 'app-menu-item-active font-semibold' : 'bg-transparent font-normal'}`}>
                         <ListItemPrefix>{menu?.prefix || ''}</ListItemPrefix>
                         <span className="w-max">{menu?.name || ''}</span>
                         <ListItemSuffix>{menu?.suffix || ''}</ListItemSuffix>

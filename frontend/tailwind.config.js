@@ -14,6 +14,18 @@ module.exports = withMT({
   theme: {
     extend: {
       colors: {
+        // `teal` is the BRAND, not a hue. It was the product's colour, so ~330
+        // `*-teal-*` utilities across the app mean "the accent" — and they
+        // stayed teal on an indigo, crimson or green palette. Each step now
+        // reads the active palette's scale (`--brand-*`, channels, set per
+        // `data-ui-theme` at the foot of globals.css), so they follow the
+        // school's theme and `/opacity` modifiers keep working.
+        teal: Object.fromEntries(
+          [50, 100, 200, 300, 400, 500, 600, 700, 800, 900].map((step) => [
+            step,
+            `rgb(var(--brand-${step}) / <alpha-value>)`,
+          ])
+        ),
         emerald: {
           50: '#ecfdf5',
           100: '#d1fae5',
