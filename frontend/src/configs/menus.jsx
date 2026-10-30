@@ -32,24 +32,29 @@ import { PERMISSIONS } from "./permissions";
 TODO: submenu with id: null must be managed in other ways!
 */
 
-// The canteen's pages. The school's own rail files them under "Canteen"; a
-// canteen user's rail (`canteenUserMenu` below) is these and nothing else.
+// The canteen's pages, in the order a school sets the canteen up and then runs
+// it. The school's own rail files them under "Canteen"; a canteen user's rail
+// (`canteenUserMenu` below) is these and nothing else, counter first.
 const canteenPages = [
-    { id: PERMISSIONS.CANTEEN.COUNTER, name: "Counter", prefix: <ShoppingCartIcon className="icon" />, view: 'counter' },
+    { id: PERMISSIONS.CANTEEN.SETUP, name: "Canteen setup", prefix: <Cog6ToothIcon className="icon" />, view: 'setup' },
     { id: PERMISSIONS.CANTEEN.ITEMS, name: "Items & rates", prefix: <QueueListIcon className="icon" />, view: 'items' },
     { id: PERMISSIONS.CANTEEN.USE_TYPES, name: "Use types", prefix: <TagIcon className="icon" />, view: 'use-types' },
+    { id: PERMISSIONS.CANTEEN.USERS, name: "Canteen users", prefix: <UserPlusIcon className="icon" />, view: 'users' },
+    { id: PERMISSIONS.CANTEEN.ACCOUNTS, name: "Card accounts", prefix: <WalletIcon className="icon" />, view: 'accounts' },
+    { id: PERMISSIONS.CANTEEN.COUNTER, name: "Counter", prefix: <ShoppingCartIcon className="icon" />, view: 'counter' },
     { id: PERMISSIONS.CANTEEN.MONTHLY_POSTING, name: "Monthly posting", prefix: <CalendarDaysIcon className="icon" />, view: 'monthly-posting' },
     { id: PERMISSIONS.CANTEEN.COLLECT, name: "Collect & receipt", prefix: <BanknotesIcon className="icon" />, view: 'collect' },
-    { id: PERMISSIONS.CANTEEN.ACCOUNTS, name: "Card accounts", prefix: <WalletIcon className="icon" />, view: 'accounts' },
     { id: PERMISSIONS.CANTEEN.REPORTS, name: "Canteen reports", prefix: <DocumentChartBarIcon className="icon" />, view: 'reports' },
-    { id: PERMISSIONS.CANTEEN.SETUP, name: "Canteen setup", prefix: <Cog6ToothIcon className="icon" />, view: 'setup' },
-    { id: PERMISSIONS.CANTEEN.USERS, name: "Canteen users", prefix: <UserPlusIcon className="icon" />, view: 'users' },
 ];
 
-// 
+// The rail follows the order the work has to happen in, not how often a page
+// is opened: the dashboard, then the master data everything else is built on,
+// then the people, the day's work, academics, money, facilities, messages and
+// the reports that read it all back. Inside a group the same rule holds --
+// set up, then do, then review.
 const adminMenu = [
     {
-        section: "Daily",
+        section: "Overview",
         // The dashboard is ONE page, so it is one row — a group that unfolds to
         // a single "Dashboard ▸ Dashboard" was a chevron in front of the most
         // used page in the portal. Its former companion, the classwise count,
@@ -57,6 +62,52 @@ const adminMenu = [
         id: PERMISSIONS.DASHBOARD.SUMMARY,
         name: "Dashboard", view: "dashboard",
         prefix: <ChartPieIcon className="icon" />,
+    },
+    {
+        section: "Setup",
+        // MASTER DATA, straight after the dashboard and in the order it has to
+        // exist: a class needs its year and its section, subjects and a fee
+        // structure need the class, and nobody can be enrolled, marked
+        // present or billed until all of that is in. Closing the year comes
+        // last because it is the last thing a year does.
+        name: "School setup", view: "manage",
+        prefix: <SquaresPlusIcon className="icon" />,
+        submenu: [
+            { id: PERMISSIONS.MANAGE.ACADEMIC_YEARS, name: "Academic year", prefix: <CalendarIcon className="icon" />, view: 'academic-year' },
+            { id: PERMISSIONS.MANAGE.SECTIONS, name: "Sections", prefix: <AcademicCapIcon className="icon" />, view: 'sections' },
+            { id: PERMISSIONS.MANAGE.CLASS_PERIODS, name: "Classes & periods", prefix: <AcademicCapIcon className="icon" />, view: 'classes' },
+            { id: PERMISSIONS.MANAGE.COURSES_SUBJECTS_PAGE, name: "Courses & subjects", prefix: <AcademicCapIcon className="icon" />, view: 'courses-subjects' },
+            { id: PERMISSIONS.MANAGE.BATCHES, name: 'Batches', prefix: <AcademicCapIcon className="icon" />, view: 'batches' },
+            { id: PERMISSIONS.MANAGE.FEES, name: 'Fees', prefix: <CurrencyRupeeIcon className="icon" />, view: 'fees' },
+            { id: PERMISSIONS.MANAGE.BUS_STATIONS, name: 'Bus stations', prefix: <TruckIcon className="icon" />, view: 'bus-stations' },
+            { id: PERMISSIONS.MANAGE.EXTRA_ACTIVITIES, name: "Extra activities", prefix: <Cog6ToothIcon className="icon" />, view: 'extra-activities-setup' },
+            { id: null, name: "Academic calendar", prefix: <CalendarIcon className="icon" />, view: 'calendar-events' },
+            { id: null, name: "Users", prefix: <UserIcon className="icon" />, view: 'users' },
+            { id: null, name: 'Academic year closing', prefix: <CalendarIcon className="icon" />, view: 'academic-year-closing' },
+        ]
+    },
+    {
+        section: "People",
+        name: "Students & staff", view: "enrollment",
+        prefix: <IdentificationIcon className="icon" />,
+        submenu: [
+            { id: PERMISSIONS.STUDENT.ENROLLMENT, name: "Students", prefix: <UserGroupIcon className="icon" />, view: 'student' },
+            { id: PERMISSIONS.STAFF.ENROLLMENT, name: 'Staff', prefix: <UserIcon className="icon" />, view: 'staff' },
+            {
+                name: "Bulk import & update", prefix: <QueueListIcon className="icon" />, view: 'bulk',
+                submenu: [
+                    { id: PERMISSIONS.STUDENT.ENROLLMENT, name: "Bulk enrollment", prefix: <UserGroupIcon className="icon" />, view: 'student-enrollments' },
+                    { id: PERMISSIONS.STUDENT.UPDATE, name: "Bulk update", prefix: <UserGroupIcon className="icon" />, view: 'student-updates' },
+                ]
+            },
+            { id: null, name: "Class promotion", prefix: <UserGroupIcon className="icon" />, view: 'class-promotion' },
+            { id: null, name: "Class-wise statistics", prefix: <ChartBarSquareIcon className="icon" />, view: 'classwise-student-statistics' },
+        ]
+    },
+    {
+        section: "People",
+        name: "Match photos", view: 'student-photos',
+        prefix: <CameraIcon className="icon" />,
     },
     {
         section: "Daily",
@@ -91,12 +142,12 @@ const adminMenu = [
         name: "Fees & payments", view: 'payment',
         prefix: <CreditCardIcon className="icon" />,
         submenu: [
-            { id: PERMISSIONS.STUDENT.PAYMENT, name: "Collect fees", prefix: <UserGroupIcon className="icon" />, view: 'student' },
-            { id: PERMISSIONS.STUDENT.FAST_CASH_RECEIPT, name: "Fast cash receipt", prefix: <ReceiptPercentIcon className="icon" />, view: 'fast-cash-receipt' },
-            { id: PERMISSIONS.STUDENT.REMINDER_BILLS, name: 'Reminder bills', prefix: <ReceiptPercentIcon className="icon" />, view: 'reminder-bills' },
-            { id: PERMISSIONS.STUDENT.TAX_INVOICE, name: "Tax invoices", prefix: <ReceiptPercentIcon className="icon" />, view: 'tax-invoice' },
             { id: PERMISSIONS.STUDENT.LEDGER_POSTING, name: 'Ledger posting', prefix: <CalculatorIcon className="icon" />, view: 'ledger-posting' },
             { id: PERMISSIONS.STUDENT.DUES_POSTING, name: 'Old dues posting', prefix: <ReceiptPercentIcon className="icon" />, view: 'old-dues-posting' },
+            { id: PERMISSIONS.STUDENT.REMINDER_BILLS, name: 'Reminder bills', prefix: <ReceiptPercentIcon className="icon" />, view: 'reminder-bills' },
+            { id: PERMISSIONS.STUDENT.PAYMENT, name: "Collect fees", prefix: <UserGroupIcon className="icon" />, view: 'student' },
+            { id: PERMISSIONS.STUDENT.FAST_CASH_RECEIPT, name: "Fast cash receipt", prefix: <ReceiptPercentIcon className="icon" />, view: 'fast-cash-receipt' },
+            { id: PERMISSIONS.STUDENT.TAX_INVOICE, name: "Tax invoices", prefix: <ReceiptPercentIcon className="icon" />, view: 'tax-invoice' },
         ]
     },
     {
@@ -115,42 +166,19 @@ const adminMenu = [
         prefix: <TruckIcon className="icon" />,
     },
     {
-        section: "People",
-        name: "Students & staff", view: "enrollment",
-        prefix: <IdentificationIcon className="icon" />,
-        submenu: [
-            { id: PERMISSIONS.STUDENT.ENROLLMENT, name: "Students", prefix: <UserGroupIcon className="icon" />, view: 'student' },
-            { id: PERMISSIONS.STAFF.ENROLLMENT, name: 'Staff', prefix: <UserIcon className="icon" />, view: 'staff' },
-            { id: null, name: "Class promotion", prefix: <UserGroupIcon className="icon" />, view: 'class-promotion' },
-            {
-                name: "Bulk import & update", prefix: <QueueListIcon className="icon" />, view: 'bulk',
-                submenu: [
-                    { id: PERMISSIONS.STUDENT.ENROLLMENT, name: "Bulk enrollment", prefix: <UserGroupIcon className="icon" />, view: 'student-enrollments' },
-                    { id: PERMISSIONS.STUDENT.UPDATE, name: "Bulk update", prefix: <UserGroupIcon className="icon" />, view: 'student-updates' },
-                ]
-            },
-            { id: null, name: "Class-wise statistics", prefix: <ChartBarSquareIcon className="icon" />, view: 'classwise-student-statistics' },
-        ]
-    },
-    {
-        section: "People",
-        name: "Match photos", view: 'student-photos',
-        prefix: <CameraIcon className="icon" />,
-    },
-    {
         section: "Academics",
         name: "Exams & results", view: "exams",
         prefix: <AcademicCapIcon className="icon" />,
         submenu: [
+            { id: PERMISSIONS.EXAM.GRADING_RULES_SETUP, name: "Grading rules", prefix: <ClipboardDocumentListIcon className="icon" />, view: "grading-rules-setup" },
             { id: PERMISSIONS.EXAM.SETUP, name: "Exams", prefix: <ClipboardDocumentListIcon className="icon" />, view: "setup" },
             { id: PERMISSIONS.EXAM.SCHEDULE_SETUP, name: "Exam schedule", prefix: <ClipboardDocumentListIcon className="icon" />, view: "schedule-setup" },
-            { id: PERMISSIONS.EXAM.GRADING_RULES_SETUP, name: "Grading rules", prefix: <ClipboardDocumentListIcon className="icon" />, view: "grading-rules-setup" },
             { id: PERMISSIONS.EXAM.OPTIONAL_SUBJECT_ASSIGNMENT, name: "Optional subjects", prefix: <ClipboardDocumentListIcon className="icon" />, view: "optional-subject-assignment" },
             { id: PERMISSIONS.EXAM.ENTRY_CARDS, name: "Entry cards", prefix: <PencilSquareIcon className="icon" />, view: "entry-cards" },
             { id: PERMISSIONS.EXAM.SEAT_PLAN, name: "Seat plan", prefix: <PencilSquareIcon className="icon" />, view: "seat-plan" },
             { id: PERMISSIONS.EXAM.SEAT_PLAN, name: "Seat plan (old)", prefix: <PencilSquareIcon className="icon" />, view: "seat-plan-old" },
-            { id: PERMISSIONS.EXAM.MARKS_ENTRY, name: "Marks entry", prefix: <PencilSquareIcon className="icon" />, view: "marks-entry" },
             { id: PERMISSIONS.EXAM.MARKS_ENTRY_SLIP, name: "Marks entry slip", prefix: <PencilSquareIcon className="icon" />, view: "marks-entry-slip" },
+            { id: PERMISSIONS.EXAM.MARKS_ENTRY, name: "Marks entry", prefix: <PencilSquareIcon className="icon" />, view: "marks-entry" },
             { id: PERMISSIONS.EXAM.EXTRA_ACTIVITY_ENTRY, name: "Extra activities entry", prefix: <DocumentTextIcon className="icon" />, view: 'extra-activities-entry' },
             { id: PERMISSIONS.EXAM.RESULTS_PUBLISH, name: "Publish results", prefix: <DocumentChartBarIcon className="icon" />, view: "publish-results" },
             {
@@ -193,14 +221,15 @@ const adminMenu = [
         name: "Accounting", view: 'accounting',
         prefix: <ReceiptPercentIcon className="icon" />,
         submenu: [
+            { id: PERMISSIONS.ACCOUNTING.ECONOMIC_YEAR, name: "Accounting year", prefix: <CalendarIcon className="icon" />, view: 'economic-year' },
+            { id: PERMISSIONS.ACCOUNTING.LEDGER, name: "Create ledger", prefix: <CalculatorIcon className="icon" />, view: 'create-ledger' },
+            { id: PERMISSIONS.ACCOUNTING.LEDGERS, name: "Ledgers", prefix: <CalculatorIcon className="icon" />, view: 'ledgers' },
             { id: PERMISSIONS.ACCOUNTING.INCOME_ENTRY, name: "Income entry", prefix: <CalculatorIcon className="icon" />, view: 'income-entry' },
             { id: PERMISSIONS.ACCOUNTING.INCOME_ENTRIES, name: "Income entries", prefix: <CalculatorIcon className="icon" />, view: 'income-entries' },
             { id: PERMISSIONS.ACCOUNTING.EXPENSE_ENTRY, name: "Expense entry", prefix: <CalculatorIcon className="icon" />, view: 'expense-entry' },
             { id: PERMISSIONS.ACCOUNTING.EXPENSE_ENTRIES, name: "Expense entries", prefix: <CalculatorIcon className="icon" />, view: 'expense-entries' },
             { id: PERMISSIONS.ACCOUNTING.JOURNAL_ENTRY, name: "Journal entry", prefix: <CalculatorIcon className="icon" />, view: 'journal-entry' },
             { id: PERMISSIONS.ACCOUNTING.JOURNAL_ENTRIES, name: "Journal entries", prefix: <CalculatorIcon className="icon" />, view: 'journal-entries' },
-            { id: PERMISSIONS.ACCOUNTING.LEDGER, name: "Create ledger", prefix: <CalculatorIcon className="icon" />, view: 'create-ledger' },
-            { id: PERMISSIONS.ACCOUNTING.LEDGERS, name: "Ledgers", prefix: <CalculatorIcon className="icon" />, view: 'ledgers' },
             {
                 id: null, name: "Reports", prefix: <ChartBarIcon className="icon" />, view: 'reports', submenu: [
                     { id: PERMISSIONS.ACCOUNTING.DAY_BOOK, name: "Day book", prefix: <CalendarDaysIcon className="icon" />, view: 'day-book' },
@@ -212,7 +241,6 @@ const adminMenu = [
                     { id: PERMISSIONS.ACCOUNTING.CASH_FLOW_STATEMENT, name: "Cash flow statement", prefix: <CalculatorIcon className="icon" />, view: 'cash-flow-statement' },
                 ]
             },
-            { id: PERMISSIONS.ACCOUNTING.ECONOMIC_YEAR, name: "Accounting year", prefix: <CalendarIcon className="icon" />, view: 'economic-year' },
             /* CONTRA ENTRY is not shipped. Its component exists
                (`views/accounting/contra_entry`) but the view is commented out in
                `configs/views/accounting.jsx`, so this row resolved to nothing
@@ -261,9 +289,10 @@ const adminMenu = [
         name: "Library", view: 'library',
         prefix: <BuildingLibraryIcon className="icon" />,
         submenu: [
-            { id: PERMISSIONS.LIBRARY.BOOK_TRANSACTION, name: "Issue & return", prefix: <BuildingLibraryIcon className="icon" />, view: 'book-transaction' },
+            { id: PERMISSIONS.LIBRARY.SETUP, name: "Library setup", prefix: <BuildingLibraryIcon className="icon" />, view: 'lib-setup' },
             { id: PERMISSIONS.LIBRARY.BOOK_SETUP, name: "Books", prefix: <BuildingLibraryIcon className="icon" />, view: 'books' },
             { id: PERMISSIONS.LIBRARY.BOOK_SETUP, name: "Barcodes", prefix: <BuildingLibraryIcon className="icon" />, view: 'bar-codes' },
+            { id: PERMISSIONS.LIBRARY.BOOK_TRANSACTION, name: "Issue & return", prefix: <BuildingLibraryIcon className="icon" />, view: 'book-transaction' },
             {
                 id: PERMISSIONS.LIBRARY.REPORTS, name: "Reports", prefix: <ChartBarIcon className="icon" />, view: 'reports', submenu: [
                     { name: "Member profile", prefix: <UserIcon className="icon" />, view: 'member-profile' },
@@ -276,7 +305,6 @@ const adminMenu = [
                     { name: "Fines", prefix: <ChartBarIcon className="icon" />, view: 'fine' },
                 ]
             },
-            { id: PERMISSIONS.LIBRARY.SETUP, name: "Library setup", prefix: <BuildingLibraryIcon className="icon" />, view: 'lib-setup' },
         ]
     },
     {
@@ -290,16 +318,16 @@ const adminMenu = [
         prefix: <HomeModernIcon className="icon" />,
         submenu: [
             { id: PERMISSIONS.HOSTEL.REPORTS, name: "Hostel overview", prefix: <ChartPieIcon className="icon" />, view: 'dashboard' },
-            { id: PERMISSIONS.HOSTEL.ALLOCATION, name: "Residents", prefix: <UserGroupIcon className="icon" />, view: 'residents' },
+            { id: PERMISSIONS.HOSTEL.SETUP, name: "Hostel setup", prefix: <Cog6ToothIcon className="icon" />, view: 'setup' },
             { id: PERMISSIONS.HOSTEL.ROOMS, name: "Rooms & beds", prefix: <Squares2X2Icon className="icon" />, view: 'rooms' },
+            { id: PERMISSIONS.HOSTEL.ALLOCATION, name: "Residents", prefix: <UserGroupIcon className="icon" />, view: 'residents' },
             { id: PERMISSIONS.HOSTEL.ATTENDANCE, name: "Roll call", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'attendance' },
             { id: PERMISSIONS.HOSTEL.LEAVE, name: "Gate passes", prefix: <KeyIcon className="icon" />, view: 'leaves' },
             { id: PERMISSIONS.HOSTEL.VISITORS, name: "Visitors", prefix: <UserPlusIcon className="icon" />, view: 'visitors' },
-            { id: PERMISSIONS.HOSTEL.COMPLAINTS, name: "Complaints", prefix: <WrenchScrewdriverIcon className="icon" />, view: 'complaints' },
             { id: PERMISSIONS.HOSTEL.MESS, name: "Mess menu", prefix: <ClipboardIcon className="icon" />, view: 'mess' },
+            { id: PERMISSIONS.HOSTEL.COMPLAINTS, name: "Complaints", prefix: <WrenchScrewdriverIcon className="icon" />, view: 'complaints' },
             { id: PERMISSIONS.HOSTEL.DISCIPLINE, name: "Discipline register", prefix: <ShieldCheckIcon className="icon" />, view: 'discipline' },
             { id: PERMISSIONS.HOSTEL.REPORTS, name: "Hostel reports", prefix: <ChartBarIcon className="icon" />, view: 'reports' },
-            { id: PERMISSIONS.HOSTEL.SETUP, name: "Hostel setup", prefix: <Cog6ToothIcon className="icon" />, view: 'setup' },
         ]
     },
     {
@@ -387,24 +415,6 @@ const adminMenu = [
             { id: PERMISSIONS.REPORTS.STAFF_DETAILS_REPORT, name: 'Staff details', prefix: <UserIcon className="icon" />, view: 'staff-details' },
             { id: null, name: "Invoices academic year mismatch", prefix: <ReceiptPercentIcon className="icon" />, view: 'invoices-academic-year-mismatch' },
             { id: null, name: "Ledgers academic year mismatch", prefix: <CalculatorIcon className="icon" />, view: 'ledgers-academic-year-mismatch' },
-        ]
-    },
-    {
-        section: "Setup",
-        name: "School setup", view: "manage",
-        prefix: <SquaresPlusIcon className="icon" />,
-        submenu: [
-            { id: PERMISSIONS.MANAGE.ACADEMIC_YEARS, name: "Academic year", prefix: <CalendarIcon className="icon" />, view: 'academic-year' },
-            { id: null, name: "Academic calendar", prefix: <CalendarIcon className="icon" />, view: 'calendar-events' },
-            { id: PERMISSIONS.MANAGE.CLASS_PERIODS, name: "Classes & periods", prefix: <AcademicCapIcon className="icon" />, view: 'classes' },
-            { id: PERMISSIONS.MANAGE.SECTIONS, name: "Sections", prefix: <AcademicCapIcon className="icon" />, view: 'sections' },
-            { id: PERMISSIONS.MANAGE.COURSES_SUBJECTS_PAGE, name: "Courses & subjects", prefix: <AcademicCapIcon className="icon" />, view: 'courses-subjects' },
-            { id: PERMISSIONS.MANAGE.FEES, name: 'Fees', prefix: <CurrencyRupeeIcon className="icon" />, view: 'fees' },
-            { id: PERMISSIONS.MANAGE.BUS_STATIONS, name: 'Bus stations', prefix: <TruckIcon className="icon" />, view: 'bus-stations' },
-            { id: PERMISSIONS.MANAGE.EXTRA_ACTIVITIES, name: "Extra activities", prefix: <Cog6ToothIcon className="icon" />, view: 'extra-activities-setup' },
-            { id: PERMISSIONS.MANAGE.BATCHES, name: 'Batches', prefix: <AcademicCapIcon className="icon" />, view: 'batches' },
-            { id: null, name: "Users", prefix: <UserIcon className="icon" />, view: 'users' },
-            { id: null, name: 'Academic year closing', prefix: <CalendarIcon className="icon" />, view: 'academic-year-closing' },
         ]
     },
     {
@@ -516,8 +526,12 @@ const superAdminMenu = [
  * so the same views open and the module gate (configs/moduleGates.js) still
  * covers them. Filtered by the user's own pages like a member of staff's.
  */
+// Selling is a canteen user's whole job, so their rail opens on the counter.
+const CANTEEN_USER_ORDER = ['counter', 'items', 'use-types', 'monthly-posting', 'collect', 'accounts', 'reports', 'setup', 'users'];
 const canteenUserMenu = [
-    ...canteenPages.map((page) => ({ ...page, view: `canteen.${page.view}` })),
+    ...CANTEEN_USER_ORDER
+        .map((view) => canteenPages.find((page) => page.view === view))
+        .map((page) => ({ ...page, view: `canteen.${page.view}` })),
     { name: "My Password", view: 'canteen.my-password', prefix: <KeyIcon className="icon" /> },
 ];
 
