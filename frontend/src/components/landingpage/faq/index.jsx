@@ -26,7 +26,7 @@ export default function FAQSection() {
           </div>
           <h2 className="text-4xl font-bold font-serif text-black sm:text-5xl">Frequently Asked Questions</h2>
           <p className="mt-6 text-lg leading-8 text-black font-sans">
-            Get instant answers to common questions about CentEducation and discover how it can transform your institution.
+            Get instant answers to common questions about SchoolCore and discover how it can transform your institution.
           </p>
         </motion.div>
 

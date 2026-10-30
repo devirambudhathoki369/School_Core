@@ -7,16 +7,16 @@ import { fetchAppListing } from "@/services/functions/appListing";
 /**
  * The public privacy policy, rendered for one app.
  *
- * CentEducation is not one Play listing. Every school that takes the mobile
+ * SchoolCore is not one Play listing. Every school that takes the mobile
  * product gets its own build (`com.centit.rolpasunlight.app`,
  * `com.centit.divineacademy.app`, …), and Play expects each listing's privacy
  * policy URL to open a policy naming *that* app — a document headed
- * "CentEducation" under a listing called "Rolpa Sunlight" reads as the wrong
+ * "SchoolCore" under a listing called "Rolpa Sunlight" reads as the wrong
  * policy and fails review.
  *
  * So this page takes a school:
  *
- *   /privacy_policy                 the generic CentEducation document
+ *   /privacy_policy                 the generic SchoolCore document
  *   /privacy_policy?schoolid=8      the same document, as Rolpa Sunlight's app
  *   /privacy_policy/8               the same thing with a tidier URL
  *

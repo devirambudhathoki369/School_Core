@@ -1,4 +1,4 @@
-/* The inner pages: Features, Who it is for, Why CentEducation, About and
+/* The inner pages: Features, Who it is for, Why SchoolCore, About and
    Contact. See site/site.module.css for how these files are written and why
    every selector starts with `.lp`. */
 
@@ -340,7 +340,7 @@
     line-height: var(--lh-md);
 }
 
-/* ---- Why: on paper, and on CentEducation ---------------------------------------
+/* ---- Why: on paper, and on SchoolCore ---------------------------------------
    A table, because it is one: each row is a job, read across. On a phone each
    row stacks, and each cell is given its column's name. */
 

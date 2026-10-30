@@ -5,7 +5,7 @@ export const getStaticProps = getSiteProps
 
 export default function AboutPage({ bsYear }) {
   return (
-    <SiteLayout title="About | CentEducation" bsYear={bsYear}>
+    <SiteLayout title="About | SchoolCore" bsYear={bsYear}>
       <AboutScreen />
     </SiteLayout>
   )

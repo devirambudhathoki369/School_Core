@@ -2,7 +2,7 @@
 export const navigationItems = [
     { name: "Features", href: "/features" },
     { name: "Who it is for", href: "/who-its-for" },
-    { name: "Why CentEducation", href: "/why-centeducation" },
+    { name: "Why SchoolCore", href: "/why-centeducation" },
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
 ]
@@ -20,7 +20,7 @@ export const footerLinks = {
     product: [
         { name: "Features", href: "/features" },
         { name: "Who it is for", href: "/who-its-for" },
-        { name: "Why CentEducation", href: "/why-centeducation" },
+        { name: "Why SchoolCore", href: "/why-centeducation" },
     ],
     company: [
         { name: "About", href: "/about" },
@@ -31,7 +31,7 @@ export const footerLinks = {
 }
 
 export const companyInfo = {
-    name: "CentEducation",
+    name: "SchoolCore",
     tagline: "Complete School Management System",
     description: "Transform your educational institution with our comprehensive management platform",
 }

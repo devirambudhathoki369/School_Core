@@ -15,12 +15,12 @@ export default function Document() {
               rendered by _document is not part of the head manager, so a page
               that sets its own (privacy_policy) could never override it and the
               whole site served one title. */}
-          <meta name="title" content="centeducation" />
-          <meta name="description" content="CentEducation is a school management and analysis system for modern era." />
-          <meta name="keywords" content="centit, centeducation, nirsabi, school, management, analysis, system, software, smsys" />
+          <meta name="title" content="SchoolCore" />
+          <meta name="description" content="SchoolCore is a school management and analysis system for modern era." />
+          <meta name="keywords" content="schoolcore, centeducation, centit, nirsabi, school, management, analysis, system, software, smsys" />
 
-          <meta property="og:title" content="CentEducation" />
-          <meta property="og:description" content="CentEducation is a school management and analysis system for the modern era." />
+          <meta property="og:title" content="SchoolCore" />
+          <meta property="og:description" content="SchoolCore is a school management and analysis system for the modern era." />
           <meta property="og:image" content={`${DOMAIN}/preview.png`} />
           <meta property="og:url" content={DOMAIN} />
           <meta property="og:type" content="website" />

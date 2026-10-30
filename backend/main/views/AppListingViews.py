@@ -31,14 +31,14 @@ from ..models.superadmin.AppListing import SchoolAppListing
 DEVELOPER_NAME = "Cent IT Solution Pvt. Ltd."
 DEVELOPER_EMAIL = "centit37@gmail.com"
 DEVELOPER_WEBSITE = "https://nirsabi.com"
-DEFAULT_APP_NAME = "CentEducation"
+DEFAULT_APP_NAME = "SchoolCore"
 
 
 def default_description(app_name):
     """The product paragraph, with this build's name in it.
 
     Wording follows the description Google Play already reviewed for
-    CentEducation; only the name is swapped, so a per-school policy makes the
+    SchoolCore; only the name is swapped, so a per-school policy makes the
     same claims about the same software.
     """
     return (
@@ -99,7 +99,7 @@ def _listing(request, school, listing=None):
 
 
 def default_listing():
-    """The un-branded CentEducation policy, for `/privacy_policy` with no school."""
+    """The un-branded SchoolCore policy, for `/privacy_policy` with no school."""
     return {
         "school_id": None,
         "school_name": "",

@@ -13,7 +13,7 @@ export const getStaticProps = getSiteProps
 
 export default function LandingPage({ bsYear }) {
   return (
-    <SiteLayout title="CentEducation | School Management System" bsYear={bsYear}>
+    <SiteLayout title="SchoolCore | School Management System" bsYear={bsYear}>
       <HeroSection />
       <Ticker />
       <DaySection />

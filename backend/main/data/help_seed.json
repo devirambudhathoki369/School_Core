@@ -1,7 +1,7 @@
 {
   "support": {
     "name": "Cent IT Solutions Pvt. Ltd.",
-    "product": "CentEducation · School Management System",
+    "product": "SchoolCore · School Management System",
     "address": "Madannagar, Tulsipur-6, Dang, Lumbini",
     "open_days": "Sunday – Friday",
     "open_time": "9:00 AM – 5:00 PM",
@@ -297,7 +297,7 @@
       "title": "Take attendance for the day",
       "summary": "Manually, from the class register.",
       "where": "App ▸ Attendance ▸ Student Attendance entry",
-      "view": "app.attendance.entry",
+      "view": "attendance.entry",
       "steps": [
         "Open App ▸ Attendance ▸ Student Attendance entry.",
         "Pick the class, section and date.",
@@ -315,7 +315,7 @@
       "title": "When the RFID device shows no new attendance",
       "summary": "Almost always the device, not the system.",
       "where": "App ▸ RFID ▸ Attendance Logs",
-      "view": "app.rfid.attd-logs",
+      "view": "attendance.rfid.attd-logs",
       "steps": [
         "Open App ▸ RFID ▸ Attendance Logs and look at the date of the last log.",
         "If it stopped on a particular day, check the device's power and internet at the school.",

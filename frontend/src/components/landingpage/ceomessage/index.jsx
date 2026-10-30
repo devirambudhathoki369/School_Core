@@ -51,12 +51,12 @@ export default function CEOMessageSection() {
               </svg>
               <blockquote className="text-lg leading-8 text-black/80 font-sans pl-6">
                 <p className="mb-6">
-                  "When I started CentEducation, I had a simple belief: technology should make education better, not more
+                  "When I started SchoolCore, I had a simple belief: technology should make education better, not more
                   complicated. Having worked in education for over 15 years, I witnessed firsthand how administrative
                   burdens were taking teachers away from what they do best - teaching."
                 </p>
                 <p className="mb-6">
-                  "Today, I'm proud to see thousands of schools using CentEducation to streamline their operations, improve
+                  "Today, I'm proud to see thousands of schools using SchoolCore to streamline their operations, improve
                   communication, and create more time for meaningful education. Our platform isn't just software - it's
                   a tool for educational transformation."
                 </p>

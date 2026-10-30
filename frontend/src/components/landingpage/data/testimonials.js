@@ -6,7 +6,7 @@ export const testimonials = [
         institution: "Greenwood Academy",
         image: "/placeholder.svg?height=80&width=80",
         rating: 5,
-        text: "CentEducation didn't just change our school—it saved it. We went from drowning in admin work to having extra hours weekly for actual education. Parent complaints dropped significantly, and our staff morale is at an all-time high.",
+        text: "SchoolCore didn't just change our school—it saved it. We went from drowning in admin work to having extra hours weekly for actual education. Parent complaints dropped significantly, and our staff morale is at an all-time high.",
     },
     {
         id: 2,
@@ -15,7 +15,7 @@ export const testimonials = [
         institution: "Metro University",
         image: "/placeholder.svg?height=80&width=80",
         rating: 5,
-        text: "I've implemented dozens of systems in my career. CentEducation's rollout was flawless—zero downtime, zero complaints. Our faculty adoption rate was exceptional from week one.",
+        text: "I've implemented dozens of systems in my career. SchoolCore's rollout was flawless—zero downtime, zero complaints. Our faculty adoption rate was exceptional from week one.",
     },
     {
         id: 3,

@@ -36,7 +36,7 @@ const BASE_URL =
  * Read one school's app identity, server-side.
  *
  * Returns `null` for a missing id, an unknown school, or an unreachable API —
- * the caller then renders the generic CentEducation policy. A policy page that
+ * the caller then renders the generic SchoolCore policy. A policy page that
  * fails to render is a failed Play review, so nothing in here is allowed to
  * throw.
  *

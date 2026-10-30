@@ -12,7 +12,7 @@ export default function WhyScreen({ bsYear }) {
 
     return (
         <>
-            <PageHero name="Why CentEducation" title={whyJoinUs.title} lede={whyJoinUs.subtitle} />
+            <PageHero name="Why SchoolCore" title={whyJoinUs.title} lede={whyJoinUs.subtitle} />
 
             <section className={cx(site.band, site.bandPaper)} aria-labelledby="calendar-title">
                 <div className={site.wrap}>

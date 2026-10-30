@@ -6,7 +6,7 @@
 // their figures are fixed text that adds up, never worked out in the browser.
 
 export const company = {
-    name: "CentEducation",
+    name: "SchoolCore",
     maker: "Cent IT Solutions Pvt. Ltd.",
     makerShort: "Cent IT Solutions",
     phone: "9815582814",
@@ -40,7 +40,7 @@ export const heroContent = {
     titleStart: "Every bill, bell and bus.",
     titleMark: "One system.",
     subtitle:
-        "CentEducation runs the fee counter, the attendance register, the exam section, the accounts and the bus route. In Bikram Sambat, on the web and on the phone.",
+        "SchoolCore runs the fee counter, the attendance register, the exam section, the accounts and the bus route. In Bikram Sambat, on the web and on the phone.",
     primaryButton: "Book a demo",
     secondaryButton: "See every feature",
     facts: [
@@ -72,7 +72,7 @@ export const tickerWords = [
 export const schoolDay = {
     kicker: "A school day",
     title: "From the first bus to the evening's accounts.",
-    subtitle: "An ordinary day when the office runs on CentEducation.",
+    subtitle: "An ordinary day when the office runs on SchoolCore.",
     steps: [
         {
             time: "6:30",
@@ -396,7 +396,7 @@ export const platforms = [
 ]
 
 export const whyJoinUs = {
-    kicker: "Why CentEducation",
+    kicker: "Why SchoolCore",
     title: "Built in Dang, for the way Nepali schools actually run.",
     subtitle: "The calendar, the fiscal year, the fee heads and the paperwork are the ones your office already uses.",
     yearNote: "This year, in the calendar your school already uses.",
@@ -446,7 +446,7 @@ export const beforeAfter = {
     kicker: "Register by register",
     title: "What changes in the office.",
     beforeLabel: "On paper",
-    afterLabel: "On CentEducation",
+    afterLabel: "On SchoolCore",
     rows: [
         {
             what: "Fee receipt",
@@ -496,10 +496,10 @@ export const aboutContent = {
     kicker: "About",
     title: "A school system, made in Tulsipur.",
     subtitle:
-        "CentEducation is made by Cent IT Solutions Pvt. Ltd. in Tulsipur, Dang. We make the software, set it up with the school, and stay on the phone afterwards.",
+        "SchoolCore is made by Cent IT Solutions Pvt. Ltd. in Tulsipur, Dang. We make the software, set it up with the school, and stay on the phone afterwards.",
     story: [
         "A school office in Nepal runs on registers: one for admissions, one per class for attendance, a receipt book, a mark ledger, a cash book. Each is kept carefully, and each is copied from the last by hand.",
-        "CentEducation keeps all of them as one record. A student is entered once. The fee counter, the class register, the marksheet, the bus list and the parent's phone all read from that entry, in the Bikram Sambat calendar the office already works in.",
+        "SchoolCore keeps all of them as one record. A student is entered once. The fee counter, the class register, the marksheet, the bus list and the parent's phone all read from that entry, in the Bikram Sambat calendar the office already works in.",
     ],
     facts: [
         {
@@ -524,7 +524,7 @@ export const contactInfo = {
         "Call us and tell us a little about your school. We will walk you through the system and answer your questions in plain words.",
     callLabel: "Call us",
     callButton: "Call now",
-    existingTitle: "Already using CentEducation?",
+    existingTitle: "Already using SchoolCore?",
     existingText: "Sign in to your portal, or open the help desk for guides and support.",
 }
 
@@ -578,7 +578,7 @@ export const testimonials = [
         institution: "Greenwood Academy",
         image: "/placeholder.svg?height=80&width=80",
         rating: 5,
-        text: "CentEducation didn't just change our school—it saved it. We went from drowning in admin work to having extra hours weekly for actual education. Parent complaints dropped significantly, and our staff morale is at an all-time high.",
+        text: "SchoolCore didn't just change our school—it saved it. We went from drowning in admin work to having extra hours weekly for actual education. Parent complaints dropped significantly, and our staff morale is at an all-time high.",
     },
     {
         id: 2,
@@ -587,7 +587,7 @@ export const testimonials = [
         institution: "Metro University",
         image: "/placeholder.svg?height=80&width=80",
         rating: 5,
-        text: "I've implemented dozens of systems in my career. CentEducation's rollout was flawless—zero downtime, zero complaints. Our faculty adoption rate was exceptional from week one.",
+        text: "I've implemented dozens of systems in my career. SchoolCore's rollout was flawless—zero downtime, zero complaints. Our faculty adoption rate was exceptional from week one.",
     },
     {
         id: 3,
@@ -613,23 +613,23 @@ export const testimonials = [
 export const faqs = [
     {
         id: 1,
-        question: "How long does it take to implement CentEducation?",
+        question: "How long does it take to implement SchoolCore?",
         answer:
             "Implementation typically takes 24-48 hours depending on your institution size. Our team handles data migration, system setup, and initial training to ensure a smooth transition.",
         icon: "clock",
     },
     {
         id: 2,
-        question: "Is my data secure with CentEducation?",
+        question: "Is my data secure with SchoolCore?",
         answer:
             "Absolutely. We use bank-level encryption, secure cloud infrastructure, and comply with all educational data privacy regulations. Your data is backed up daily and stored in multiple secure locations.",
         icon: "shield-check",
     },
     {
         id: 3,
-        question: "Can I customize CentEducation for my institution's specific needs?",
+        question: "Can I customize SchoolCore for my institution's specific needs?",
         answer:
-            "Yes, CentEducation is highly customizable. We can adapt the system to match your existing workflows, add custom fields, and integrate with your current tools and systems.",
+            "Yes, SchoolCore is highly customizable. We can adapt the system to match your existing workflows, add custom fields, and integrate with your current tools and systems.",
         icon: "cog-6-tooth",
     },
     {
@@ -641,21 +641,21 @@ export const faqs = [
     },
     {
         id: 5,
-        question: "How much does CentEducation cost?",
+        question: "How much does SchoolCore cost?",
         answer:
             "Our pricing is based on your institution size and specific needs. We offer flexible plans starting from affordable monthly subscriptions. Contact us for a personalized quote.",
         icon: "currency-dollar",
     },
     {
         id: 6,
-        question: "Can I try CentEducation before committing?",
+        question: "Can I try SchoolCore before committing?",
         answer:
             "Yes! We offer a free 30-day trial with full access to all features. Our team will help you set up a demo environment with sample data to test the system thoroughly.",
         icon: "play",
     },
     {
         id: 7,
-        question: "Does CentEducation work offline?",
+        question: "Does SchoolCore work offline?",
         answer:
             "Our mobile apps have offline capabilities for essential functions like attendance marking and grade entry. Data syncs automatically when you're back online.",
         icon: "wifi",

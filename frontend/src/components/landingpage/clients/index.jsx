@@ -16,7 +16,7 @@ export default function ClientsSection() {
             Trusted by Leading Educational Institutions
           </h2>
           <p className="mt-6 text-lg leading-8 text-black/70 font-sans">
-            Join hundreds of schools and institutions that have transformed their management with CentEducation.
+            Join hundreds of schools and institutions that have transformed their management with SchoolCore.
           </p>
         </motion.div>
 

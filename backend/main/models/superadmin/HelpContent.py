@@ -44,7 +44,7 @@ class SupportInfo(Model):
 
     name = CharField(max_length=120, default="Cent IT Solutions Pvt. Ltd.")
     product = CharField(
-        max_length=160, blank=True, default="CentEducation · School Management System"
+        max_length=160, blank=True, default="SchoolCore · School Management System"
     )
     address = CharField(max_length=200, blank=True, default="")
     open_days = CharField(max_length=80, blank=True, default="Sunday – Friday")

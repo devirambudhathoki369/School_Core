@@ -5,7 +5,7 @@ export const getStaticProps = getSiteProps
 
 export default function FeaturesPage({ bsYear }) {
   return (
-    <SiteLayout title="Features | CentEducation" bsYear={bsYear}>
+    <SiteLayout title="Features | SchoolCore" bsYear={bsYear}>
       <FeaturesScreen />
     </SiteLayout>
   )

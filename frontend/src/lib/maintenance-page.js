@@ -9,7 +9,7 @@ export const MAINTENANCE_HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Site Maintenance - CentEducation</title>
+<title>Site Maintenance - SchoolCore</title>
 <style>
     body {
         font: 20px Helvetica, sans-serif;
@@ -42,7 +42,7 @@ export const MAINTENANCE_HTML = `<!doctype html>
     <div>
         <p>Sorry for the inconvenience but we&rsquo;re performing some maintenance at the moment. We&rsquo;ll be back
             online shortly!</p>
-        <p>&mdash; CentEducation</p>
+        <p>&mdash; SchoolCore</p>
     </div>
 </article>
 </body>

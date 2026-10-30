@@ -5,7 +5,7 @@ export const getStaticProps = getSiteProps
 
 export default function WhoPage({ bsYear }) {
   return (
-    <SiteLayout title="Who it is for | CentEducation" bsYear={bsYear}>
+    <SiteLayout title="Who it is for | SchoolCore" bsYear={bsYear}>
       <WhoScreen />
     </SiteLayout>
   )

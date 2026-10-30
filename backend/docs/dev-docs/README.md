@@ -1,4 +1,4 @@
-## Name: CentEducation [By: Cent It Solutions]
+## Name: SchoolCore (formerly CentEducation) [By: Cent It Solutions]
 
 ### Description:
 > Schools management system which handles most of the schools manual tasks like enrollment, billing, discounts, transportations, results, accounting, library, sms, notifications, etc.

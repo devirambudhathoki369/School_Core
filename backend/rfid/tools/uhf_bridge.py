@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-uhf_bridge — put a UHF reader's tag reads into CentIT attendance.
+uhf_bridge — put a UHF reader's tag reads into SchoolCore attendance.
 
 A UHF reader (860–960 MHz, EPC Gen2) is not an access-control card reader and
 does not speak the ZKTeco push protocol. It emits tag IDs over a serial port or
@@ -330,7 +330,7 @@ def cmd_discover(args):
 def main():
     p = argparse.ArgumentParser(
         prog="uhf_bridge",
-        description="Forward UHF tag reads into CentIT attendance.",
+        description="Forward UHF tag reads into SchoolCore attendance.",
     )
     sub = p.add_subparsers(dest="cmd", required=True)
 
