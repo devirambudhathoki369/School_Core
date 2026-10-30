@@ -99,3 +99,27 @@ export function collectMenuLeaves(list, parent = '', out = []) {
     }
     return out;
 }
+
+/**
+ * The menu's own labels along a page's path ("payment.student" → ["Fees &
+ * payments", "Collect fees"]), for the breadcrumb and the page title. A
+ * segment the menu does not hold -- an old address kept as an alias -- falls
+ * back to the words of the path itself.
+ */
+export function labelTrail(tree, path) {
+    const words = String(path || '').split('.').filter(Boolean);
+    const out = [];
+    let level = Array.isArray(tree) ? tree : [];
+    for (const word of words) {
+        const row = level.find((m) => m?.view === word);
+        if (row?.name) {
+            out.push(row.name);
+            level = Array.isArray(row.submenu) ? row.submenu : [];
+        } else {
+            const text = word.replaceAll('-', ' ');
+            out.push(text.charAt(0).toUpperCase() + text.slice(1));
+            level = [];
+        }
+    }
+    return out;
+}

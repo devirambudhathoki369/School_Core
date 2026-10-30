@@ -16,6 +16,7 @@ import OurLogo from "@/components/OurLogo";
 import { formatImagePath } from "@/methods/formatMediaPath";
 import BusTrackingHeaderLink from "./views/bus_tracking/HeaderLink";
 import { useColorMode } from "@/configs/colorMode";
+import { labelTrail } from "@/methods/menuTree";
 
 // Light or dark, for whoever is at this screen (configs/colorMode.js).
 function ModeButton({ mode, toggle, className = "" }) {
@@ -35,7 +36,8 @@ function View({ type, children, selectedMenu }) {
         user: { user },
         fiscalYear: { year, showFiscalYearPicker, setShowFiscalYearPicker },
         notification: { updateNotification },
-        prompt: { toggleConfirmationPrompt } } = useAppContext();
+        prompt: { toggleConfirmationPrompt },
+        menu: { menus: menuBundle } } = useAppContext();
     // 
     const { mode, toggle: toggleMode } = useColorMode();
     const [showShortcuts, setShowShortcuts] = useState(false);
@@ -55,10 +57,10 @@ function View({ type, children, selectedMenu }) {
     // Sentence case, the way the rail names the same pages ("Payroll /
     // Staff ledger"). The trail was upper-cased, so every screen carried a
     // line of capitals at the top that read as shouting and was slower to scan.
-    selectedMenu = selectedMenu?.split('.').map(e => {
-        const words = e.replaceAll('-', ' ');
-        return words.charAt(0).toUpperCase() + words.slice(1);
-    }) || [];
+    // The menu's own labels, so the trail says "Fees & payments / Collect
+    // fees" -- the words the rail uses -- rather than the address's
+    // ("Payment / Student").
+    selectedMenu = labelTrail(menuBundle?.menu, selectedMenu);
     const crumbTrail = (
         <>
             <HomeIcon aria-hidden="true" />

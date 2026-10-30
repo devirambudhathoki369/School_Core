@@ -44,7 +44,7 @@ function OverallAttendance() {
     return (
         <>
             <ButtonsSecion className={"!justify-start"}>
-                <PreviousButton name={"Back"} href={"admin#app.attendance-report"} />
+                <PreviousButton name={"Back"} href={"admin#attendance.report"} />
             </ButtonsSecion>
             <form onSubmit={onSearch}>
                 <Section>

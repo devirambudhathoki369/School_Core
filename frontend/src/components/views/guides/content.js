@@ -244,7 +244,7 @@ const GUIDES = [
         title: "Take attendance for the day",
         summary: "Manually, from the class register.",
         where: "App ▸ Attendance ▸ Student Attendance entry",
-        view: "app.attendance.entry",
+        view: "attendance.entry",
         steps: [
             "Open App ▸ Attendance ▸ Student Attendance entry.",
             "Pick the class, section and date.",
@@ -261,7 +261,7 @@ const GUIDES = [
         title: "When the RFID device shows no new attendance",
         summary: "Almost always the device, not the system.",
         where: "App ▸ RFID ▸ Attendance Logs",
-        view: "app.rfid.attd-logs",
+        view: "attendance.rfid.attd-logs",
         steps: [
             "Open App ▸ RFID ▸ Attendance Logs and look at the date of the last log.",
             "If it stopped on a particular day, check the device's power and internet at the school.",

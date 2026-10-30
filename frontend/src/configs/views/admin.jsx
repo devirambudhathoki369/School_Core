@@ -204,6 +204,22 @@ const adminViews = {
     // canteen (per-school module — see configs/moduleGates.js)
     ...canteenViews,
     // 
+    // Attendance and its card readers have their own menu group now. The new
+    // addresses first; the old `app.*` ones stay as aliases so a bookmark or a
+    // link written before the move still opens its page.
+    'attendance.entry': () => <AttendanceEntry />,
+    'attendance.management': () => <AttendanceManagement />,
+    'attendance.report': () => <AttendanceReport />,
+    'attendance.overall': () => <OverallAttendance />,
+    'attendance.history': () => <AttendanceHistory />,
+    'attendance.staff-entry': () => <StaffAttendanceEntry />,
+    'attendance.staff-management': () => <StaffAttendanceManagement />,
+    'attendance.staff-report': () => <StaffAttendanceReport />,
+    'attendance.staff-history': () => <StaffAttendanceHistory />,
+    'attendance.rfid.users-setup': () => <RFIDUsersSetup />,
+    'attendance.rfid.registered-users': () => <RFIDAttdUsersSearchView />,
+    'attendance.rfid.attd-logs': () => <RFIDAttendanceLogsView />,
+    'attendance.rfid.time-set': () => <RFIDTimeSetView />,
     'app.attendance.entry': () => <AttendanceEntry />,
     'app.attendance.management': () => <AttendanceManagement />,
     'app.attendance.report': () => <AttendanceReport />,

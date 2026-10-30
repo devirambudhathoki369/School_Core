@@ -60,7 +60,7 @@ function AttendanceReport() {
     return (
         <>
             <ButtonsSecion>
-                <SeeLogsButton name={"Overall"} href={"admin#app.attendance.overall"} />
+                <SeeLogsButton name={"Overall"} href={"admin#attendance.overall"} />
             </ButtonsSecion>
             <ChooseClass selectedClass={selectedClass} actions={[selectAction]} onSelect={onSelect}
                 info={"Select class for attendance report!"}>

@@ -36,14 +36,14 @@ TODO: submenu with id: null must be managed in other ways!
 // canteen user's rail (`canteenUserMenu` below) is these and nothing else.
 const canteenPages = [
     { id: PERMISSIONS.CANTEEN.COUNTER, name: "Counter", prefix: <ShoppingCartIcon className="icon" />, view: 'counter' },
-    { id: PERMISSIONS.CANTEEN.ITEMS, name: "Items & Rates", prefix: <QueueListIcon className="icon" />, view: 'items' },
-    { id: PERMISSIONS.CANTEEN.USE_TYPES, name: "Use Types", prefix: <TagIcon className="icon" />, view: 'use-types' },
-    { id: PERMISSIONS.CANTEEN.MONTHLY_POSTING, name: "Monthly Posting", prefix: <CalendarDaysIcon className="icon" />, view: 'monthly-posting' },
-    { id: PERMISSIONS.CANTEEN.COLLECT, name: "Collect & Receipt", prefix: <BanknotesIcon className="icon" />, view: 'collect' },
-    { id: PERMISSIONS.CANTEEN.ACCOUNTS, name: "Card Accounts", prefix: <WalletIcon className="icon" />, view: 'accounts' },
-    { id: PERMISSIONS.CANTEEN.REPORTS, name: "Canteen Reports", prefix: <DocumentChartBarIcon className="icon" />, view: 'reports' },
-    { id: PERMISSIONS.CANTEEN.SETUP, name: "Canteen Setup", prefix: <Cog6ToothIcon className="icon" />, view: 'setup' },
-    { id: PERMISSIONS.CANTEEN.USERS, name: "Canteen Users", prefix: <UserPlusIcon className="icon" />, view: 'users' },
+    { id: PERMISSIONS.CANTEEN.ITEMS, name: "Items & rates", prefix: <QueueListIcon className="icon" />, view: 'items' },
+    { id: PERMISSIONS.CANTEEN.USE_TYPES, name: "Use types", prefix: <TagIcon className="icon" />, view: 'use-types' },
+    { id: PERMISSIONS.CANTEEN.MONTHLY_POSTING, name: "Monthly posting", prefix: <CalendarDaysIcon className="icon" />, view: 'monthly-posting' },
+    { id: PERMISSIONS.CANTEEN.COLLECT, name: "Collect & receipt", prefix: <BanknotesIcon className="icon" />, view: 'collect' },
+    { id: PERMISSIONS.CANTEEN.ACCOUNTS, name: "Card accounts", prefix: <WalletIcon className="icon" />, view: 'accounts' },
+    { id: PERMISSIONS.CANTEEN.REPORTS, name: "Canteen reports", prefix: <DocumentChartBarIcon className="icon" />, view: 'reports' },
+    { id: PERMISSIONS.CANTEEN.SETUP, name: "Canteen setup", prefix: <Cog6ToothIcon className="icon" />, view: 'setup' },
+    { id: PERMISSIONS.CANTEEN.USERS, name: "Canteen users", prefix: <UserPlusIcon className="icon" />, view: 'users' },
 ];
 
 // 
@@ -60,21 +60,49 @@ const adminMenu = [
     },
     {
         section: "Daily",
-        name: "Payment", view: 'payment',
+        // Attendance is a daily job, not a part of the mobile app: it lived
+        // under "App" (#app.attendance.*, #app.rfid.*). Those addresses still
+        // open -- they are kept as aliases in configs/views/admin.jsx.
+        name: "Attendance", view: "attendance",
+        prefix: <ClipboardDocumentCheckIcon className="icon" />,
+        submenu: [
+            { id: PERMISSIONS.ATTENDANCE.ENTRY, name: "Take student attendance", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'entry' },
+            { id: PERMISSIONS.ATTENDANCE.MANAGEMENT, name: "Manage student attendance", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'management' },
+            { id: PERMISSIONS.ATTENDANCE.REPORT, name: "Student attendance report", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'report' },
+            { id: PERMISSIONS.ATTENDANCE.OVERALL_REPORT, name: "Student overall report", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'overall' },
+            { id: PERMISSIONS.ATTENDANCE.HISTORY, name: "Student attendance history", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'history' },
+            { id: PERMISSIONS.ATTENDANCE.ENTRY, name: "Take staff attendance", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'staff-entry' },
+            { id: PERMISSIONS.ATTENDANCE.MANAGEMENT, name: "Manage staff attendance", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'staff-management' },
+            { id: PERMISSIONS.ATTENDANCE.REPORT, name: "Staff attendance report", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'staff-report' },
+            { id: PERMISSIONS.ATTENDANCE.HISTORY, name: "Staff attendance history", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'staff-history' },
+            {
+                id: null, name: "Card readers", prefix: <CpuChipIcon className="icon" />, view: 'rfid', submenu: [
+                    { id: PERMISSIONS.RFID.USERS_SETUP, name: "Set up card users", prefix: <UserIcon className="icon" />, view: 'users-setup' },
+                    { id: PERMISSIONS.RFID.REGISTERED_USERS, name: "Registered card users", prefix: <UserIcon className="icon" />, view: 'registered-users' },
+                    { id: PERMISSIONS.RFID.ATTENDANCE_LOGS, name: "Punch log", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'attd-logs' },
+                    // only shown when the superadmin enabled time_set_required
+                    { id: PERMISSIONS.RFID.TIME_SET, name: "Attendance times", prefix: <CpuChipIcon className="icon" />, view: 'time-set', profileFlag: 'time_set_required' },
+                ]
+            },
+        ]
+    },
+    {
+        section: "Daily",
+        name: "Fees & payments", view: 'payment',
         prefix: <CreditCardIcon className="icon" />,
         submenu: [
-            { id: PERMISSIONS.STUDENT.PAYMENT, name: "Student", prefix: <UserGroupIcon className="icon" />, view: 'student' },
+            { id: PERMISSIONS.STUDENT.PAYMENT, name: "Collect fees", prefix: <UserGroupIcon className="icon" />, view: 'student' },
+            { id: PERMISSIONS.STUDENT.FAST_CASH_RECEIPT, name: "Fast cash receipt", prefix: <ReceiptPercentIcon className="icon" />, view: 'fast-cash-receipt' },
+            { id: PERMISSIONS.STUDENT.REMINDER_BILLS, name: 'Reminder bills', prefix: <ReceiptPercentIcon className="icon" />, view: 'reminder-bills' },
+            { id: PERMISSIONS.STUDENT.TAX_INVOICE, name: "Tax invoices", prefix: <ReceiptPercentIcon className="icon" />, view: 'tax-invoice' },
             { id: PERMISSIONS.STUDENT.LEDGER_POSTING, name: 'Ledger posting', prefix: <CalculatorIcon className="icon" />, view: 'ledger-posting' },
             { id: PERMISSIONS.STUDENT.DUES_POSTING, name: 'Old dues posting', prefix: <ReceiptPercentIcon className="icon" />, view: 'old-dues-posting' },
-            { id: PERMISSIONS.STUDENT.REMINDER_BILLS, name: 'Reminder bills', prefix: <ReceiptPercentIcon className="icon" />, view: 'reminder-bills' },
-            { id: PERMISSIONS.STUDENT.TAX_INVOICE, name: 'Tax Invoice', prefix: <ReceiptPercentIcon className="icon" />, view: 'tax-invoice' },
-            { id: PERMISSIONS.STUDENT.FAST_CASH_RECEIPT, name: 'Fast Cash Receipt', prefix: <ReceiptPercentIcon className="icon" />, view: 'fast-cash-receipt' },
         ]
     },
     {
         section: "Daily",
         id: PERMISSIONS.COMMUNICATION.SMS.SEND_MESSAGES,
-        name: "Send SMS for absent students", view: 'send-sms-absent',
+        name: "Absence SMS", view: 'send-sms-absent',
         prefix: <DevicePhoneMobileIcon className="icon" />,
     },
     {
@@ -83,81 +111,81 @@ const adminMenu = [
         // it. A school with no bus yet is told on the page how its buses come
         // to be listed; which buses are a school's is the backend's to say.
         id: PERMISSIONS.MANAGE.BUS_TRACKING,
-        name: "View Bus Tracking", view: "view-bus-tracking",
+        name: "Bus tracking", view: "view-bus-tracking",
         prefix: <TruckIcon className="icon" />,
     },
     {
         section: "People",
-        name: "Enrollment", view: "enrollment",
+        name: "Students & staff", view: "enrollment",
         prefix: <IdentificationIcon className="icon" />,
         submenu: [
-            { id: PERMISSIONS.STUDENT.ENROLLMENT, name: 'Student', prefix: <UserGroupIcon className="icon" />, view: 'student' },
+            { id: PERMISSIONS.STUDENT.ENROLLMENT, name: "Students", prefix: <UserGroupIcon className="icon" />, view: 'student' },
             { id: PERMISSIONS.STAFF.ENROLLMENT, name: 'Staff', prefix: <UserIcon className="icon" />, view: 'staff' },
-            { id: null, name: "Class Promotion", prefix: <UserGroupIcon className="icon" />, view: 'class-promotion' },
-            { id: null, name: "Classwise Student Statistics", prefix: <ChartBarSquareIcon className="icon" />, view: 'classwise-student-statistics' },
+            { id: null, name: "Class promotion", prefix: <UserGroupIcon className="icon" />, view: 'class-promotion' },
             {
-                name: 'Bulk', prefix: <QueueListIcon className="icon" />, view: 'bulk',
+                name: "Bulk import & update", prefix: <QueueListIcon className="icon" />, view: 'bulk',
                 submenu: [
-                    { id: PERMISSIONS.STUDENT.ENROLLMENT, name: 'Student enrollments', prefix: <UserGroupIcon className="icon" />, view: 'student-enrollments' },
-                    { id: PERMISSIONS.STUDENT.UPDATE, name: 'Student updates', prefix: <UserGroupIcon className="icon" />, view: 'student-updates' },
+                    { id: PERMISSIONS.STUDENT.ENROLLMENT, name: "Bulk enrollment", prefix: <UserGroupIcon className="icon" />, view: 'student-enrollments' },
+                    { id: PERMISSIONS.STUDENT.UPDATE, name: "Bulk update", prefix: <UserGroupIcon className="icon" />, view: 'student-updates' },
                 ]
             },
+            { id: null, name: "Class-wise statistics", prefix: <ChartBarSquareIcon className="icon" />, view: 'classwise-student-statistics' },
         ]
     },
     {
         section: "People",
-        name: "Match Photos", view: 'student-photos',
+        name: "Match photos", view: 'student-photos',
         prefix: <CameraIcon className="icon" />,
     },
     {
         section: "Academics",
-        name: "Exam and result", view: "exams",
+        name: "Exams & results", view: "exams",
         prefix: <AcademicCapIcon className="icon" />,
         submenu: [
-            { id: PERMISSIONS.EXAM.SETUP, name: "Exam", prefix: <ClipboardDocumentListIcon className="icon" />, view: "setup" },
-            { id: PERMISSIONS.EXAM.SCHEDULE_SETUP, name: "Schedule", prefix: <ClipboardDocumentListIcon className="icon" />, view: "schedule-setup" },
-            { id: PERMISSIONS.EXAM.OPTIONAL_SUBJECT_ASSIGNMENT, name: "Optional Subject assignment", prefix: <ClipboardDocumentListIcon className="icon" />, view: "optional-subject-assignment" },
+            { id: PERMISSIONS.EXAM.SETUP, name: "Exams", prefix: <ClipboardDocumentListIcon className="icon" />, view: "setup" },
+            { id: PERMISSIONS.EXAM.SCHEDULE_SETUP, name: "Exam schedule", prefix: <ClipboardDocumentListIcon className="icon" />, view: "schedule-setup" },
+            { id: PERMISSIONS.EXAM.GRADING_RULES_SETUP, name: "Grading rules", prefix: <ClipboardDocumentListIcon className="icon" />, view: "grading-rules-setup" },
+            { id: PERMISSIONS.EXAM.OPTIONAL_SUBJECT_ASSIGNMENT, name: "Optional subjects", prefix: <ClipboardDocumentListIcon className="icon" />, view: "optional-subject-assignment" },
+            { id: PERMISSIONS.EXAM.ENTRY_CARDS, name: "Entry cards", prefix: <PencilSquareIcon className="icon" />, view: "entry-cards" },
+            { id: PERMISSIONS.EXAM.SEAT_PLAN, name: "Seat plan", prefix: <PencilSquareIcon className="icon" />, view: "seat-plan" },
+            { id: PERMISSIONS.EXAM.SEAT_PLAN, name: "Seat plan (old)", prefix: <PencilSquareIcon className="icon" />, view: "seat-plan-old" },
             { id: PERMISSIONS.EXAM.MARKS_ENTRY, name: "Marks entry", prefix: <PencilSquareIcon className="icon" />, view: "marks-entry" },
             { id: PERMISSIONS.EXAM.MARKS_ENTRY_SLIP, name: "Marks entry slip", prefix: <PencilSquareIcon className="icon" />, view: "marks-entry-slip" },
             { id: PERMISSIONS.EXAM.EXTRA_ACTIVITY_ENTRY, name: "Extra activities entry", prefix: <DocumentTextIcon className="icon" />, view: 'extra-activities-entry' },
-            { id: PERMISSIONS.EXAM.GRADING_RULES_SETUP, name: "Grading rules", prefix: <ClipboardDocumentListIcon className="icon" />, view: "grading-rules-setup" },
-            { id: PERMISSIONS.EXAM.ENTRY_CARDS, name: "Entry cards", prefix: <PencilSquareIcon className="icon" />, view: "entry-cards" },
-            { id: PERMISSIONS.EXAM.SEAT_PLAN, name: "Seat Plan", prefix: <PencilSquareIcon className="icon" />, view: "seat-plan" },
-            { id: PERMISSIONS.EXAM.SEAT_PLAN, name: "Old Seat Plan", prefix: <PencilSquareIcon className="icon" />, view: "seat-plan-old" },
             { id: PERMISSIONS.EXAM.RESULTS_PUBLISH, name: "Publish results", prefix: <DocumentChartBarIcon className="icon" />, view: "publish-results" },
-            { id: PERMISSIONS.EXAM.CHARACTER_CERTIFICATE, name: "Character Certificate", prefix: <CheckBadgeIcon className="icon" />, view: "character-certificate" },
-            // { id: null, name: "Character Certificates", prefix: <CheckBadgeIcon className="icon" />, view: "character-certificates" },
             {
                 id: PERMISSIONS.EXAM.VIEW_RESULTS,
                 name: "Results", prefix: <DocumentChartBarIcon className="icon" />, view: "results", submenu: [
                     {
-                        name: 'Number System', prefix: <CalculatorIcon className="icon" />, view: 'number-system', submenu: [
+                        name: "Number system", prefix: <CalculatorIcon className="icon" />, view: 'number-system', submenu: [
                             { name: 'Class result (NS)', prefix: <DocumentChartBarIcon className="icon" />, view: 'class-result' },
                             { name: 'Marksheet (NS)', prefix: <DocumentChartBarIcon className="icon" />, view: 'marksheet' },
                             {
                                 name: 'Final result (NS)', prefix: <CheckBadgeIcon className="icon" />, view: 'final', submenu: [
-                                    { name: 'Final Class result (NS)', prefix: <DocumentChartBarIcon className="icon" />, view: 'class-result' },
-                                    { name: 'Final Marksheet (NS)', prefix: <DocumentChartBarIcon className="icon" />, view: 'marksheet' },
+                                    { name: "Final class result (NS)", prefix: <DocumentChartBarIcon className="icon" />, view: 'class-result' },
+                                    { name: "Final marksheet (NS)", prefix: <DocumentChartBarIcon className="icon" />, view: 'marksheet' },
                                 ]
                             },
                         ]
                     },
                     {
-                        name: 'Letter Grading System', prefix: <AcademicCapIcon className="icon" />, view: 'letter-grading-system', submenu: [
+                        name: "Letter grading system", prefix: <AcademicCapIcon className="icon" />, view: 'letter-grading-system', submenu: [
                             { name: 'Class result (LGS)', prefix: <DocumentChartBarIcon className="icon" />, view: 'class-result' },
                             { name: 'Gradesheet (LGS)', prefix: <DocumentChartBarIcon className="icon" />, view: 'gradesheet' },
                             {
                                 name: 'Final result (LGS)', prefix: <CheckBadgeIcon className="icon" />, view: 'final', submenu: [
-                                    { name: 'Final Class result (LGS)', prefix: <DocumentChartBarIcon className="icon" />, view: 'class-result' },
-                                    { name: 'Final Gradesheet (LGS)', prefix: <DocumentChartBarIcon className="icon" />, view: 'gradesheet' },
+                                    { name: "Final class result (LGS)", prefix: <DocumentChartBarIcon className="icon" />, view: 'class-result' },
+                                    { name: "Final gradesheet (LGS)", prefix: <DocumentChartBarIcon className="icon" />, view: 'gradesheet' },
                                 ]
                             },
                         ]
                     },
-                    { name: "Marksheet (Combined)", prefix: <DocumentChartBarIcon className="icon" />, view: 'combined-marksheet' },
-                    { name: "Final Marksheet (Combined)", prefix: <DocumentChartBarIcon className="icon" />, view: 'final-combined-marksheet' },
+                    { name: "Combined marksheet", prefix: <DocumentChartBarIcon className="icon" />, view: 'combined-marksheet' },
+                    { name: "Final combined marksheet", prefix: <DocumentChartBarIcon className="icon" />, view: 'final-combined-marksheet' },
                 ]
             },
+            { id: PERMISSIONS.EXAM.CHARACTER_CERTIFICATE, name: "Character certificate", prefix: <CheckBadgeIcon className="icon" />, view: "character-certificate" },
+            // { id: null, name: "Character Certificates", prefix: <CheckBadgeIcon className="icon" />, view: "character-certificates" },
         ]
     },
     {
@@ -165,34 +193,34 @@ const adminMenu = [
         name: "Accounting", view: 'accounting',
         prefix: <ReceiptPercentIcon className="icon" />,
         submenu: [
-            { id: PERMISSIONS.ACCOUNTING.ECONOMIC_YEAR, name: "Accounting Economic Year", prefix: <CalendarIcon className="icon" />, view: 'economic-year' },
-            { id: PERMISSIONS.ACCOUNTING.LEDGER, name: "Create Ledger", prefix: <CalculatorIcon className="icon" />, view: 'create-ledger' },
-            { id: PERMISSIONS.ACCOUNTING.LEDGERS, name: "Ledger List", prefix: <CalculatorIcon className="icon" />, view: 'ledgers' },
-            { id: PERMISSIONS.ACCOUNTING.INCOME_ENTRY, name: "Income Entry", prefix: <CalculatorIcon className="icon" />, view: 'income-entry' },
-            { id: PERMISSIONS.ACCOUNTING.INCOME_ENTRIES, name: "Income Entries", prefix: <CalculatorIcon className="icon" />, view: 'income-entries' },
-            { id: PERMISSIONS.ACCOUNTING.EXPENSE_ENTRY, name: "Expense Entry", prefix: <CalculatorIcon className="icon" />, view: 'expense-entry' },
-            { id: PERMISSIONS.ACCOUNTING.EXPENSE_ENTRIES, name: "Expense Entries", prefix: <CalculatorIcon className="icon" />, view: 'expense-entries' },
-            { id: PERMISSIONS.ACCOUNTING.JOURNAL_ENTRY, name: "Journal Entry", prefix: <CalculatorIcon className="icon" />, view: 'journal-entry' },
-            { id: PERMISSIONS.ACCOUNTING.JOURNAL_ENTRIES, name: "Journal Entries", prefix: <CalculatorIcon className="icon" />, view: 'journal-entries' },
+            { id: PERMISSIONS.ACCOUNTING.INCOME_ENTRY, name: "Income entry", prefix: <CalculatorIcon className="icon" />, view: 'income-entry' },
+            { id: PERMISSIONS.ACCOUNTING.INCOME_ENTRIES, name: "Income entries", prefix: <CalculatorIcon className="icon" />, view: 'income-entries' },
+            { id: PERMISSIONS.ACCOUNTING.EXPENSE_ENTRY, name: "Expense entry", prefix: <CalculatorIcon className="icon" />, view: 'expense-entry' },
+            { id: PERMISSIONS.ACCOUNTING.EXPENSE_ENTRIES, name: "Expense entries", prefix: <CalculatorIcon className="icon" />, view: 'expense-entries' },
+            { id: PERMISSIONS.ACCOUNTING.JOURNAL_ENTRY, name: "Journal entry", prefix: <CalculatorIcon className="icon" />, view: 'journal-entry' },
+            { id: PERMISSIONS.ACCOUNTING.JOURNAL_ENTRIES, name: "Journal entries", prefix: <CalculatorIcon className="icon" />, view: 'journal-entries' },
+            { id: PERMISSIONS.ACCOUNTING.LEDGER, name: "Create ledger", prefix: <CalculatorIcon className="icon" />, view: 'create-ledger' },
+            { id: PERMISSIONS.ACCOUNTING.LEDGERS, name: "Ledgers", prefix: <CalculatorIcon className="icon" />, view: 'ledgers' },
+            {
+                id: null, name: "Reports", prefix: <ChartBarIcon className="icon" />, view: 'reports', submenu: [
+                    { id: PERMISSIONS.ACCOUNTING.DAY_BOOK, name: "Day book", prefix: <CalendarDaysIcon className="icon" />, view: 'day-book' },
+                    { id: PERMISSIONS.ACCOUNTING.INDIVIDUAL_LEDGER_REPORT, name: "Ledger statement", prefix: <CalculatorIcon className="icon" />, view: 'individual-ledger' },
+                    { id: PERMISSIONS.ACCOUNTING.GROUPWISE_LEDGER_REPORT, name: "Group-wise ledgers", prefix: <CalculatorIcon className="icon" />, view: 'groupwise-ledger' },
+                    { id: PERMISSIONS.ACCOUNTING.TRIAL_BALANCE, name: "Trial balance", prefix: <CalculatorIcon className="icon" />, view: 'trial-balance' },
+                    { id: PERMISSIONS.ACCOUNTING.PROFIT_LOSS_REPORT, name: "Profit and loss", prefix: <CalculatorIcon className="icon" />, view: 'profit-loss' },
+                    { id: PERMISSIONS.ACCOUNTING.BALANCE_SHEET, name: "Balance sheet", prefix: <CalculatorIcon className="icon" />, view: 'balance-sheet' },
+                    { id: PERMISSIONS.ACCOUNTING.CASH_FLOW_STATEMENT, name: "Cash flow statement", prefix: <CalculatorIcon className="icon" />, view: 'cash-flow-statement' },
+                ]
+            },
+            { id: PERMISSIONS.ACCOUNTING.ECONOMIC_YEAR, name: "Accounting year", prefix: <CalendarIcon className="icon" />, view: 'economic-year' },
             /* CONTRA ENTRY is not shipped. Its component exists
                (`views/accounting/contra_entry`) but the view is commented out in
                `configs/views/accounting.jsx`, so this row resolved to nothing
                and opened "COMING SOON!!!" for every school that had the
                permission. A menu row is a promise that a page is there; until
                both halves are switched on, neither is.
-            { id: PERMISSIONS.ACCOUNTING.CONTRA_ENTRY, name: "Contra Entry", prefix: <CalculatorIcon className="icon" />, view: 'contra-entry' },
+            { id: PERMISSIONS.ACCOUNTING.CONTRA_ENTRY, name: "Contra entry", prefix: <CalculatorIcon className="icon" />, view: 'contra-entry' },
             */
-            {
-                id: null, name: "Reports", prefix: <ChartBarIcon className="icon" />, view: 'reports', submenu: [
-                    { id: PERMISSIONS.ACCOUNTING.DAY_BOOK, name: "Day Book", prefix: <CalendarDaysIcon className="icon" />, view: 'day-book' },
-                    { id: PERMISSIONS.ACCOUNTING.INDIVIDUAL_LEDGER_REPORT, name: "Individual Ledger Report", prefix: <CalculatorIcon className="icon" />, view: 'individual-ledger' },
-                    { id: PERMISSIONS.ACCOUNTING.GROUPWISE_LEDGER_REPORT, name: "Groupwise Ledger Report", prefix: <CalculatorIcon className="icon" />, view: 'groupwise-ledger' },
-                    { id: PERMISSIONS.ACCOUNTING.TRIAL_BALANCE, name: "Trial Balance", prefix: <CalculatorIcon className="icon" />, view: 'trial-balance' },
-                    { id: PERMISSIONS.ACCOUNTING.PROFIT_LOSS_REPORT, name: "Profit and Loss", prefix: <CalculatorIcon className="icon" />, view: 'profit-loss' },
-                    { id: PERMISSIONS.ACCOUNTING.BALANCE_SHEET, name: "Balance Sheet", prefix: <CalculatorIcon className="icon" />, view: 'balance-sheet' },
-                    { id: PERMISSIONS.ACCOUNTING.CASH_FLOW_STATEMENT, name: "Cash Flow Statement", prefix: <CalculatorIcon className="icon" />, view: 'cash-flow-statement' },
-                ]
-            }
         ]
     },
     {
@@ -200,8 +228,8 @@ const adminMenu = [
         name: "Payroll", view: 'payroll',
         prefix: <BanknotesIcon className="icon" />,
         submenu: [
-            { id: PERMISSIONS.STAFF.PAYMENT, name: "Payment", prefix: <BanknotesIcon className="icon" />, view: 'staff' },
             { id: PERMISSIONS.STAFF.SALARY_POSTING, name: 'Salary posting', prefix: <BanknotesIcon className="icon" />, view: 'salary-posting' },
+            { id: PERMISSIONS.STAFF.PAYMENT, name: "Staff payment", prefix: <BanknotesIcon className="icon" />, view: 'staff' },
             // One staff member's catch-up posting + ledger — formerly only the
             // "Staff Ledger" tab of Manage ▸ Users. Same permission as Salary
             // posting: it writes the same StaffLedger rows.
@@ -219,13 +247,13 @@ const adminMenu = [
         // pages from the view map as well, and the backend refuses every
         // /extra-billing endpoint regardless (extra_billing/views/BaseViews.py).
         // Student billing lives in the Payment menu and is untouched by this.
-        name: "Extra Billing", view: 'extra-billing', profileFlag: 'uses_extra_billing',
+        name: "Extra billing", view: 'extra-billing', profileFlag: 'uses_extra_billing',
         prefix: <BuildingStorefrontIcon className="icon" />,
         submenu: [
-            { id: PERMISSIONS.EXTRA_BILLING.PARTIES, name: "Parties & Charges", prefix: <UserGroupIcon className="icon" />, view: 'parties' },
-            { id: PERMISSIONS.EXTRA_BILLING.BILLING, name: "Raise Bills", prefix: <CalculatorIcon className="icon" />, view: 'billing' },
-            { id: PERMISSIONS.EXTRA_BILLING.PAYMENT, name: "Collect & Receipt", prefix: <BanknotesIcon className="icon" />, view: 'payment' },
-            { id: PERMISSIONS.EXTRA_BILLING.REPORTS, name: "Records & Dues", prefix: <DocumentChartBarIcon className="icon" />, view: 'reports' },
+            { id: PERMISSIONS.EXTRA_BILLING.PARTIES, name: "Parties & charges", prefix: <UserGroupIcon className="icon" />, view: 'parties' },
+            { id: PERMISSIONS.EXTRA_BILLING.BILLING, name: "Raise bills", prefix: <CalculatorIcon className="icon" />, view: 'billing' },
+            { id: PERMISSIONS.EXTRA_BILLING.PAYMENT, name: "Collect & receipt", prefix: <BanknotesIcon className="icon" />, view: 'payment' },
+            { id: PERMISSIONS.EXTRA_BILLING.REPORTS, name: "Records & dues", prefix: <DocumentChartBarIcon className="icon" />, view: 'reports' },
         ]
     },
     {
@@ -233,22 +261,22 @@ const adminMenu = [
         name: "Library", view: 'library',
         prefix: <BuildingLibraryIcon className="icon" />,
         submenu: [
-            { id: PERMISSIONS.LIBRARY.SETUP, name: "Library Setup", prefix: <BuildingLibraryIcon className="icon" />, view: 'lib-setup' },
+            { id: PERMISSIONS.LIBRARY.BOOK_TRANSACTION, name: "Issue & return", prefix: <BuildingLibraryIcon className="icon" />, view: 'book-transaction' },
             { id: PERMISSIONS.LIBRARY.BOOK_SETUP, name: "Books", prefix: <BuildingLibraryIcon className="icon" />, view: 'books' },
-            { id: PERMISSIONS.LIBRARY.BOOK_SETUP, name: "Bar Codes", prefix: <BuildingLibraryIcon className="icon" />, view: 'bar-codes' },
-            { id: PERMISSIONS.LIBRARY.BOOK_TRANSACTION, name: "Book Issue/Return", prefix: <BuildingLibraryIcon className="icon" />, view: 'book-transaction' },
+            { id: PERMISSIONS.LIBRARY.BOOK_SETUP, name: "Barcodes", prefix: <BuildingLibraryIcon className="icon" />, view: 'bar-codes' },
             {
                 id: PERMISSIONS.LIBRARY.REPORTS, name: "Reports", prefix: <ChartBarIcon className="icon" />, view: 'reports', submenu: [
-                    { name: "Member Profile", prefix: <UserIcon className="icon" />, view: 'member-profile' },
-                    { name: "Daily Report", prefix: <ChartBarIcon className="icon" />, view: 'daily' },
-                    { name: "Issued Books By Students", prefix: <BuildingLibraryIcon className="icon" />, view: 'issued-by-students' },
-                    { name: "Issued Books By Teachers", prefix: <BuildingLibraryIcon className="icon" />, view: 'issued-by-teachers' },
-                    { name: "No. of Issued & Returned Books", prefix: <BuildingLibraryIcon className="icon" />, view: 'issued-returned-count' },
-                    { name: "Overall Library Report", prefix: <BuildingLibraryIcon className="icon" />, view: 'overall' },
-                    { name: "Book Operation Report", prefix: <BuildingLibraryIcon className="icon" />, view: 'book-operation' },
-                    { name: "Fine Report", prefix: <ChartBarIcon className="icon" />, view: 'fine' },
+                    { name: "Member profile", prefix: <UserIcon className="icon" />, view: 'member-profile' },
+                    { name: "Daily report", prefix: <ChartBarIcon className="icon" />, view: 'daily' },
+                    { name: "Issued to students", prefix: <BuildingLibraryIcon className="icon" />, view: 'issued-by-students' },
+                    { name: "Issued to teachers", prefix: <BuildingLibraryIcon className="icon" />, view: 'issued-by-teachers' },
+                    { name: "Issued & returned count", prefix: <BuildingLibraryIcon className="icon" />, view: 'issued-returned-count' },
+                    { name: "Overall report", prefix: <BuildingLibraryIcon className="icon" />, view: 'overall' },
+                    { name: "Book operations", prefix: <BuildingLibraryIcon className="icon" />, view: 'book-operation' },
+                    { name: "Fines", prefix: <ChartBarIcon className="icon" />, view: 'fine' },
                 ]
-            }
+            },
+            { id: PERMISSIONS.LIBRARY.SETUP, name: "Library setup", prefix: <BuildingLibraryIcon className="icon" />, view: 'lib-setup' },
         ]
     },
     {
@@ -261,17 +289,17 @@ const adminMenu = [
         name: "Hostel", view: 'hostel', profileFlag: 'uses_hostel',
         prefix: <HomeModernIcon className="icon" />,
         submenu: [
-            { id: PERMISSIONS.HOSTEL.REPORTS, name: "Hostel Dashboard", prefix: <ChartPieIcon className="icon" />, view: 'dashboard' },
-            { id: PERMISSIONS.HOSTEL.SETUP, name: "Hostel Setup", prefix: <Cog6ToothIcon className="icon" />, view: 'setup' },
-            { id: PERMISSIONS.HOSTEL.ROOMS, name: "Rooms & Beds", prefix: <Squares2X2Icon className="icon" />, view: 'rooms' },
+            { id: PERMISSIONS.HOSTEL.REPORTS, name: "Hostel overview", prefix: <ChartPieIcon className="icon" />, view: 'dashboard' },
             { id: PERMISSIONS.HOSTEL.ALLOCATION, name: "Residents", prefix: <UserGroupIcon className="icon" />, view: 'residents' },
-            { id: PERMISSIONS.HOSTEL.ATTENDANCE, name: "Roll Call", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'attendance' },
-            { id: PERMISSIONS.HOSTEL.LEAVE, name: "Gate Passes", prefix: <KeyIcon className="icon" />, view: 'leaves' },
+            { id: PERMISSIONS.HOSTEL.ROOMS, name: "Rooms & beds", prefix: <Squares2X2Icon className="icon" />, view: 'rooms' },
+            { id: PERMISSIONS.HOSTEL.ATTENDANCE, name: "Roll call", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'attendance' },
+            { id: PERMISSIONS.HOSTEL.LEAVE, name: "Gate passes", prefix: <KeyIcon className="icon" />, view: 'leaves' },
             { id: PERMISSIONS.HOSTEL.VISITORS, name: "Visitors", prefix: <UserPlusIcon className="icon" />, view: 'visitors' },
             { id: PERMISSIONS.HOSTEL.COMPLAINTS, name: "Complaints", prefix: <WrenchScrewdriverIcon className="icon" />, view: 'complaints' },
-            { id: PERMISSIONS.HOSTEL.MESS, name: "Mess Menu", prefix: <ClipboardIcon className="icon" />, view: 'mess' },
-            { id: PERMISSIONS.HOSTEL.DISCIPLINE, name: "Discipline Register", prefix: <ShieldCheckIcon className="icon" />, view: 'discipline' },
-            { id: PERMISSIONS.HOSTEL.REPORTS, name: "Hostel Reports", prefix: <ChartBarIcon className="icon" />, view: 'reports' },
+            { id: PERMISSIONS.HOSTEL.MESS, name: "Mess menu", prefix: <ClipboardIcon className="icon" />, view: 'mess' },
+            { id: PERMISSIONS.HOSTEL.DISCIPLINE, name: "Discipline register", prefix: <ShieldCheckIcon className="icon" />, view: 'discipline' },
+            { id: PERMISSIONS.HOSTEL.REPORTS, name: "Hostel reports", prefix: <ChartBarIcon className="icon" />, view: 'reports' },
+            { id: PERMISSIONS.HOSTEL.SETUP, name: "Hostel setup", prefix: <Cog6ToothIcon className="icon" />, view: 'setup' },
         ]
     },
     {
@@ -292,66 +320,44 @@ const adminMenu = [
         name: "Inventory", view: 'inventory',
         prefix: <CircleStackIcon className="icon" />,
         submenu: [
-            { id: PERMISSIONS.INVENTORY.ITEMS, name: "Items & Categories", prefix: <ArchiveBoxIcon className="icon" />, view: 'items' },
+            { id: PERMISSIONS.INVENTORY.ITEMS, name: "Items & categories", prefix: <ArchiveBoxIcon className="icon" />, view: 'items' },
             { id: PERMISSIONS.INVENTORY.PURCHASES, name: "Purchases", prefix: <ArchiveBoxIcon className="icon" />, view: 'purchases' },
             { id: PERMISSIONS.INVENTORY.ISSUES, name: "Issues", prefix: <ArchiveBoxIcon className="icon" />, view: 'issues' },
             { id: PERMISSIONS.INVENTORY.WASTAGE, name: "Wastage", prefix: <ArchiveBoxIcon className="icon" />, view: 'wastage' },
-            { id: PERMISSIONS.INVENTORY.REPORTS, name: "Stock & Reports", prefix: <ArchiveBoxIcon className="icon" />, view: 'report' },
+            { id: PERMISSIONS.INVENTORY.REPORTS, name: "Stock & reports", prefix: <ArchiveBoxIcon className="icon" />, view: 'report' },
         ]
     },
     {
         section: "Communication",
-        name: "SMS and Communication", view: "communication",
+        name: "SMS & messages", view: "communication",
         prefix: <BellAlertIcon className="icon" />,
         submenu: [
             {
                 id: null, name: "SMS", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'sms', submenu: [
-                    { id: PERMISSIONS.COMMUNICATION.SMS.SETTINGS, name: "SMS Settings", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'settings' },
-                    { id: PERMISSIONS.COMMUNICATION.SMS.TEMPLATES, name: "SMS Templates", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'templates' },
-                    { id: PERMISSIONS.COMMUNICATION.SMS.BULK_SMS, name: "Send Bulk SMS", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'bulk-sms' },
-                    { id: PERMISSIONS.COMMUNICATION.SMS.STAFF_SMS, name: "Send SMS to Staff", prefix: <UserGroupIcon className="icon" />, view: 'staff-sms' },
-                    { id: PERMISSIONS.COMMUNICATION.SMS.DUES_REMINDER, name: "Send Dues Reminder", prefix: <ReceiptPercentIcon className="icon" />, view: 'dues-reminder' },
-                    { id: PERMISSIONS.COMMUNICATION.SMS.SEND_MESSAGES, name: "Send Messages", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'send-messages' },
-                    { id: PERMISSIONS.COMMUNICATION.SMS.REPORT, name: "SMS Report", prefix: <ChartBarIcon className="icon" />, view: 'report' },
+                    { id: PERMISSIONS.COMMUNICATION.SMS.SETTINGS, name: "SMS settings", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'settings' },
+                    { id: PERMISSIONS.COMMUNICATION.SMS.TEMPLATES, name: "SMS templates", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'templates' },
+                    { id: PERMISSIONS.COMMUNICATION.SMS.BULK_SMS, name: "Bulk SMS", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'bulk-sms' },
+                    { id: PERMISSIONS.COMMUNICATION.SMS.STAFF_SMS, name: "SMS to staff", prefix: <UserGroupIcon className="icon" />, view: 'staff-sms' },
+                    { id: PERMISSIONS.COMMUNICATION.SMS.DUES_REMINDER, name: "Dues reminders", prefix: <ReceiptPercentIcon className="icon" />, view: 'dues-reminder' },
+                    { id: PERMISSIONS.COMMUNICATION.SMS.SEND_MESSAGES, name: "Messages", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'send-messages' },
+                    { id: PERMISSIONS.COMMUNICATION.SMS.REPORT, name: "SMS report", prefix: <ChartBarIcon className="icon" />, view: 'report' },
                 ]
             },
-            { id: null, name: "Send Notification", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'notifications' },
+            { id: null, name: "App notifications", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'notifications' },
             { id: PERMISSIONS.COMMUNICATION.NOTICE.LETTER_TO_STUDENTS, name: "Letter to students", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'letter-to-students' },
-            { id: null, name: "Birthday Cards", prefix: <CakeIcon className="icon" />, view: 'birthday-cards' },
+            { id: null, name: "Birthday cards", prefix: <CakeIcon className="icon" />, view: 'birthday-cards' },
         ]
     },
     {
         section: "Communication",
-        name: "App", view: "app",
+        name: "Mobile app", view: "app",
         prefix: <DevicePhoneMobileIcon className="icon" />,
         submenu: [
-            {
-                id: null, name: "Attendance", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'attendance', submenu: [
-                    { id: PERMISSIONS.ATTENDANCE.ENTRY, name: "Student Attendance entry", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'entry' },
-                    { id: PERMISSIONS.ATTENDANCE.MANAGEMENT, name: "Student Attendance management", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'management' },
-                    { id: PERMISSIONS.ATTENDANCE.REPORT, name: 'Student Attendance report', prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'report' },
-                    { id: PERMISSIONS.ATTENDANCE.OVERALL_REPORT, name: 'Student Attendance overall report', prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'overall' },
-                    { id: PERMISSIONS.ATTENDANCE.HISTORY, name: 'Student Attendance history', prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'history' },
-                    { id: PERMISSIONS.ATTENDANCE.ENTRY, name: "Staff Attendance entry", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'staff-entry' },
-                    { id: PERMISSIONS.ATTENDANCE.MANAGEMENT, name: "Staff Attendance management", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'staff-management' },
-                    { id: PERMISSIONS.ATTENDANCE.REPORT, name: 'Staff Attendance report', prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'staff-report' },
-                    { id: PERMISSIONS.ATTENDANCE.HISTORY, name: 'Staff Attendance history', prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'staff-history' },
-                ]
-            },
-            {
-                id: null, name: "RFID", prefix: <CpuChipIcon className="icon" />, view: 'rfid', submenu: [
-                    { id: PERMISSIONS.RFID.USERS_SETUP, name: "Users Setup", prefix: <UserIcon className="icon" />, view: 'users-setup' },
-                    { id: PERMISSIONS.RFID.REGISTERED_USERS, name: "Registered Users", prefix: <UserIcon className="icon" />, view: 'registered-users' },
-                    { id: PERMISSIONS.RFID.ATTENDANCE_LOGS, name: "Attendance Logs", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'attd-logs' },
-                    // only shown when the superadmin enabled time_set_required
-                    { id: PERMISSIONS.RFID.TIME_SET, name: "Time Set", prefix: <CpuChipIcon className="icon" />, view: 'time-set', profileFlag: 'time_set_required' },
-                ]
-            },
-            { id: PERMISSIONS.COMMUNICATION.NOTICE.CREATE, name: 'Notice', prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'notice' },
-            { id: PERMISSIONS.COMMUNICATION.NOTICE.LIST, name: 'Notice List', prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'notices', hidden: true },
-            { id: PERMISSIONS.COMMUNICATION.NEWS.CREATE, name: "News Events", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'news-events' },
-            { id: PERMISSIONS.COMMUNICATION.NEWS.LIST, name: "News Events List", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'news-events-view', hidden: true },
-            { id: PERMISSIONS.COMMUNICATION.APP.SLIDE_IMAGES, name: "Slide show images", prefix: <ChartBarIcon className="icon" />, view: 'slide-show-images' },
+            { id: PERMISSIONS.COMMUNICATION.NOTICE.CREATE, name: "Post a notice", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'notice' },
+            { id: PERMISSIONS.COMMUNICATION.NOTICE.LIST, name: "Notices", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'notices', hidden: true },
+            { id: PERMISSIONS.COMMUNICATION.NEWS.CREATE, name: "Post news & events", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'news-events' },
+            { id: PERMISSIONS.COMMUNICATION.NEWS.LIST, name: "News & events", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'news-events-view', hidden: true },
+            { id: PERMISSIONS.COMMUNICATION.APP.SLIDE_IMAGES, name: "Slideshow images", prefix: <ChartBarIcon className="icon" />, view: 'slide-show-images' },
         ]
     },
     {
@@ -360,50 +366,50 @@ const adminMenu = [
         prefix: <TableCellsIcon className="icon" />,
         submenu: [
             { id: PERMISSIONS.REPORTS.RECENT_ENROLLMENTS, name: 'Recent enrollments', prefix: <UserGroupIcon className="icon" />, view: 'enrollments' },
-            { id: PERMISSIONS.REPORTS.RECENT_TRANSACTIONS, name: "Recent transactions", prefix: <DocumentTextIcon className="icon" />, view: 'recent-transactions' },
-            { id: PERMISSIONS.REPORTS.RECENT_POSTINGS, name: 'Recent postings', prefix: <DocumentTextIcon className="icon" />, view: 'recent-postings' },
-            { id: null, name: 'Income plan', prefix: <CalculatorIcon className="icon" />, view: 'income-plan' },
-            { id: null, name: 'Overall Income Plan', prefix: <CalculatorIcon className="icon" />, view: 'overall-income-plan' },
-            { id: PERMISSIONS.REPORTS.OPENING_BALANCE_REPORT, name: 'Opening balance report', prefix: <ChartBarIcon className="icon" />, view: 'opening-balance-report' },
-            { id: PERMISSIONS.REPORTS.OVERALL_REMAINING_DUES, name: 'Overall Remaining dues', prefix: <ReceiptPercentIcon className="icon" />, view: 'overall-remaining-dues' },
-            { id: PERMISSIONS.REPORTS.OVERALL_STUDENT_LEDGERS, name: 'Overall Student Ledgers', prefix: <CalculatorIcon className="icon" />, view: 'overall-student-ledgers' },
-            { id: PERMISSIONS.REPORTS.LEDGER_POSTING_HISTORY, name: 'Ledger Posting History', prefix: <CalculatorIcon className="icon" />, view: 'ledger-posting-history' },
-            { id: PERMISSIONS.REPORTS.TRANSACTIONS_HISTORY, name: 'Transactions history', prefix: <ChartBarIcon className="icon" />, view: 'transactions-history' },
-            { id: PERMISSIONS.REPORTS.ENROLLMENT_HISTORY, name: 'Enrollments history', prefix: <UserGroupIcon className="icon" />, view: 'enrollments-history' },
-            { id: PERMISSIONS.REPORTS.STAFF_DETAILS_REPORT, name: 'Staff details', prefix: <UserIcon className="icon" />, view: 'staff-details' },
             { id: PERMISSIONS.REPORTS.NEW_ADMISSIONS_REPORT, name: 'New admissions report', prefix: <UserGroupIcon className="icon" />, view: 'new-admissions-report' },
-            { id: PERMISSIONS.REPORTS.STUDENTS_PROFILE_PRINT, name: 'Students profile print', prefix: <UserGroupIcon className="icon" />, view: 'students-profile-print' },
+            { id: PERMISSIONS.REPORTS.ENROLLMENT_HISTORY, name: 'Enrollments history', prefix: <UserGroupIcon className="icon" />, view: 'enrollments-history' },
+            { id: PERMISSIONS.REPORTS.STUDENTS_PROFILE_PRINT, name: "Student profiles (print)", prefix: <UserGroupIcon className="icon" />, view: 'students-profile-print' },
             { id: PERMISSIONS.REPORTS.ETHNIC_GROUP_REPORT, name: 'Ethnic group report', prefix: <UserGroupIcon className="icon" />, view: 'ethnic-group-report' },
-            { id: PERMISSIONS.REPORTS.STUDENTS_BALANCE_RANGE_REPORT, name: 'Students balance range', prefix: <UserGroupIcon className="icon" />, view: 'students-balance-range' },
             { id: PERMISSIONS.REPORTS.TRANSPORTATION_REPORT, name: 'Transportation history', prefix: <TruckIcon className="icon" />, view: 'transportation-history' },
+            { id: null, name: "Homework report", prefix: <ChartBarIcon className="icon" />, view: 'homework-report' },
+            { id: PERMISSIONS.REPORTS.RECENT_TRANSACTIONS, name: "Recent transactions", prefix: <DocumentTextIcon className="icon" />, view: 'recent-transactions' },
+            { id: PERMISSIONS.REPORTS.TRANSACTIONS_HISTORY, name: 'Transactions history', prefix: <ChartBarIcon className="icon" />, view: 'transactions-history' },
+            { id: PERMISSIONS.REPORTS.RECENT_POSTINGS, name: 'Recent postings', prefix: <DocumentTextIcon className="icon" />, view: 'recent-postings' },
+            { id: PERMISSIONS.REPORTS.LEDGER_POSTING_HISTORY, name: "Ledger posting history", prefix: <CalculatorIcon className="icon" />, view: 'ledger-posting-history' },
+            { id: PERMISSIONS.REPORTS.OVERALL_REMAINING_DUES, name: "Overall remaining dues", prefix: <ReceiptPercentIcon className="icon" />, view: 'overall-remaining-dues' },
+            { id: PERMISSIONS.REPORTS.OVERALL_STUDENT_LEDGERS, name: "Overall student ledgers", prefix: <CalculatorIcon className="icon" />, view: 'overall-student-ledgers' },
+            { id: PERMISSIONS.REPORTS.STUDENTS_BALANCE_RANGE_REPORT, name: "Students by balance range", prefix: <UserGroupIcon className="icon" />, view: 'students-balance-range' },
+            { id: PERMISSIONS.REPORTS.OPENING_BALANCE_REPORT, name: 'Opening balance report', prefix: <ChartBarIcon className="icon" />, view: 'opening-balance-report' },
+            { id: null, name: 'Income plan', prefix: <CalculatorIcon className="icon" />, view: 'income-plan' },
+            { id: null, name: "Overall income plan", prefix: <CalculatorIcon className="icon" />, view: 'overall-income-plan' },
             { id: PERMISSIONS.REPORTS.DISCOUNTS_REPORT, name: 'Discount history', prefix: <ChartBarIcon className="icon" />, view: 'discount-history' },
             { id: null, name: "Payment discount report", prefix: <BanknotesIcon className="icon" />, view: 'payment-discount-report' },
-            { id: null, name: "Homework report", prefix: <ChartBarIcon className="icon" />, view: 'homework-report' },
+            { id: PERMISSIONS.REPORTS.STAFF_DETAILS_REPORT, name: 'Staff details', prefix: <UserIcon className="icon" />, view: 'staff-details' },
             { id: null, name: "Invoices academic year mismatch", prefix: <ReceiptPercentIcon className="icon" />, view: 'invoices-academic-year-mismatch' },
             { id: null, name: "Ledgers academic year mismatch", prefix: <CalculatorIcon className="icon" />, view: 'ledgers-academic-year-mismatch' },
         ]
     },
     {
-        section: "School setup",
-        name: "Manage", view: "manage",
+        section: "Setup",
+        name: "School setup", view: "manage",
         prefix: <SquaresPlusIcon className="icon" />,
         submenu: [
-            { id: null, name: "Users", prefix: <UserIcon className="icon" />, view: 'users' },
-            { id: PERMISSIONS.MANAGE.ACADEMIC_YEARS, name: "Academic Year", prefix: <CalendarIcon className="icon" />, view: 'academic-year' },
-            { id: null, name: 'Academic year closing', prefix: <CalendarIcon className="icon" />, view: 'academic-year-closing' },
-            { id: null, name: "Academic Calendar", prefix: <CalendarIcon className="icon" />, view: 'calendar-events' },
+            { id: PERMISSIONS.MANAGE.ACADEMIC_YEARS, name: "Academic year", prefix: <CalendarIcon className="icon" />, view: 'academic-year' },
+            { id: null, name: "Academic calendar", prefix: <CalendarIcon className="icon" />, view: 'calendar-events' },
+            { id: PERMISSIONS.MANAGE.CLASS_PERIODS, name: "Classes & periods", prefix: <AcademicCapIcon className="icon" />, view: 'classes' },
             { id: PERMISSIONS.MANAGE.SECTIONS, name: "Sections", prefix: <AcademicCapIcon className="icon" />, view: 'sections' },
-            { id: PERMISSIONS.MANAGE.COURSES_SUBJECTS_PAGE, name: 'Courses/Subjects', prefix: <AcademicCapIcon className="icon" />, view: 'courses-subjects' },
-            { id: PERMISSIONS.MANAGE.CLASS_PERIODS, name: "Classes/Periods", prefix: <AcademicCapIcon className="icon" />, view: 'classes' },
+            { id: PERMISSIONS.MANAGE.COURSES_SUBJECTS_PAGE, name: "Courses & subjects", prefix: <AcademicCapIcon className="icon" />, view: 'courses-subjects' },
             { id: PERMISSIONS.MANAGE.FEES, name: 'Fees', prefix: <CurrencyRupeeIcon className="icon" />, view: 'fees' },
             { id: PERMISSIONS.MANAGE.BUS_STATIONS, name: 'Bus stations', prefix: <TruckIcon className="icon" />, view: 'bus-stations' },
-            { id: PERMISSIONS.MANAGE.EXTRA_ACTIVITIES, name: 'Extra activities setup', prefix: <Cog6ToothIcon className="icon" />, view: 'extra-activities-setup' },
+            { id: PERMISSIONS.MANAGE.EXTRA_ACTIVITIES, name: "Extra activities", prefix: <Cog6ToothIcon className="icon" />, view: 'extra-activities-setup' },
             { id: PERMISSIONS.MANAGE.BATCHES, name: 'Batches', prefix: <AcademicCapIcon className="icon" />, view: 'batches' },
+            { id: null, name: "Users", prefix: <UserIcon className="icon" />, view: 'users' },
+            { id: null, name: 'Academic year closing', prefix: <CalendarIcon className="icon" />, view: 'academic-year-closing' },
         ]
     },
     {
         section: "Help",
-        name: "Support", view: 'support',
+        name: "Help & support", view: 'support',
         prefix: <ChatBubbleLeftRightIcon className="icon" />,
         suffix: <Chip value="0" size="sm" variant="ghost" color="blue-gray" className="rounded-full m-0 p-0 bg-transparent" />
     },
@@ -413,7 +419,7 @@ const adminMenu = [
     },
     {
         section: "Help",
-        name: "Profile", view: 'profile', prefix: <UserIcon className="icon" />
+        name: "School profile", view: 'profile', prefix: <UserIcon className="icon" />
     },
     ...(
         process.env.NODE_ENV === 'development' ?
