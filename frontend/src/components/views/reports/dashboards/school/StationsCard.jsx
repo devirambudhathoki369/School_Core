@@ -23,9 +23,9 @@ function StationsCard({ stations, counts }) {
     const most = top[0]?.count || 1;
 
     return (
-        <div className="app-panel flex h-full flex-col rounded-xl border bg-white p-4">
+        <div className="app-panel flex h-full flex-col rounded-xl border bg-white p-5">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <h3 className="text-sm font-bold uppercase tracking-wide text-gray-700">Students by bus station</h3>
+                <h3 className="text-[1rem] font-semibold leading-6 text-[var(--ink-900)]">Students by bus station</h3>
                 {total > 0 &&
                     <span className="shrink-0 text-xs font-semibold text-[var(--ink-500)]">
                         {/* sizes on every leaf: the global `*` font-size rule means nothing here inherits one */}
@@ -38,11 +38,14 @@ function StationsCard({ stations, counts }) {
                 <>
                     <ol className="mt-3.5 flex flex-1 flex-col justify-between gap-y-2.5">
                         {top.map((row, i) => (
-                            <li key={`${row.name}-${i}`} className="grid grid-cols-[minmax(0,34%)_minmax(0,1fr)_2.25rem] items-center gap-x-3">
+                            <li key={`${row.name}-${i}`} className="app-dash-class grid grid-cols-[minmax(0,34%)_minmax(0,1fr)_2.25rem] items-center gap-x-3 rounded-md px-1 py-[3px]">
                                 {/* the name as the school entered it */}
                                 <span className="truncate text-[13px] font-medium text-[var(--ink-700)]" title={row.name}>{row.name}</span>
-                                <span className="h-2 overflow-hidden rounded-full bg-[var(--surface-soft)]" aria-hidden="true">
-                                    <span className="block h-full rounded-full" style={{ width: `${Math.max(3, (row.count / most) * 100)}%`, background: "var(--k2)" }}></span>
+                                {/* one series, so one colour: the accent. Ranked bars from a
+                                    single baseline — square there, a 4px rounded data-end —
+                                    with the count at the tip. */}
+                                <span className="h-2.5" aria-hidden="true">
+                                    <span className="app-dash-bar block h-full rounded-r-[4px]" style={{ width: `${Math.max(3, (row.count / most) * 100)}%`, background: "var(--viz-accent)" }}></span>
                                 </span>
                                 <span className="text-right text-[13px] font-bold tabular-nums text-[var(--ink-900)]">{row.count}</span>
                             </li>

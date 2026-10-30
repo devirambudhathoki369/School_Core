@@ -78,10 +78,12 @@ export function Greeting() {
 }
 
 /* ------------------------------------------------------------------- tiles */
-function Meter({ share, tone = "var(--t-brand-solid)" }) {
+// A ratio against its whole. The unfilled track is a lighter step of the
+// fill's own ramp, so the state reads across the whole bar.
+function Meter({ share, tone = "var(--viz-accent)", track = "var(--viz-accent-track)" }) {
     const pct = Math.max(0, Math.min(100, share));
     return (
-        <span className="app-dash-meter block h-1.5 overflow-hidden rounded-full bg-[var(--line-soft)]" aria-hidden="true">
+        <span className="app-dash-meter block h-2 overflow-hidden rounded-full" style={{ background: track }} aria-hidden="true">
             <span className="block h-full rounded-full" style={{ width: `${pct}%`, background: tone }} />
         </span>
     );
@@ -109,11 +111,11 @@ export function PresentTile({ label, stats, Icon, total }) {
     return (
         <Tile label={label} Icon={Icon}>
             <span className="flex items-baseline gap-1.5">
-                <span className="app-kpi-value text-[1.75rem] leading-9 tabular-nums">{stats ? present.toLocaleString("en-IN") : "–"}</span>
-                <span className="text-[0.875rem] font-medium tabular-nums text-[var(--ink-600)]">of {roster.toLocaleString("en-IN")}</span>
+                <span className="app-kpi-value text-[1.75rem] leading-9">{stats ? present.toLocaleString("en-IN") : "–"}</span>
+                <span className="text-[0.875rem] font-medium text-[var(--ink-600)]">of {roster.toLocaleString("en-IN")}</span>
             </span>
             <Meter share={share} />
-            <span className="app-kpi-sub text-[0.8125rem] leading-5 tabular-nums">
+            <span className="app-kpi-sub text-[0.8125rem] leading-5">
                 {!stats ? "Checking…"
                     : roster === 0 ? "Nobody on this roster"
                         : present === 0 ? "No one marked present yet"
@@ -127,7 +129,7 @@ export function PresentTile({ label, stats, Icon, total }) {
 export function SmsTile({ value, note, low }) {
     return (
         <Tile label="SMS credits" Icon={ChatBubbleLeftRightIcon}>
-            <span className="app-kpi-value text-[1.75rem] leading-9 tabular-nums">
+            <span className="app-kpi-value text-[1.75rem] leading-9">
                 {typeof value === "number" ? value.toLocaleString("en-IN") : value}
             </span>
             <span className={`app-kpi-sub mt-auto text-[0.8125rem] leading-5 ${low ? "!text-[#8A5300]" : ""}`}>
@@ -137,34 +139,59 @@ export function SmsTile({ value, note, low }) {
     );
 }
 
-/** Money received today, and how it came in. */
+// A payment mode keeps its colour whatever else came in today: colour follows
+// the entity, never its position in the day's list.
+const MODE_SLOT = { 1: "var(--viz-1)", 2: "var(--viz-2)", 3: "var(--viz-3)", 4: "var(--viz-4)" };
+
+/** Money received today, and how it came in: one thin segmented bar, its
+ *  shares printed beside a swatch for each mode (never colour alone). */
 export function CollectedTodayTile({ today }) {
     const amount = Number(today?.amount) || 0;
     const modes = (today?.by_mode || []).filter((m) => Number(m.amount) > 0);
-    const tones = ["var(--t-k1)", "var(--t-k2)", "var(--t-k3)", "var(--t-k4)"];
+    const share = (m) => Math.round((Number(m.amount) / amount) * 100);
     return (
         <Tile label="Collected today" Icon={BanknotesIcon}>
-            <span className="app-kpi-value text-[1.75rem] leading-9 tabular-nums">{today ? rupees(amount) : "–"}</span>
+            <span className="app-kpi-value text-[1.75rem] leading-9">{today ? rupees(amount) : "–"}</span>
             {amount > 0
-                ? <span className="flex h-1.5 gap-0.5 overflow-hidden rounded-full" aria-hidden="true">
-                    {modes.map((m, i) => (
-                        <span key={m.mode} className="h-full" style={{ flex: Number(m.amount), background: tones[i % tones.length] }} />
+                ? <span role="img" className="flex h-2 gap-[2px]"
+                    aria-label={`Collected today by payment mode: ${modes.map((m) => `${titleCase(m.label)} ${rupees(m.amount)} (${share(m)}%)`).join(", ")}`}>
+                    {modes.map((m) => (
+                        <span key={m.mode} className="app-dash-seg h-full first:rounded-l-full last:rounded-r-full"
+                            title={`${titleCase(m.label)}: ${rupees(m.amount)} (${share(m)}%)`}
+                            style={{ flex: `${Number(m.amount)} 1 0`, minWidth: 3, background: MODE_SLOT[m.mode] || "var(--viz-deemph)" }} />
                     ))}
                 </span>
                 : <Meter share={0} />}
-            <span className="app-kpi-sub text-[0.8125rem] leading-5 tabular-nums">
+            <span className="app-kpi-sub flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[0.8125rem] leading-5">
                 {!today ? "Checking…"
                     : !today.receipts ? "No receipts yet today"
-                        : [`${today.receipts} receipt${today.receipts === 1 ? "" : "s"}`,
-                        ...modes.map((m) => `${titleCase(m.label)} ${Math.round((Number(m.amount) / amount) * 100)}%`)].join(" · ")}
+                        : <>
+                            {/* sizes on every leaf: the global `*` font-size rule means nothing here inherits one */}
+                            <span className="text-[0.8125rem]">{today.receipts} receipt{today.receipts === 1 ? "" : "s"}</span>
+                            {modes.map((m) => (
+                                <span key={m.mode} className="inline-flex items-center gap-1 text-[0.8125rem]">
+                                    <span className="h-2 w-2 rounded-[2px]" style={{ background: MODE_SLOT[m.mode] || "var(--viz-deemph)" }} aria-hidden="true" />
+                                    {titleCase(m.label)} {share(m)}%
+                                </span>
+                            ))}
+                        </>}
             </span>
         </Tile>
     );
 }
 
 /* --------------------------------------------------- attendance by class */
+const TARGET = 90;
+
+/**
+ * Each class's share of its roll, as a table of meters against a 90% target.
+ * The rows ARE the table view: every figure is printed, so nothing hides in a
+ * hover. A class below target wears the status warning — never a series
+ * colour — and always says so with an icon and words, not by colour alone.
+ */
 export function ClassAttendance({ att }) {
     const classes = att?.classes || [];
+    const below = classes.filter((c) => c.present && (c.present / c.total) * 100 < TARGET).length;
     return (
         <section aria-labelledby="dash-class-att" className="app-panel flex h-full flex-col gap-4 rounded-xl bg-white p-5 sm:px-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -174,37 +201,63 @@ export function ClassAttendance({ att }) {
                         Present out of enrolled{att?.date ? ` · ${bsDateLong(att.date)}` : ""}
                     </p>
                 </div>
-                <span className="flex items-center gap-4 text-[0.75rem] text-[var(--ink-600)]">
-                    <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[3px] bg-[var(--t-k1)]" />90% or more</span>
-                    <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[3px] bg-[var(--t-k2)]" />Below 90%</span>
+                <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.75rem] text-[var(--ink-600)]">
+                    <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[3px] bg-[var(--viz-accent)]" aria-hidden="true" />At or above target</span>
+                    <span className="inline-flex items-center gap-1.5">
+                        <ExclamationTriangleIcon className="h-3.5 w-3.5 text-[#8A5300]" aria-hidden="true" />Below target
+                    </span>
+                    <span className="inline-flex items-center gap-1.5"><span className="h-3 w-[2px] rounded-full bg-[var(--ink-500)]" aria-hidden="true" />{TARGET}% target</span>
                 </span>
             </div>
             {!att
                 ? <p className="text-[0.875rem] text-[var(--ink-500)]">Checking today&apos;s roll…</p>
                 : classes.length === 0
                     ? <p className="text-[0.875rem] text-[var(--ink-500)]">No class has students on its roll yet.</p>
-                    : <ul className="flex flex-col gap-1.5" aria-label="Attendance by class">
-                        {classes.map((c) => {
-                            const share = c.total ? (c.present / c.total) * 100 : 0;
-                            const low = c.present > 0 && share < 90;
-                            return (
-                                <li key={c.name} className="app-dash-class grid grid-cols-[minmax(5.5rem,auto)_1fr_3.5rem_4.25rem] items-center gap-3 rounded-md px-1 py-[3px]">
-                                    <span className="truncate text-[0.8125rem] text-[var(--ink-700)]" title={c.name}>{c.name}</span>
-                                    <span className="h-2.5 overflow-hidden rounded-full bg-[var(--line-soft)]" aria-hidden="true">
-                                        <span className="app-dash-bar block h-full rounded-full"
-                                            style={{ width: `${share}%`, background: low ? "var(--t-k2)" : "var(--t-k1)" }} />
-                                    </span>
-                                    <span className={`text-right text-[0.8125rem] font-semibold tabular-nums ${low ? "text-[#8A5300]" : "text-[var(--ink-900)]"}`}>
-                                        {c.present ? `${share.toFixed(1)}%` : "–"}
-                                    </span>
-                                    <span className="text-right text-[0.75rem] tabular-nums text-[var(--ink-500)]">{c.present}/{c.total}</span>
-                                </li>
-                            );
-                        })}
-                    </ul>}
+                    : <table className="w-full border-collapse">
+                        <caption className="sr-only">
+                            Attendance by class, present out of enrolled, against a {TARGET}% target. {below} below target.
+                        </caption>
+                        <thead className="sr-only">
+                            <tr><th scope="col">Class</th><th scope="col">Share of the roll</th><th scope="col">Present</th><th scope="col">Present of enrolled</th></tr>
+                        </thead>
+                        <tbody>
+                            {classes.map((c) => {
+                                const share = c.total ? (c.present / c.total) * 100 : 0;
+                                const low = c.present > 0 && share < TARGET;
+                                return (
+                                    <tr key={c.name} className="app-dash-class">
+                                        <th scope="row" className="w-[6.5rem] py-[5px] pr-3 text-left text-[0.8125rem] font-normal text-[var(--ink-700)]">
+                                            <span className="block max-w-[9rem] truncate" title={c.name}>{c.name}</span>
+                                        </th>
+                                        <td className="py-[5px] pr-3">
+                                            <span className="relative block">
+                                                <span className="block h-2.5 overflow-hidden rounded-full"
+                                                    style={{ background: low ? "var(--viz-warning-track)" : "var(--viz-accent-track)" }} aria-hidden="true">
+                                                    <span className="app-dash-bar block h-full rounded-full"
+                                                        style={{ width: `${share}%`, background: low ? "var(--viz-warning)" : "var(--viz-accent)" }} />
+                                                </span>
+                                                {/* the target, one hairline at the same place on every row */}
+                                                <span className="absolute top-[-3px] h-4 w-[2px] rounded-full bg-[var(--ink-500)]" style={{ left: `calc(${TARGET}% - 1px)` }} aria-hidden="true" />
+                                            </span>
+                                        </td>
+                                        <td className="w-[4.5rem] py-[5px] text-right text-[0.8125rem] font-semibold tabular-nums text-[var(--ink-900)]">
+                                            <span className="inline-flex items-center justify-end gap-1">
+                                                {low && <>
+                                                    <ExclamationTriangleIcon className="h-3.5 w-3.5 text-[#8A5300]" aria-hidden="true" />
+                                                    <span className="sr-only">below target, </span>
+                                                </>}
+                                                {c.present ? `${share.toFixed(1)}%` : "–"}
+                                            </span>
+                                        </td>
+                                        <td className="w-[4.75rem] py-[5px] pl-2 text-right text-[0.75rem] tabular-nums text-[var(--ink-500)]">{c.present}/{c.total}</td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>}
             {att?.staff &&
                 <p className="mt-auto border-t border-[var(--line-soft)] pt-3 text-[0.8125rem] text-[var(--ink-600)]">
-                    Staff: <span className="font-semibold tabular-nums text-[var(--ink-900)]">{att.staff.present}</span> of {att.staff.total} present
+                    Staff: <span className="font-semibold text-[var(--ink-900)]">{att.staff.present}</span> of {att.staff.total} present
                     {att.staff.absent > 0 && <> · {att.staff.absent} not in</>}
                 </p>}
         </section>
@@ -268,7 +321,7 @@ export function NeedsAttention({ school, att, smsInfo }) {
         items.push({
             tone: "warn", Icon: AcademicCapIcon,
             title: `Attendance is low today: ${Math.round((present / roster) * 100)}%`,
-            body: `${(roster - present).toLocaleString("en-IN")} students are not in. The classes below 90% are marked in orange.`,
+            body: `${(roster - present).toLocaleString("en-IN")} students are not in. Classes below the 90% target are flagged in the list.`,
         });
     }
     if (att && roster > 0 && present === 0) {

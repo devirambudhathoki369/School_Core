@@ -37,14 +37,17 @@ function useThemeColour(variable, fallback) {
     }, [variable, fallback]);
     return colour;
 }
-const faded = (rgb, alpha) => (rgb.startsWith("rgb(") ? rgb.replace("rgb(", "rgba(").replace(")", `, ${alpha})`) : rgb);
+// The months behind the current one, de-emphasised: one grey, the same on
+// every theme, so the colour on the chart is only ever "this month".
+const DEEMPH = "#C3C9D2";
 
 function Figure({ label, value, strong = false }) {
     return (
         <div className="min-w-0">
             {/* sizes on every leaf: the global `*` font-size rule means nothing here inherits one */}
-            <div className="truncate text-xs font-semibold text-[var(--ink-500)]">{label}</div>
-            <div className={`truncate font-extrabold tabular-nums leading-tight text-[var(--ink-900)] ${strong ? "text-[1.65rem]" : "text-[1.05rem]"}`}>{value}</div>
+            <div className="truncate text-xs font-medium text-[var(--ink-600)]">{label}</div>
+            {/* proportional figures: a standalone value, not a column */}
+            <div className={`truncate font-semibold leading-tight text-[var(--ink-900)] ${strong ? "text-[1.65rem]" : "text-[1.05rem]"}`}>{value}</div>
         </div>
     );
 }
@@ -55,7 +58,8 @@ function Figure({ label, value, strong = false }) {
  * Twelve separate totals are twelve columns. The line this replaces drew a
  * smooth curve through them, which showed dips and rises BETWEEN months that
  * never happened, and it had no total anywhere. The month in progress is the
- * full colour; the months behind it are a lighter step of the same one.
+ * accent — the one mark in colour — and the months behind it are grey. Every
+ * value is reachable without hovering: the table view lists them all.
  *
  *   monthsList  [4, 5, 6]            BS month numbers, as the server sends them
  *   amounts     [35950, 326100, …]   the same length
@@ -63,7 +67,8 @@ function Figure({ label, value, strong = false }) {
  *   today       "2083-06-18"         the BS date, to know the month in progress
  */
 function CollectionsCard({ monthsList, amounts, yearName, today }) {
-    const colour = useThemeColour("--t-brand-solid", "rgb(13, 148, 136)");
+    const colour = useThemeColour("--t-brand-solid", "rgb(59, 91, 219)");
+    const [asTable, setAsTable] = useState(false);
     const rows = useMemo(() => (monthsList || []).map((m, i) => ({ month: parseInt(m, 10), amount: Number(amounts?.[i]) || 0 })), [monthsList, amounts]);
     const total = rows.reduce((n, r) => n + r.amount, 0);
     const current = parseInt(`${today || ""}`.split("-")[1], 10) || null;
@@ -72,10 +77,20 @@ function CollectionsCard({ monthsList, amounts, yearName, today }) {
     const marksCurrent = rows.some((r) => r.month === current);
 
     return (
-        <div className="app-panel flex h-full flex-col rounded-xl border bg-white p-4">
-            <div className="flex items-baseline justify-between gap-x-3">
-                <h3 className="text-sm font-bold uppercase tracking-wide text-gray-700">Fee collections</h3>
-                {yearName && <span className="shrink-0 text-xs font-semibold text-[var(--ink-500)]">{yearName}</span>}
+        <div className="app-panel flex h-full flex-col rounded-xl border bg-white p-5">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                <h3 className="text-[1rem] font-semibold leading-6 text-[var(--ink-900)]">
+                    Fee collections{yearName && <span className="ml-2 text-[0.8125rem] font-normal text-[var(--ink-600)]">{yearName}</span>}
+                </h3>
+                {total > 0 &&
+                    <div role="group" aria-label="Show as" className="flex rounded-[10px] border border-[var(--line)] bg-[var(--surface-soft)] p-0.5">
+                        {[["Chart", false], ["Table", true]].map(([label, value]) => (
+                            <button key={label} type="button" aria-pressed={asTable === value} onClick={() => setAsTable(value)}
+                                className={`h-7 rounded-lg px-2.5 text-[0.75rem] font-semibold normal-case ${asTable === value
+                                    ? "bg-white text-[var(--ink-900)] shadow-[0_1px_2px_rgb(17_24_39/.08)]"
+                                    : "text-[var(--ink-600)]"}`}>{label}</button>
+                        ))}
+                    </div>}
             </div>
 
             {total <= 0 ? (
@@ -90,6 +105,34 @@ function CollectionsCard({ monthsList, amounts, yearName, today }) {
                             {best && rows.length > 1 && <Figure label={`Best month · ${monthName(best.month)}`} value={rupees(best.amount)} />}
                         </div>
                     </div>
+                    {marksCurrent && !asTable &&
+                        <div className="mt-3 flex items-center gap-4 text-[0.75rem] text-[var(--ink-600)]">
+                            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: colour }} aria-hidden="true" />This month</span>
+                            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: DEEMPH }} aria-hidden="true" />Earlier months</span>
+                        </div>}
+                    {asTable ? (
+                        <table className="mt-3 w-full border-collapse text-[0.8125rem]">
+                            <caption className="sr-only">Fee collections by month, {yearName}</caption>
+                            <thead>
+                                <tr className="border-b border-[var(--line)] text-left text-[0.75rem] text-[var(--ink-600)]">
+                                    <th scope="col" className="py-2 font-semibold">Month</th>
+                                    <th scope="col" className="py-2 text-right font-semibold">Collected</th>
+                                    <th scope="col" className="py-2 text-right font-semibold">Share of the year</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rows.map((r) => (
+                                    <tr key={r.month} className="border-b border-[var(--line-soft)] last:border-0">
+                                        <th scope="row" className="py-2 text-left font-normal text-[var(--ink-800)]">
+                                            {monthName(r.month)}{r.month === current && <span className="ml-1.5 text-[0.75rem] text-[var(--ink-500)]">this month</span>}
+                                        </th>
+                                        <td className="py-2 text-right font-semibold tabular-nums text-[var(--ink-900)]">{rupees(r.amount)}</td>
+                                        <td className="py-2 text-right tabular-nums text-[var(--ink-600)]">{total ? `${((r.amount / total) * 100).toFixed(1)}%` : "–"}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
                     <div className="mt-3 h-[11.5rem] min-h-0 flex-1" role="img"
                         aria-label={`Collections by month: ${rows.map((r) => `${monthName(r.month)} ${rupees(r.amount)}`).join(", ")}`}>
                         <Bar
@@ -97,13 +140,15 @@ function CollectionsCard({ monthsList, amounts, yearName, today }) {
                                 labels: rows.map((r) => monthName(r.month)),
                                 datasets: [{
                                     data: rows.map((r) => r.amount),
-                                    backgroundColor: rows.map((r) => (!marksCurrent ? faded(colour, 0.6) : r.month === current ? colour : faded(colour, 0.3))),
-                                    hoverBackgroundColor: colour,
+                                    // emphasis: this month in the accent, the rest grey; a
+                                    // year with no current month is one plain series
+                                    backgroundColor: rows.map((r) => (!marksCurrent || r.month === current ? colour : DEEMPH)),
+                                    hoverBackgroundColor: rows.map((r) => (!marksCurrent || r.month === current ? colour : "#AEB5C0")),
+                                    // a 4px rounded data-end, square on the baseline
                                     borderRadius: { topLeft: 4, topRight: 4 },
                                     borderSkipped: "bottom",
-                                    // a few months in: solid columns, not slivers; a full
-                                    // year: twelve that still fit
-                                    maxBarThickness: 40,
+                                    // thin marks: never wider than 24px, the rest of the band is air
+                                    maxBarThickness: 24,
                                     categoryPercentage: 0.72,
                                     barPercentage: 0.62,
                                 }],
@@ -123,22 +168,25 @@ function CollectionsCard({ monthsList, amounts, yearName, today }) {
                                         callbacks: { label: (item) => rupees(item.parsed.y) },
                                     },
                                 },
+                                // recessive chrome: solid hairlines one step off the
+                                // surface, muted text that still reads (5.36:1)
                                 scales: {
                                     x: {
                                         grid: { display: false },
-                                        border: { color: "#e2e8f0" },
-                                        ticks: { color: "#64748b", font: { size: 11, weight: "500" }, maxRotation: 0, autoSkipPadding: 6 },
+                                        border: { color: "#CDD2DA", width: 1 },
+                                        ticks: { color: "#646B78", font: { size: 11, weight: "500" }, maxRotation: 0, autoSkipPadding: 6 },
                                     },
                                     y: {
                                         beginAtZero: true,
                                         border: { display: false },
-                                        grid: { color: "#eef2f7" },
-                                        ticks: { color: "#94a3b8", font: { size: 11 }, maxTicksLimit: 5, callback: (value) => compact(value) },
+                                        grid: { color: "#EEF0F4", lineWidth: 1 },
+                                        ticks: { color: "#646B78", font: { size: 11 }, maxTicksLimit: 5, callback: (value) => compact(value) },
                                     },
                                 },
                             }}
                         />
                     </div>
+                    )}
                 </>
             )}
         </div>

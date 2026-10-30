@@ -5,12 +5,15 @@
 // reachable by hovering, and the legend sat below a 288px drawing. The bar says
 // the same "about half" in 12px, and the counts and shares are printed.
 //
-// The three colours are fixed to the gender, not to the school's theme, and
-// were checked as neighbours for colour-blind separation on a white surface.
+// The three colours are categorical slots 1-3 (globals.css --viz-*), fixed to
+// the gender rather than to the school's theme, and validated as a set on
+// white: every pair apart under colour-blind simulation (all-pairs ΔE 9.2) and
+// under normal vision (24.0). Slot 3 is under 3:1 on white, so each part's
+// count and share are always printed beside its swatch.
 const PARTS = [
-    { key: "male", label: "Male", colour: "#2a78d6" },
-    { key: "female", label: "Female", colour: "#eb6834" },
-    { key: "others", label: "Others", colour: "#1baf7a" },
+    { key: "male", label: "Male", colour: "var(--viz-1)" },
+    { key: "female", label: "Female", colour: "var(--viz-2)" },
+    { key: "others", label: "Others", colour: "var(--viz-3)" },
 ];
 
 // Shares to one decimal that add up to exactly 100 (largest remainder): three
@@ -41,12 +44,12 @@ function GenderSplit({ title, counts, emptyHint }) {
     const inWords = parts.map((part, i) => `${part.label} ${part.value} (${percent(share[i])})`).join(", ");
 
     return (
-        <div className="app-panel rounded-xl bg-white/70 shadow-md border border-teal-100 p-4">
+        <div className="app-panel rounded-xl border bg-white p-5">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-600">
+                <h3 className="text-[1rem] font-semibold leading-6 text-[var(--ink-900)]">
                     {title}{" "}
                     {/* sizes on every leaf: the global `*` font-size rule means nothing here inherits one */}
-                    <span className="text-xs font-medium normal-case tracking-normal text-[var(--ink-500)]">by gender</span>
+                    <span className="text-[0.8125rem] font-normal text-[var(--ink-600)]">by gender</span>
                 </h3>
                 <span className="shrink-0 text-xs font-semibold text-[var(--ink-500)]">
                     Total <b className="text-sm font-bold text-[var(--ink-900)]">{total}</b>
@@ -58,17 +61,18 @@ function GenderSplit({ title, counts, emptyHint }) {
                 : (
                     <>
                         {/* one bar, split by share; the gap between two parts is the card showing through */}
-                        <div role="img" aria-label={`${title} by gender: ${inWords}`} className="mt-3 flex h-3 w-full gap-[2px]">
+                        {/* a thin segmented bar: 8px, fully rounded ends, a 2px surface gap between parts */}
+                        <div role="img" aria-label={`${title} by gender: ${inWords}`} className="mt-3 flex h-2 w-full gap-[2px]">
                             {parts.map((part, i) => part.value > 0 &&
                                 <span key={part.key} title={`${part.label}: ${part.value} (${percent(share[i])})`}
-                                    className="h-full min-w-[3px] first:rounded-l-[4px] last:rounded-r-[4px]"
+                                    className="app-dash-seg h-full min-w-[3px] first:rounded-l-full last:rounded-r-full"
                                     style={{ flexGrow: part.value, flexBasis: 0, backgroundColor: part.colour }}></span>)}
                         </div>
                         <dl className="mt-3 grid grid-cols-3 gap-x-3">
                             {parts.map((part, i) => (
                                 <div key={part.key} className="min-w-0">
                                     <dt className="flex items-center gap-x-1.5">
-                                        <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: part.colour }} aria-hidden="true"></span>
+                                        <span className="inline-block h-2 w-2 shrink-0 rounded-[2px]" style={{ backgroundColor: part.colour }} aria-hidden="true"></span>
                                         <span className="text-xs font-semibold text-[var(--ink-600)]">{part.label}</span>
                                     </dt>
                                     <dd className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5">
