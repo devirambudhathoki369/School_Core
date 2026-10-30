@@ -41,6 +41,7 @@ MODULES = (
     # sold separately: off until the provider switches them on
     ("hostel", "uses_hostel", "Hostel", False),
     ("extra_billing", "uses_extra_billing", "Extra billing", False),
+    ("canteen", "uses_canteen", "Canteen", False),
 )
 
 MODULE_CODES = tuple(code for code, _, _, _ in MODULES)
@@ -57,9 +58,9 @@ DEFAULT_ON = frozenset(code for code, _, _, on in MODULES if on)
 # here is called only by its own module's screens. Shared reads -- courses,
 # sections, subjects, staff -- are every school's and are not listed.
 #
-# Hostel and extra billing are not here: every view of theirs already calls
-# its own gate first (hostel/views/BaseViews.py, extra_billing/views/
-# BaseViews.py), which reads this same table.
+# Hostel, extra billing and the canteen are not here: every view of theirs
+# already calls its own gate first (hostel/views/BaseViews.py, extra_billing/
+# views/BaseViews.py, canteen/views/BaseViews.py), which reads this same table.
 MODULE_VIEWS = {
     "exams": (
         "main.views.exams.",

@@ -126,23 +126,28 @@ communication/reports/year-end), `accounting` (double-entry), `library`, `rfid` 
 > This chapter documents the **current** access model. The next system's hardened target is
 > in [chapter 17](#17-threat-model--security-blueprint-for-the-next-system).
 
-### 3.1 The five roles
+### 3.1 The six roles
 
 Each role has its **own account table** and **own token table** (tokens never collide).
 
-| Role                     | Who                                   | Created by                  | Use                                          |
-| ------------------------ | ------------------------------------- | --------------------------- | -------------------------------------------- |
-| **Superuser**            | Developer/vendor root (Django `User`) | System/CLI                  | Support, backup, emergencies                 |
-| **Super Admin**          | Vendor onboarding staff               | Superuser                   | Create School Admins, broadcast org messages |
-| **Admin (School Admin)** | The school (tenant)                   | Super Admin                 | Runs the whole school                        |
-| **Staff**                | Teacher/accountant/librarian…         | School Admin                | Operations, scoped by permission             |
-| **Student**              | Student app login                     | School Admin (at enrolment) | Results, homework, notices, attendance, push |
+| Role                     | Who                                   | Created by                   | Use                                          |
+| ------------------------ | ------------------------------------- | ---------------------------- | -------------------------------------------- |
+| **Superuser**            | Developer/vendor root (Django `User`) | System/CLI                   | Support, backup, emergencies                 |
+| **Super Admin**          | Vendor onboarding staff               | Superuser                    | Create School Admins, broadcast org messages |
+| **Admin (School Admin)** | The school (tenant)                   | Super Admin                  | Runs the whole school                        |
+| **Staff**                | Teacher/accountant/librarian…         | School Admin                 | Operations, scoped by permission             |
+| **Student**              | Student app login                     | School Admin (at enrolment)  | Results, homework, notices, attendance, push |
+| **Canteen user**         | Canteen counter / office hand         | School Admin (Canteen Users) | The canteen's pages only, at `/canteen`      |
 
 - A **School Admin** _is_ the tenant (`SchoolAdmin` profile 1:1 `AdminAccount`).
 - **Staff/Student** profiles each optionally link 1:1 to a login (a profile can exist
   without a login and gain one later).
 - Shared account fields: unique `username` (6–25), hashed `password`, `verified`, OTP
   fields; staff/student accounts also hold an `app_device_token`.
+- A **canteen user** (`canteen.CanteenUser`, token `CanteenUserToken`, role `canteen`) belongs
+  to one school and holds canteen pages only (2701–2710). Its token is accepted by the
+  `/canteen/*` endpoints and the print style, nothing else; switching the user off, or the
+  school's canteen grant off, ends its sessions (`/auth/canteen/signin|obtain`).
 
 ### 3.2 Authentication & login
 
@@ -229,8 +234,9 @@ Notation: `FK→X`, `1:1→X`, `(opt)` optional, `BS` Nepali date, money = Decim
   `time_set_required`, `attendance_in_time`, `attendance_out_time`; `foundation`.
 - **SchoolImage** — `image`, `school`.
 - **Module** — the catalog of facilities a school can be given: `code` (PK: `exams`, `payroll`,
-  `accounting`, `library`, `inventory`, `hostel`, `extra_billing`), `name`. Kept in step with
-  `main/constants/school_modules.py` on every `migrate`.
+  `accounting`, `library`, `inventory`, `hostel`, `extra_billing`, `canteen`), `name`. Kept in
+  step with `main/constants/school_modules.py` on every `migrate` (a module added after 0105,
+  like `canteen`, reaches the catalog that way, granted to no school).
 - **SchoolModule** — a school's grant of one module: `school` FK (CASCADE), `module` FK
   (PROTECT), unique per (school, module). Active row = the school has it; switching off is the
   usual soft delete and deletes nothing in the module. `SchoolAdmin 1 — 0..* SchoolModule 0..* — 1 Module`.
@@ -665,9 +671,17 @@ issue/due/return dates and fines (via `lib_fine` title + preferences).
   **ledger management** `/api/ledgers/manage`.
 - **Facilities** — on Setup ▸ School/Admin the superadmin ticks which modules a school gets
   (`uses_exams`, `uses_payroll`, `uses_accounting`, `uses_library`, `uses_inventory`, `uses_hostel`,
-  `uses_extra_billing` on `/api/admins`). A school sees only those menus and pages, and every
-  endpoint of a module it lacks refuses its admin/staff/student tokens with 403
-  (`SecuredAPIView.enforce_school_modules`).
+  `uses_extra_billing`, `uses_canteen` on `/api/admins`). A school sees only those menus and pages,
+  and every endpoint of a module it lacks refuses its admin/staff/student tokens with 403
+  (`SecuredAPIView.enforce_school_modules`, or the module's own gate for hostel, extra billing and
+  the canteen). Hostel, Extra Billing and Canteen Access pages switch the same grants.
+- **Canteen** (`canteen` app, `/canteen/*`, off until granted) — counter sales to students, staff
+  and walk-ins (cash, card account, or a regular user's plan); card accounts (prepaid and/or credit,
+  balance = sum of active transactions, never stored); items with class-wise monthly rates; use
+  types with regular users; monthly posting of those charges onto canteen accounts; item-wise
+  collection with its own receipt series ("C-n" per school and fiscal year); reports, dues, printed
+  bills, an app reminder and the kitchen's meal count; canteen users. It is its own billing:
+  nothing posts to the student fee ledger or fee bills. Switching it off deletes nothing.
 - **Database backup** `/api/backup` — DB backup; seed dump in repo (`smsysdb_*.dump`).
 - **Monitoring** `/__live_usage__/` (CPU/memory/disk, media sizes, app status); Sentry both
   ends.

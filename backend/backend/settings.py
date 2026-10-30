@@ -123,6 +123,9 @@ INSTALLED_APPS = [
     # contractors, offices renting school property (gated by
     # SchoolAdmin.uses_extra_billing)
     "extra_billing",
+    # the school's own canteen: counter, card accounts and its own billing
+    # (gated by the school's `canteen` grant in main.SchoolModule)
+    "canteen",
     "rfid",  # rfid/biometrics attendance
     #
     "django_cleanup.apps.CleanupConfig",

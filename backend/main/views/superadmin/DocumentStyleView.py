@@ -20,6 +20,7 @@ from account.auth.Authentication import (
     SuperAdminTokenAuthentication,
     UserTokenAuthentication,
 )
+from canteen.auth import CanteenUserTokenAuthentication
 from ..BaseViews import SecuredAPIView
 from ...models.SchoolAdmin import SchoolAdmin
 from ...models.superadmin.DocumentStyle import (
@@ -81,9 +82,12 @@ def serialize(style):
 class DocumentStyleView(SecuredAPIView):
     """Read a school's effective document style."""
 
+    # A canteen user prints the canteen's reports and bills with the same
+    # styling as the office; the authenticator holds them to their own school.
     authentication_classes = (
         AdminTokenAuthentication,
         StaffTokenAuthentication,
+        CanteenUserTokenAuthentication,
         SuperAdminTokenAuthentication,
         UserTokenAuthentication,
     )

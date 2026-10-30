@@ -50,6 +50,7 @@ MODULE_ENDPOINTS = {
     "inventory": "/api/inventory/categories",
     "hostel": "/hostel/hostels",
     "extra_billing": "/extra-billing/parties",
+    "canteen": "/canteen/items",
 }
 
 
@@ -83,7 +84,7 @@ class SchoolModuleGateTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.year = EconomicYear.objects.create(name="2083/84", start_date="2083-04-01", end_date="2084-03-31")
-        cls.full = make_school(cls.year, "full", hostel=True, extra_billing=True)
+        cls.full = make_school(cls.year, "full", hostel=True, extra_billing=True, canteen=True)
         cls.bare = make_school(cls.year, "bare", **{code: False for code in MODULE_CODES})
 
     def setUp(self):
@@ -197,11 +198,11 @@ class SchoolFormTests(TestCase):
     def test_a_new_school_gets_only_the_facilities_chosen(self):
         chosen = {"uses_exams": True, "uses_payroll": False, "uses_accounting": False,
                   "uses_library": True, "uses_inventory": False, "uses_hostel": True,
-                  "uses_extra_billing": False}
+                  "uses_extra_billing": False, "uses_canteen": True}
         response = self.new_school("newschool", **chosen)
         self.assertEqual(response.status_code, 200, response.data)
         school = SchoolAdmin.objects.get(account__username="newschool")
-        self.assertEqual(granted(school), {"exams", "library", "hostel"})
+        self.assertEqual(granted(school), {"exams", "library", "hostel", "canteen"})
         self.assertEqual(module_flags(school.id), chosen)
         self.assertEqual({flag: response.data["school"][flag] for flag in chosen}, chosen)
         # the previous release's columns are kept in step
@@ -233,6 +234,20 @@ class SchoolFormTests(TestCase):
         self.assertTrue(next(s for s in listed if s["id"] == school.id)["uses_hostel"])
         row = next(r for r in self.provider.get("/api/admins").data if r["id"] == school.id)
         self.assertTrue(row["uses_hostel"])
+
+    def test_the_canteen_access_page_reads_and_writes_the_same_table(self):
+        school = make_school(self.year, "canteen")
+        self.assertNotIn("canteen", granted(school))  # sold apart: off for a new school
+        response = self.provider.put("/canteen/manage/access", {"school": school.id, "uses_canteen": True}, format="json")
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertIn("canteen", granted(school))
+        listed = self.provider.get("/canteen/manage/access").data["schools"]
+        self.assertTrue(next(s for s in listed if s["id"] == school.id)["uses_canteen"])
+        row = next(r for r in self.provider.get("/api/admins").data if r["id"] == school.id)
+        self.assertTrue(row["uses_canteen"])
+        # and the school form switches the same grant off
+        self.provider.put("/api/admins", {"id": school.id, "uses_canteen": False}, format="json")
+        self.assertNotIn("canteen", granted(school))
 
 
 class SchoolModuleStorageTests(TestCase):
@@ -376,7 +391,11 @@ class SchoolModuleMigrationTests(TestCase):
 
     def test_the_frozen_lists_are_what_the_code_defines(self):
         self.assertEqual(set(self.migration.ALWAYS_HAD), set(DEFAULT_ON))
-        self.assertEqual(dict(self.migration.CATALOG), dict(LABEL))
+        frozen = dict(self.migration.CATALOG)
+        self.assertEqual({code: LABEL[code] for code in frozen}, frozen)
+        # a module added since 0105 reaches the catalog by sync_module_catalog
+        # on migrate, and no school has it until the superadmin gives it
+        self.assertEqual(set(LABEL) - set(frozen), {"canteen"})
 
 
 class SchoolModuleRegistryTests(SimpleTestCase):

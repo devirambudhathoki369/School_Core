@@ -14,7 +14,7 @@ from django.utils import timezone
 from main.methods.schoolModules import module_flags
 from main.models.SchoolAdmin import SchoolAdmin
 
-APP_LABELS = {"main", "account", "accounting", "library", "hostel", "extra_billing", "rfid", "contenttypes"}
+APP_LABELS = {"main", "account", "accounting", "library", "hostel", "extra_billing", "canteen", "rfid", "contenttypes"}
 # Reviewed non-tenant tables. A newly added unclassified model fails the export
 # instead of silently omitting a new feature's data.
 GLOBAL_MODELS = {

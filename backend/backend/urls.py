@@ -118,6 +118,21 @@ urlpatterns = [
             )
         ),
     ),
+    path(
+        "canteen/",
+        include(
+            (
+                [
+                    path("", include(("canteen.urls.v1", "canteen"), namespace="canteen")),
+                    path(
+                        "v1/",
+                        include(("canteen.urls.v1", "canteen"), namespace="canteen v1"),
+                    ),
+                ],
+                "canteen",
+            )
+        ),
+    ),
     # rfid
     path("iclock/", include("rfid.urls.device")),
     path("rfid/", include("rfid.urls.v1")),

@@ -18,6 +18,8 @@ from .views import (
     StaffLoginView,
     StudentRegistrationView,
     StudentLoginView,
+    CanteenLoginView,
+    CanteenObtainView,
     ProfileView,
     DeviceTokenView,
     AccountDeletionView,
@@ -84,6 +86,13 @@ urlpatterns = [
     # --- staff-acc-login
     path("staff/register", StaffRegistrationView.as_view(), name="staff-signup"),
     path("staff/signin", StaffLoginView.as_view(), name="staff-signin"),
+    # --- canteen-acc-login: the canteen only (canteen/models/Users.py)
+    path("canteen/signin", CanteenLoginView.as_view(), name="canteen-signin"),
+    path(
+        "canteen/obtain",
+        CanteenObtainView.as_view(),
+        name="canteen-token-login-or-validation",
+    ),
     # OTP
     path("otp/verify", OTPVerificationView.as_view(), name="otp-verification"),
     path("otp/resend", OTPView.as_view(), name="otp-resend"),

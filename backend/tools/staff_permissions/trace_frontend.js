@@ -348,6 +348,9 @@ const viewAccess = {}; // view key -> Set(perm ids | "ALL")
 // shown WITH its whole subtree, so a leaf is reachable by its own id or any
 // granted ancestor's (a top-level group's own id is not consulted).
 function walkMenu(arr, parent, top, inherited) {
+  // a submenu kept in a const of its own (the canteen's pages, shared with
+  // the canteen user's rail): follow the name to its array
+  if (arr.isIdentifier()) arr = arr.scope.getBinding(arr.node.name).path.get("init");
   for (const el of arr.get("elements")) {
     if (!el.isObjectExpression()) continue;
     const props = {};

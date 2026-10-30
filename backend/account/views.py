@@ -57,6 +57,8 @@ from .methods.getStudentProfile import getStudentProfile
 from .methods.extractSchoolSMSAPIKey import extractSchoolSMSAPIKey
 from .auth.OTP import BaseOTP
 from .utils.send_sms import send_sms
+from canteen.methods.users import canteen_user_profile, refusal as canteen_refusal
+from canteen.models import CanteenUser, CanteenUserToken
 
 
 def clear_auth_cookie(res):
@@ -270,6 +272,12 @@ class LoginView(APIView):
                 s = user.check_password(password)
                 if not s:
                     return _login_rejected(username, request)
+                # Said only after the password was right, so it tells nobody
+                # whether a username exists.
+                refused = self.refuse_signin(user)
+                if refused:
+                    _login_clear_failures(username, request)
+                    return Response({"message": refused}, status=status.HTTP_403_FORBIDDEN)
                 app_device_token = request.data.get("device_token")
                 # token generation
                 # a sign-in always mints its OWN token. Reusing one row per user
@@ -331,6 +339,8 @@ class LoginView(APIView):
                     user_profile = getStaffProfile(user)
                 elif self.role == UserRoles.ROLE_STUDENT:
                     user_profile = getStudentProfile(user)
+                elif self.role == UserRoles.ROLE_CANTEEN:
+                    user_profile = canteen_user_profile(user)
                 message["user"]["profile"] = user_profile
                 #
                 res = Response(message, status=status.HTTP_200_OK)
@@ -356,6 +366,11 @@ class LoginView(APIView):
         return Response(
             {"message": "Invalid request!"}, status=status.HTTP_400_BAD_REQUEST
         )
+
+    def refuse_signin(self, user):
+        """Why this account, with the right password, may still not sign in —
+        or None. Only the canteen asks anything here."""
+        return None
 
 
 # ---
@@ -387,6 +402,19 @@ class StudentLoginView(LoginView):
     role = UserRoles.ROLE_STUDENT
     Token = StudentAuthToken
     swagger_schema = None
+
+
+class CanteenLoginView(LoginView):
+    """/canteen: a sign-in that opens the canteen and nothing else
+    (canteen/models/Users.py)."""
+
+    Model = CanteenUser
+    role = UserRoles.ROLE_CANTEEN
+    Token = CanteenUserToken
+    swagger_schema = None
+
+    def refuse_signin(self, user):
+        return canteen_refusal(user)
 
 
 # ---
@@ -453,6 +481,8 @@ class ObtainView(APIView):
             )
         #
         if token_obj:
+            if self.refuse_session(token_obj.user):
+                return USER_NOT_FOUND
             user["username"] = token_obj.user.username
             user["token"] = token
             # for admin, extract more information;
@@ -469,11 +499,18 @@ class ObtainView(APIView):
                 user["profile"] = getStaffProfile(token_obj.user)
             elif self.role == UserRoles.ROLE_SUPERADMIN:
                 user["profile"] = {}
+            elif self.role == UserRoles.ROLE_CANTEEN:
+                user["profile"] = canteen_user_profile(token_obj.user)
             user["today"] = ndt_today()
             # Nepal's own day — see the note where the login payload sets it.
             user["today_npt"] = ndt_today_npt()
             return Response({"user": user})
         return Response({})
+
+    def refuse_session(self, account):
+        """True when this session's account may no longer use the portal, so it
+        is answered as signed out. Only the canteen asks anything here."""
+        return False
 
 
 class SuperAdminObtainView(ObtainView):
@@ -493,6 +530,17 @@ class StaffObtainView(ObtainView):
     Token = StaffAuthToken
     role = UserRoles.ROLE_STAFF
     swagger_schema = None
+
+
+class CanteenObtainView(ObtainView):
+    Token = CanteenUserToken
+    role = UserRoles.ROLE_CANTEEN
+    swagger_schema = None
+
+    def refuse_session(self, account):
+        # Switched off, or the school's canteen switched off: the portal goes
+        # back to the sign-in form, which then says which of the two it was.
+        return canteen_refusal(account) is not None
 
 
 # ---
@@ -1214,6 +1262,8 @@ class LogoutView(APIView):
             self.Token = StaffAuthToken
         elif role == UserRoles.ROLE_STUDENT:
             self.Token = StudentAuthToken
+        elif role == UserRoles.ROLE_CANTEEN:
+            self.Token = CanteenUserToken
 
     def removeAppDeviceToken(self, role, token_instance):
         """
