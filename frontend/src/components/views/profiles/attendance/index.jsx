@@ -10,11 +10,6 @@ import summarise, { WEEKDAYS, clock, duration, openingMonth, shareLabel } from "
 // The year's record is long; the list opens on the newest of it.
 const ROWS_SHOWN = 8;
 
-// A circle of this radius is exactly 50 units round, and a stroke this wide
-// reaches from its centre to the rim: each slice is one dash of the stroke.
-const RADIUS = 7.9577;
-const ROUND = 50;
-const RIM = 15.9155;
 
 function monthName(month) {
     const name = MONTH_NAMES[month] || "";
@@ -30,45 +25,38 @@ function slices(count) {
 }
 
 /**
- * A pie of the days marked. `parts` come in the order they are drawn, clockwise
- * from twelve o'clock; a part of zero is left out. With nothing to draw it is a
- * ring: dashed for a month still to come, plain for one with no record.
+ * The days marked, split into present, absent with a reason and absent without
+ * one: a segmented bar, never a pie (two close slices of a pie are guessed at;
+ * blocks laid along one line are read). `parts` come in the order they are
+ * drawn; a part of zero draws nothing; a 2px gap of the card shows between two.
+ *
+ *   tall   the year: 28px blocks, each one's share printed inside where it fits
+ *   thin   a month: 8px with rounded ends, no text — its figures sit beside it
+ *
+ * With nothing to draw it is an empty track: dashed for a month still to come,
+ * plain for one with no record.
  */
-function Pie({ size, parts, label, dashed = false, rules = false }) {
+function SplitBar({ parts, label, tall = false, dashed = false, shares }) {
     const total = parts.reduce((sum, part) => sum + part.value, 0);
     if (!total) {
-        return (
-            <svg className="app-att-pie" width={size} height={size} viewBox="0 0 36 36" aria-hidden="true">
-                <circle className="is-empty" cx="18" cy="18" r="15.4" fill="none"
-                    strokeWidth="1" strokeDasharray={dashed ? "2.2 2.2" : undefined} />
-            </svg>
-        );
+        return <span className={`app-att-split is-empty ${tall ? "is-tall" : "is-thin"}`} data-dashed={dashed ? "true" : undefined} aria-hidden="true" />;
     }
-    let at = 0;
-    const arcs = parts.filter((part) => part.value > 0).map((part) => {
-        const arc = { tone: part.tone, length: (part.value / total) * ROUND, at };
-        at += arc.length;
-        return arc;
-    });
+    const shown = parts.filter((part) => part.value > 0);
     return (
-        <svg className="app-att-pie" width={size} height={size} viewBox="0 0 36 36" role="img" aria-label={label}>
-            <g transform="rotate(-90 18 18)" fill="none">
-                {arcs.map((arc, i) => (
-                    // The first slice is laid as a whole disc and the rest on
-                    // top of it, so no hairline of the page shows between two.
-                    <circle key={arc.tone} className={`is-${arc.tone}`} cx="18" cy="18" r={RADIUS} strokeWidth={RIM}
-                        strokeDasharray={i ? `${arc.length} ${ROUND}` : undefined}
-                        strokeDashoffset={i ? -arc.at : undefined} />
-                ))}
-                {rules && arcs.length > 1 && arcs.map((arc) => {
-                    const angle = (arc.at / ROUND) * 2 * Math.PI;
-                    return (
-                        <line key={arc.tone} className="is-rule" x1="18" y1="18"
-                            x2={18 + RIM * Math.cos(angle)} y2={18 + RIM * Math.sin(angle)} />
-                    );
-                })}
-            </g>
-        </svg>
+        <span className={`app-att-split ${tall ? "is-tall" : "is-thin"}`} role="img" aria-label={label}>
+            {shown.map((part) => {
+                const share = (part.value / total) * 100;
+                // the legend's own figure when it is given, so the block and
+                // the list beside it can never disagree by a rounding
+                const printed = shares?.[part.tone] ?? `${Math.round(share)}%`;
+                return (
+                    <span key={part.tone} className={`is-${part.tone}`} style={{ flex: `${part.value} 1 0` }}>
+                        {/* a block too narrow for its share prints none: the legend has it */}
+                        {tall && share >= 12 && <b>{printed}</b>}
+                    </span>
+                );
+            })}
+        </span>
     );
 }
 
@@ -229,8 +217,13 @@ export default function ProfileAttendance({ kind, personId }) {
                 <div className="app-att-year">
                     <div className="app-att-eyebrow">The year so far</div>
                     <div className="app-att-figure">
-                        <Pie size={180} rules parts={parts}
-                            label={`Pie chart: present ${summary.present} days, absent ${summary.absent} days`} />
+                        <SplitBar tall parts={parts}
+                            shares={{
+                                present: shareLabel(summary.present, presentShare, summary.marked),
+                                reasoned: shareLabel(summary.reasoned, reasonedShare, summary.marked),
+                                absent: shareLabel(summary.unexplained, unexplainedShare, summary.marked),
+                            }}
+                            label={`Days marked: present ${summary.present}, absent with a reason ${summary.reasoned || 0}, absent without one ${summary.unexplained || 0}`} />
                         <div className="app-att-headline">
                             <div>
                                 <span className="app-att-pct">{shareLabel(summary.present, presentShare, summary.marked) || "0%"}</span>
@@ -297,7 +290,7 @@ export default function ProfileAttendance({ kind, personId }) {
                                     data-selected={selected ? "true" : undefined} aria-pressed={selected}
                                     disabled={!m.started && !m.marked}
                                     onClick={() => { setMonth(m.month); setPicked(null); }}>
-                                    <Pie size={46} parts={slices(m)} dashed={!m.started}
+                                    <SplitBar parts={slices(m)} dashed={!m.started}
                                         label={`${name}: present ${m.present} of ${m.marked} days`} />
                                     <span className="app-att-month-name">{name}</span>
                                     <span className="app-att-month-count">

@@ -4625,32 +4625,44 @@ html:not([data-ui-theme]) .app-rail .app-menu-item-active :is(span, p, svg) {
 /* ============================================================
    PROFILE ▸ ATTENDANCE  (.app-att)
 
-   The Attendance tab on a student's and a staff member's profile: a pie of the
-   year, a pie for each month, the days of one month and the list of days
-   absent (`views/profiles/attendance`).
+   The Attendance tab on a student's and a staff member's profile: a split bar
+   of the year, a thin one for each month, the days of one month and the list
+   of days absent (`views/profiles/attendance`).
 
    - Every size is in px and every text class names its own size AND leading:
      the universal rule at the top of this file puts `.9rem / 1rem` on each
      element directly, so nothing here can rely on inheriting either.
-   - Present is the interface's own colour (`--t-brand-solid`, teal on
-     Classic), so the pie follows the school's theme. The two kinds of absence
-     keep one amber and one rust everywhere: they differ in lightness as well
-     as hue, and each is also named in words beside its colour.
+   - Present, absent with a reason and absent without one are one fixed,
+     validated set (see `--att-present` below), the same on every theme; the
+     school's theme colours only the interface around them. Each is also named
+     in words beside its colour.
    - Nothing is positioned absolutely: an absolute box inside `.viewc` is laid
      out against the document and makes the whole app scroll.
    ============================================================ */
 .app-att {
-    --att-brand: var(--t-brand-solid, #0d9488);
-    --att-reasoned: #f2a31b;
-    --att-absent: #9a3412;
+    /* The INTERFACE wears the school's theme (the chosen month, the picked
+       day); the DATA does not. Present / absent with a reason / absent without
+       one are one fixed set, validated together on white with the data-viz
+       checks (every pair apart under colour-blind simulation, worst ΔE 24.9;
+       under normal vision 27.2). Present followed the theme before, and on
+       Terai (green) and Laliguras (crimson) it could not be told from the rust
+       of an unexplained absence. The amber sits under 3:1 on white; every
+       count it marks is printed beside its swatch. */
+    --att-brand: var(--t-brand-solid, #3B5BDB);
+    --att-present: #2563C9;
+    --att-reasoned: #eda100;
+    --att-absent: #b5361d;
     --att-ink: var(--ink-900, #0f172a);
     --att-soft: var(--ink-600, #475569);
     --att-quiet: var(--ink-500, #64748b);
     --att-line: var(--line, #e2e8f0);
     /* plain colours first, for a browser without color-mix() */
-    --att-tint: #e7f4f3;
-    --att-tint-line: #b6dfdb;
-    --att-brand-ink: #085c55;
+    --att-tint: #edf1fd;
+    --att-tint-line: #ccd4f6;
+    --att-brand-ink: #2a44b8;
+    --att-present-tint: #e9f0fb;
+    --att-present-line: #b9cdee;
+    --att-present-ink: #1a4a99;
     color: var(--att-ink);
 }
 @supports (color: color-mix(in srgb, red 50%, blue)) {
@@ -4690,40 +4702,43 @@ button.app-att-day:focus-visible,
 .app-att-monthhead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 8px; margin-bottom: 10px; }
 .app-att-monthhead > .app-att-eyebrow { margin-bottom: 0; }
 
-.app-att-pie { display: block; flex-shrink: 0; }
-.app-att-pie .is-present { stroke: var(--att-brand); }
-.app-att-pie .is-reasoned { stroke: var(--att-reasoned); }
-.app-att-pie .is-absent { stroke: var(--att-absent); }
-.app-att-pie .is-rule { stroke: #fff; stroke-width: .4; }
-.app-att-pie .is-empty { stroke: #cbd5e1; }
+/* The split of the days marked: blocks along one line, a 2px gap of the card
+   between two. Tall for the year (its share printed inside, white on the blue
+   and the rust, near-black on the amber); thin for a month. */
+.app-att-split { display: flex; gap: 2px; width: 100%; }
+.app-att-split > span { display: flex; align-items: center; min-width: 3px; }
+.app-att-split .is-present { background: var(--att-present); }
+.app-att-split .is-reasoned { background: var(--att-reasoned); }
+.app-att-split .is-absent { background: var(--att-absent); }
+.app-att-split.is-tall { height: 28px; }
+.app-att-split.is-tall > span { border-radius: 4px; padding: 0 8px; }
+.app-att-split.is-tall b { font-size: 12px; line-height: 16px; font-weight: 700; color: #fff; white-space: nowrap; }
+.app-att-split.is-tall .is-reasoned b { color: #0b0b0b; }
+.app-att-split.is-thin { height: 8px; }
+.app-att-split.is-thin > span:first-child { border-radius: 999px 0 0 999px; }
+.app-att-split.is-thin > span:last-child { border-radius: 0 999px 999px 0; }
+.app-att-split.is-thin > span:only-child { border-radius: 999px; }
+.app-att-split.is-empty { border-radius: 999px; background: #eef0f4; }
+.app-att-split.is-empty.is-tall { border-radius: 4px; }
+.app-att-split.is-empty[data-dashed="true"] { background: transparent; border: 1px dashed #cbd5e1; }
 
-/* The pie, with the figure and the list of its slices beside it. Where the
-   block is too narrow for the list to sit beside the pie without its labels
-   breaking (a phone, or the year block at its narrowest), the list takes the
-   full width underneath instead. */
+/* The figure, the bar under it, and the list of its parts. */
 .app-att-year { container-type: inline-size; }
-.app-att-figure { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 22px; align-items: center; }
-.app-att-figure > .app-att-pie { grid-row: 1 / span 2; }
-.app-att-headline { align-self: end; min-width: 0; }
-.app-att-legend { align-self: start; }
-@container (max-width: 449.98px) {
-    .app-att-figure > .app-att-pie { grid-row: 1; }
-    .app-att-headline { align-self: center; }
-    .app-att-legend { grid-column: 1 / -1; }
-}
+.app-att-figure { display: flex; flex-direction: column; gap: 14px; }
+.app-att-headline { min-width: 0; }
 .app-att-pct { font-size: 44px; line-height: 44px; font-weight: 800; letter-spacing: -.02em; color: var(--att-ink); }
 .app-att-pct-word { margin-left: 8px; font-size: 15px; line-height: 20px; font-weight: 600; color: var(--att-soft); }
 .app-att-sub { margin-top: 4px; font-size: 13px; line-height: 19px; color: var(--att-soft); }
 
 /* held to a readable measure: in a wide block the days and the share would
    otherwise sit a hand's width away from the label they belong to */
-.app-att-legend { display: grid; gap: 7px; max-width: 400px; margin-top: 14px; list-style: none; }
+.app-att-legend { display: grid; gap: 7px; max-width: 400px; margin-top: 0; list-style: none; }
 .app-att-legend > li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto 44px; align-items: center; gap: 8px; }
 .app-att-legend b { font-size: 13px; line-height: 18px; font-weight: 600; color: var(--att-ink); }
 .app-att-legend span { font-size: 13px; line-height: 18px; font-variant-numeric: tabular-nums; color: var(--ink-700, #334155); }
 .app-att-legend em { font-size: 13px; line-height: 18px; font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; color: var(--att-ink); }
 .app-att-swatch { display: block; width: 12px; height: 12px; border-radius: 3px; }
-.app-att-swatch[data-tone="present"] { background: var(--att-brand); }
+.app-att-swatch[data-tone="present"] { background: var(--att-present); }
 .app-att-swatch[data-tone="reasoned"] { background: var(--att-reasoned); }
 .app-att-swatch[data-tone="absent"] { background: var(--att-absent); }
 
@@ -4740,11 +4755,11 @@ button.app-att-day:focus-visible,
     cursor: pointer;
     transition: background-color 140ms, border-color 140ms;
 }
-.app-att-month > .app-att-pie { margin-bottom: 4px; }
+.app-att-month > .app-att-split { width: calc(100% - 16px); margin: 4px 0 6px; }
 .app-att-month-name { font-size: 13px; line-height: 18px; font-weight: 700; color: var(--att-ink); }
 .app-att-month-count { font-size: 12px; line-height: 16px; font-variant-numeric: tabular-nums; color: var(--att-soft); }
 .app-att-month-note { font-size: 11.5px; line-height: 16px; font-weight: 600; color: var(--att-absent); }
-.app-att-month-note[data-tone="good"] { color: var(--att-brand-ink); }
+.app-att-month-note[data-tone="good"] { color: var(--att-present-ink); }
 /* chosen: the second pixel of line is drawn inside, so nothing moves */
 .app-att-month[data-selected="true"] { border-color: var(--att-brand); background: var(--att-tint); box-shadow: inset 0 0 0 1px var(--att-brand); }
 .app-att-month:disabled { border-style: dashed; border-color: #cbd5e1; cursor: default; }
@@ -4793,9 +4808,9 @@ button.app-att-day:focus-visible,
 button.app-att-day { cursor: pointer; }
 .app-att-day[data-state="blank"] { border-color: transparent; background: transparent; }
 .app-att-day[data-state="saturday"], .app-att-key i[data-state="saturday"] { border-color: #f1f5f9; background: #f1f5f9; }
-.app-att-day[data-state="present"], .app-att-key i[data-state="present"], .app-att-detail[data-state="present"] { border-color: var(--att-tint-line); background: var(--att-tint); }
+.app-att-day[data-state="present"], .app-att-key i[data-state="present"], .app-att-detail[data-state="present"] { border-color: var(--att-present-line); background: var(--att-present-tint); }
 .app-att-day[data-state="present"] > b { color: var(--att-ink); }
-.app-att-day[data-state="present"] > span { color: var(--att-brand-ink); }
+.app-att-day[data-state="present"] > span { color: var(--att-present-ink); }
 .app-att-day[data-state="absent"], .app-att-key i[data-state="absent"], .app-att-detail[data-state="absent"] { border-color: #f0b9a3; background: #fbe6dd; }
 .app-att-day[data-state="absent"] > b { color: #7c2d12; }
 .app-att-day[data-state="absent"] > span { color: var(--att-absent); }
@@ -4813,7 +4828,7 @@ button.app-att-day { cursor: pointer; }
 .app-att-detail { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; margin-top: 10px; padding: 9px 12px; border: 1px solid var(--att-line); border-radius: 10px; }
 .app-att-detail > b { font-size: 13px; line-height: 19px; font-weight: 700; color: var(--att-ink); }
 .app-att-detail > span { font-size: 13px; line-height: 19px; font-weight: 600; color: var(--att-ink); }
-.app-att-detail[data-state="present"] > span { color: var(--att-brand-ink); }
+.app-att-detail[data-state="present"] > span { color: var(--att-present-ink); }
 .app-att-detail[data-state="absent"] > b { color: #7c2d12; }
 .app-att-detail[data-state="absent"] > span { color: var(--att-absent); }
 .app-att-detail[data-state="reasoned"] > b { color: #6b4400; }
@@ -4840,12 +4855,9 @@ button.app-att-day { cursor: pointer; }
        the strip under the calendar, which a tap fills. */
     .app-att-top, .app-att-bottom { gap: 18px; }
     .app-att-hint { display: none; }
-    .app-att-figure { column-gap: 16px; }
-    .app-att-figure > .app-att-pie { width: 124px; height: 124px; }
     .app-att-pct { font-size: 38px; line-height: 40px; }
     .app-att-monthgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
     .app-att-month { padding: 8px 2px 7px; }
-    .app-att-month > .app-att-pie { width: 40px; height: 40px; }
     .app-att-month-name { font-size: 12.5px; }
     .app-att-month-note { display: none; }
     .app-att-weekdays, .app-att-grid { gap: 4px; }
