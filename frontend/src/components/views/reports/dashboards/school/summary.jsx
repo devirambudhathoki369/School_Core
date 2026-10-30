@@ -1,17 +1,17 @@
 import { useAppContext } from "@/contexts/AppContext";
 import { SkeletonCards, SkeletonText } from "@/components/Skeleton";
-import { getSummary } from "@/services/functions/analysis/summary";
+import { getAttendanceToday, getSummary } from "@/services/functions/analysis/summary";
 import { useLayoutEffect, useState } from "react";
 import UpcomingBirthdaysView from "./UpcomingBirthdaysView";
 import DeviceStatusView from "./DeviceStatusView";
 import GenderSplit from "./GenderSplit";
-import AttendanceToday from "./AttendanceToday";
+import { Greeting, PresentTile, CollectedTodayTile, ClassAttendance, NeedsAttention, SmsTile, SMS_LOW } from "./Today";
 import CollectionsCard from "./CollectionsCard";
 import StationsCard from "./StationsCard";
 import { useSMSCredits, creditFacts } from "@/components/views/communication/sms/useSMSCredits";
 import {
     AcademicCapIcon, UserGroupIcon, BookOpenIcon, TruckIcon,
-    DevicePhoneMobileIcon, CalendarDaysIcon, ReceiptPercentIcon,
+    ReceiptPercentIcon,
     MapPinIcon, TrophyIcon,
 } from "@heroicons/react/24/outline";
 
@@ -20,35 +20,6 @@ function CountCard({ label, count }) {
         <div className="grid grid-rows-2 !gap-y-0 items-center rounded-lg shadow-md py-4 bg-teal-100">
             <span className="text-sm font-semibold text-gray-600 uppercase tracking-wide self-start text-center">{label}</span>
             <span className="text-base text-gray-800 font-semibold self-end justify-self-center capitalize">{count}</span>
-        </div>
-    );
-}
-
-function KpiCard({ label, count, sublabel, Icon }) {
-    // `min-w-0` on the text column is what stops a long value being clipped:
-    // a flex child defaults to min-width:auto, so it refuses to shrink below its
-    // content and the card's `overflow-hidden` simply cut it off — which is how
-    // "EY2083/084" rendered as "EY208". With the column allowed to shrink, the
-    // value ellipsises (and keeps the full text in a tooltip) instead.
-    return (
-        // A white tile with its role colour on the icon (globals.css `.app-kpi`,
-        // picked by the tile's position). These were gradients with a
-        // decorative disc in the corner; the number is the point of the tile,
-        // and nothing should compete with it.
-        //
-        // On a phone the four tiles sit two by two, so each one stands its icon
-        // above its figure — beside it, half a phone's width left the value
-        // ("EY2083/084") nowhere to go.
-        <div className="app-kpi relative overflow-hidden rounded-xl border bg-white p-3.5 sm:p-4 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4">
-            <div className="app-kpi-icon shrink-0 rounded-lg bg-white/80 p-1.5 sm:p-2.5">
-                {Icon && <Icon className="h-5 w-5 sm:h-7 sm:w-7 text-gray-800" />}
-            </div>
-            <div className="flex flex-col min-w-0 w-full sm:w-auto">
-                <span className="app-kpi-label text-[11px] font-semibold uppercase tracking-wider text-gray-700 leading-snug">{label}</span>
-                <span className="app-kpi-value text-xl xl:text-2xl font-bold text-gray-900 leading-tight truncate"
-                    title={count === 0 || count ? String(count) : ""}>{count}</span>
-                {sublabel && <span className="app-kpi-sub text-[11px] text-gray-700/80 truncate" title={sublabel}>{sublabel}</span>}
-            </div>
         </div>
     );
 }
@@ -67,27 +38,31 @@ function StatTile({ label, value, Icon }) {
 
 // The balance comes from a cache on the server (the provider's own call takes
 // the best part of a minute). `useSMSCredits` keeps asking while that cached
-// figure is not the latest, and `creditFacts` says when the figure is from —
-// the card used to stop at the first number it got and show it with no age.
-function SMSCreditsView({ user }) {
-    // The /api/sms credits endpoint is admin-only and keyed by the admin's
-    // account id; the hook waits for `user` to hydrate (account present).
-    const { info, checking } = useSMSCredits(user?.profile?.account, user?.role === "admin");
+// figure is not the latest, and `creditFacts` says when the figure is from.
+// The hook runs once, in SchoolSummary, which hands the answer to this tile
+// and to "Needs attention" — two callers used to mean two polls.
+function SMSCreditsView({ info, checking }) {
     const { value, note } = creditFacts(info, checking);
-    return (
-        <KpiCard
-            label="SMS Credits"
-            count={info ? value : "-"}
-            sublabel={info ? note : "Available balance"}
-            Icon={DevicePhoneMobileIcon}
-        />
-    );
+    const credit = Number(value);
+    return <SmsTile value={info ? value : "-"} note={info ? note : "Available balance"}
+        low={Number.isFinite(credit) && credit < SMS_LOW} />;
 }
 
 function SchoolSummary() {
     const { user: { user }, fiscalYear: { year } } = useAppContext();
     const [summary, setSummary] = useState();
+    const [att, setAtt] = useState(null);
     const school = user?.profile?.school || user?.profile?.id;
+    // The /api/sms credits endpoint is admin-only and keyed by the admin's
+    // account id; the hook waits for `user` to hydrate (account present).
+    const { info: smsInfo, checking: smsChecking } = useSMSCredits(user?.profile?.account, user?.role === "admin");
+
+    // Today's roll, apart from the summary: it changes through the day, and
+    // the tiles, the class list and "Needs attention" all read the same answer.
+    useLayoutEffect(() => {
+        if (!school) return;
+        (async () => setAtt(await getAttendanceToday(school)))();
+    }, [school]);
 
     useLayoutEffect(() => {
         if (user?.profile && year?.economic_year) {
@@ -129,67 +104,54 @@ function SchoolSummary() {
     }
 
     return (
-        <div className="flex flex-col gap-y-4 mb-5">
-            {/* Top KPI row: two by two on a phone, one row on a desktop */}
+        <div className="app-dash flex flex-col gap-y-4 mb-5">
+            <Greeting />
+
+            {/* Today at a glance: two by two on a phone, one row on a desktop */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-                <KpiCard
-                    label="Total Students"
-                    count={totalStudents}
-                    sublabel={year?.academic_year_name || ""}
-                    Icon={AcademicCapIcon}
-                />
-                <KpiCard
-                    label="Total Staffs"
-                    count={totalStaffs}
-                    sublabel="Active employees"
-                    Icon={UserGroupIcon}
-                />
-                <KpiCard
-                    label="Running Economic Year"
-                    count={year?.economic_year_name || "-"}
-                    sublabel={`Accounting: ${year?.accounting_economic_year_name || "-"}`}
-                    Icon={CalendarDaysIcon}
-                />
-                <SMSCreditsView user={user} />
+                <PresentTile label="Students present" stats={att?.students} total={totalStudents} Icon={AcademicCapIcon} />
+                <PresentTile label="Staff present" stats={att?.staff} total={totalStaffs} Icon={UserGroupIcon} />
+                <CollectedTodayTile today={summary?.collected_today} />
+                <SMSCreditsView info={smsInfo} checking={smsChecking} />
             </div>
 
-            {/* Today, and the year so far: who is in, and what has come in */}
+            {/* Who is in, class by class — beside what needs a person today */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
-                {/* even halves on a small laptop, where five twelfths is too
-                    narrow for a ring, a count and who is missing on one line */}
-                <div className="lg:col-span-6 xl:col-span-5">
-                    <AttendanceToday school={school} />
+                <div className="lg:col-span-7"><ClassAttendance att={att} /></div>
+                <div className="lg:col-span-5 flex flex-col gap-3">
+                    <NeedsAttention school={school} att={att} smsInfo={smsInfo} />
+                    <div className="grid grid-cols-2 lg:grid-cols-1 gap-2.5 sm:gap-3">
+                        <UpcomingBirthdaysView label="Student birthdays today" role="student" />
+                        <UpcomingBirthdaysView label="Staff birthdays today" role="staff" />
+                    </div>
                 </div>
-                <div className="lg:col-span-6 xl:col-span-7">
+            </div>
+
+            {/* The year's money, and how students get to school */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+                <div className="lg:col-span-7">
                     <CollectionsCard monthsList={summary?.collections?.months} amounts={summary?.collections?.data}
                         yearName={year?.economic_year_name} today={user?.today} />
                 </div>
-            </div>
-
-            {/* Reader status — sits under attendance because that is what it
-                explains: a roster that looks empty is usually a reader that is
-                offline. Renders nothing for a school with no devices. */}
-            <DeviceStatusView school={school} />
-
-            {/* Birthdays: side by side even on a phone */}
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-                <UpcomingBirthdaysView label="Today student birthdays" role="student" />
-                <UpcomingBirthdaysView label="Today staff birthdays" role="staff" />
-            </div>
-
-            {/* Who the school is, and how they get there */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
-                <div className="lg:col-span-5 flex flex-col gap-3">
-                    <GenderSplit title="Running Students"
-                        counts={{ male: summary?.total?.male_students, female: summary?.total?.female_students, others: summary?.total?.others_students }}
-                        emptyHint="No students are enrolled for this academic year yet." />
-                    <GenderSplit title="Employed Staffs"
-                        counts={{ male: summary?.total?.male_staffs, female: summary?.total?.female_staffs, others: summary?.total?.others_staffs }}
-                        emptyHint="No staff records have been added yet." />
-                </div>
-                <div className="lg:col-span-7">
+                <div className="lg:col-span-5">
                     <StationsCard stations={summary?.transportation_services?.stations} counts={summary?.transportation_services?.data} />
                 </div>
+            </div>
+
+            {/* Reader status explains a roll that looks empty. Renders nothing
+                for a school with no devices; "Needs attention" scrolls here. */}
+            <div id="dash-devices" className="scroll-mt-4">
+                <DeviceStatusView school={school} />
+            </div>
+
+            {/* Who the school is */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <GenderSplit title="Running Students"
+                    counts={{ male: summary?.total?.male_students, female: summary?.total?.female_students, others: summary?.total?.others_students }}
+                    emptyHint="No students are enrolled for this academic year yet." />
+                <GenderSplit title="Employed Staffs"
+                    counts={{ male: summary?.total?.male_staffs, female: summary?.total?.female_staffs, others: summary?.total?.others_staffs }}
+                    emptyHint="No staff records have been added yet." />
             </div>
 
             {/* Detailed stats */}

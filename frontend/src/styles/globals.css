@@ -5566,3 +5566,53 @@ button.app-att-day { cursor: pointer; }
        header fade in rather than appearing in one frame. */
     :root :is(.app-empty, .app-pagehead) { animation: sc-fade var(--m-base) var(--ease-out) both; }
 }
+
+/* ============================ THE DASHBOARD ===============================
+   The school dashboard's "today" layer (dashboards/school/Today.jsx). -- */
+.app-dash-action {
+    transition:
+        background-color var(--m-fast) var(--ease-out),
+        border-color var(--m-fast) var(--ease-out);
+}
+.app-dash-action svg { color: currentColor; }
+.app-dash-action-primary {
+    background: var(--t-brand-solid);
+    border: 1px solid var(--t-brand-solid);
+    color: #FFFFFF;
+}
+.app-dash-action-primary:hover { background: var(--t-brand-hover); border-color: var(--t-brand-hover); }
+.app-dash-action-secondary {
+    background: #FFFFFF;
+    border: 1px solid #CDD2DA;
+    color: var(--ink-900);
+}
+.app-dash-action-secondary:hover { background: var(--surface-soft); border-color: var(--field-line); }
+.app-dash-class { transition: background-color var(--m-fast) var(--ease-out); }
+.app-dash-class:hover { background: var(--surface-soft); }
+
+@keyframes sc-grow {
+    from { transform: scaleX(0); }
+    to { transform: none; }
+}
+@media screen and (prefers-reduced-motion: no-preference) {
+    .app-dash-greeting { animation: sc-rise var(--m-slow) var(--ease-out) both; }
+    /* Bars fill from zero to their share, so a number is seen arriving rather
+       than simply being there; the class list fills top to bottom. */
+    .app-dash-meter > span,
+    .app-dash-bar {
+        transform-origin: left center;
+        animation: sc-grow 640ms var(--ease-out) both;
+        animation-delay: 120ms;
+    }
+    .app-dash-class:nth-child(2) .app-dash-bar { animation-delay: 150ms; }
+    .app-dash-class:nth-child(3) .app-dash-bar { animation-delay: 180ms; }
+    .app-dash-class:nth-child(4) .app-dash-bar { animation-delay: 210ms; }
+    .app-dash-class:nth-child(5) .app-dash-bar { animation-delay: 240ms; }
+    .app-dash-class:nth-child(6) .app-dash-bar { animation-delay: 270ms; }
+    .app-dash-class:nth-child(7) .app-dash-bar { animation-delay: 300ms; }
+    .app-dash-class:nth-child(8) .app-dash-bar { animation-delay: 330ms; }
+    .app-dash-class:nth-child(n+9) .app-dash-bar { animation-delay: 360ms; }
+    .app-dash-attention { animation: sc-rise var(--m-slow) var(--ease-out) both; }
+    .app-dash-attention:nth-child(2) { animation-delay: 60ms; }
+    .app-dash-attention:nth-child(n+3) { animation-delay: 120ms; }
+}
