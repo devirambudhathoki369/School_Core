@@ -244,7 +244,7 @@ function SuperAdminDashboard() {
                 <Tile label="Renewal date passed" Icon={ExclamationTriangleIcon}>
                     <span className="app-kpi-value text-[1.75rem] leading-9">{lapsed.length}</span>
                     <span className={`app-kpi-sub mt-auto text-[0.8125rem] leading-5 ${lapsed.length ? "!text-[var(--st-bad-ink)]" : ""}`}>
-                        {lapsed.length ? "Renew, or correct the date" : "Every licence is current"}
+                        {lapsed.length ? "Each closes 15 days after its date unless renewed" : "Every licence is current"}
                     </span>
                 </Tile>
                 <Tile label="On the mobile app" Icon={DevicePhoneMobileIcon}>

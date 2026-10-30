@@ -50,6 +50,7 @@ from main.models.Student import Student
 from main.models.Staff import Staff
 from main.serializers.SchoolAdminSerializer import SchoolAdminSerializer
 from main.methods.nepaliDatetime import ndt_today, ndt_today_npt
+from main.methods.licence import with_licence
 from main.methods.busTracking import with_tracking_flag
 from main.methods.schoolModules import with_module_flags
 from .methods.getStaffProfile import getStaffProfile
@@ -341,7 +342,8 @@ class LoginView(APIView):
                     user_profile = getStudentProfile(user)
                 elif self.role == UserRoles.ROLE_CANTEEN:
                     user_profile = canteen_user_profile(user)
-                message["user"]["profile"] = user_profile
+                # the licence's days left, counted in BS (main/methods/licence.py)
+                message["user"]["profile"] = with_licence(user_profile)
                 #
                 res = Response(message, status=status.HTTP_200_OK)
                 if token:
@@ -501,6 +503,7 @@ class ObtainView(APIView):
                 user["profile"] = {}
             elif self.role == UserRoles.ROLE_CANTEEN:
                 user["profile"] = canteen_user_profile(token_obj.user)
+            with_licence(user.get("profile"))
             user["today"] = ndt_today()
             # Nepal's own day — see the note where the login payload sets it.
             user["today_npt"] = ndt_today_npt()
