@@ -4884,8 +4884,8 @@ button.app-att-day { cursor: pointer; }
    already have stored, so no school's setting moves — only what it paints:
        classic   → Core       indigo, light rail (the default)
        vivid     → Himalaya   night-sky rail, glacier teal, saffron
-       daylight  → Phewa      deep-lake rail, sky blue, sunset orange
-       evergreen → Terai      forest rail, field green, paddy gold
+       daylight  → Phewa      lake-blue rail and accent, sunset orange
+       evergreen → Terai      field-green rail and accent, paddy gold
        laliguras → Laliguras  rhododendron crimson and gold, light rail
        console   → Console    deep violet; the superadmin's alone
    Every pair was measured, not eyeballed: brand under white text, menu text
@@ -4993,41 +4993,44 @@ button.app-att-day { cursor: pointer; }
     --t-aura-2: transparent;
 }
 
-/* Phewa */
+/* Phewa -- the lake itself: one clear azure for the menu and the accent, flat,
+   so the theme reads as BLUE at a glance (the old deep-lake slate read as
+   near-black). Menu text 6.67:1, section headings 4.97:1; the page you are on
+   is a white pill lettered in the lake (6.67:1); a button 5.94:1. */
 [data-ui-theme="daylight"] {
-    --brand-50: 227 241 250;
-    --brand-100: 220 234 242;
-    --brand-200: 189 216 231;
-    --brand-300: 142 188 213;
-    --brand-400: 74 147 187;
-    --brand-500: 3 105 161;
-    --brand-600: 5 97 147;
-    --brand-700: 7 89 133;
-    --brand-800: 9 72 110;
-    --brand-900: 11 56 88;
-    --t-rail: #0A3550;
-    --t-rail-head: #0A3550;
-    --t-rail-ink: #E3EEF6;
-    --t-rail-dim: #9DBBD0;
-    --t-rail-line: rgb(255 255 255 / .08);
-    --t-rail-hover: rgb(255 255 255 / .07);
+    --brand-50: 233 241 249;
+    --brand-100: 221 233 246;
+    --brand-200: 189 213 237;
+    --brand-300: 143 183 225;
+    --brand-400: 79 143 207;
+    --brand-500: 11 99 189;
+    --brand-600: 11 91 173;
+    --brand-700: 11 83 158;
+    --brand-800: 11 71 134;
+    --brand-900: 11 59 111;
+    --t-rail: #0B5CAD;
+    --t-rail-head: #0B5CAD;
+    --t-rail-ink: #F1F8FF;
+    --t-rail-dim: #C6E2FA;
+    --t-rail-line: rgb(255 255 255 / .14);
+    --t-rail-hover: rgb(255 255 255 / .10);
     --t-rail-strong: #FFFFFF;
-    --t-rail-mark: #5BB8EC;
-    --t-rail-mark-ink: #0A3550;
-    --t-accent: #5BB8EC;
-    --t-active-bg: #14506F;
-    --t-active-ink: #FFFFFF;
-    --t-group-bg: rgb(255 255 255 / .05);
-    --t-canvas: #F1F6FA;
-    --t-brand: #0369A1;
-    --t-brand-solid: #0369A1;
-    --t-brand-hover: #055E90;
-    --t-brand-ink: #075985;
-    --t-brand-tint: #E3F1FA;
-    --t-brand-tint-strong: #DCEAF2;
-    --t-brand-line: #BDD8E7;
-    --t-ring: rgb(3 105 161 / .22);
-    --t-k1: #0369A1;
+    --t-rail-mark: #9BD3FF;
+    --t-rail-mark-ink: #083F78;
+    --t-accent: #9BD3FF;
+    --t-active-bg: #FFFFFF;
+    --t-active-ink: #0B5CAD;
+    --t-group-bg: rgb(255 255 255 / .07);
+    --t-canvas: #EFF5FB;
+    --t-brand: #0B63BD;
+    --t-brand-solid: #0B63BD;
+    --t-brand-hover: #0A57A6;
+    --t-brand-ink: #0A57A6;
+    --t-brand-tint: #E9F1F9;
+    --t-brand-tint-strong: #D9EAFB;
+    --t-brand-line: #BDD5ED;
+    --t-ring: rgb(11 99 189 / .22);
+    --t-k1: #0B63BD;
     --t-k2: #E06A26;
     --t-k3: #0E7490;
     --t-k4: #7C3AED;
@@ -5040,41 +5043,44 @@ button.app-att-day { cursor: pointer; }
     --t-aura-2: transparent;
 }
 
-/* Terai */
+/* Terai -- the paddy field in growth: one clear green for the menu and the
+   accent, flat, so the theme reads as GREEN at a glance (the old forest rail
+   was close to black). Menu text 6.54:1, section headings 5.01:1; the page
+   you are on is a white pill lettered in the field (6.54:1); a button 5.39:1. */
 [data-ui-theme="evergreen"] {
-    --brand-50: 230 244 234;
-    --brand-100: 222 237 228;
-    --brand-200: 194 222 205;
-    --brand-300: 150 198 168;
-    --brand-400: 87 164 115;
-    --brand-500: 21 128 61;
-    --brand-600: 19 115 56;
-    --brand-700: 17 102 50;
-    --brand-800: 16 82 48;
-    --brand-900: 16 62 46;
-    --t-rail: #0F2E24;
-    --t-rail-head: #0F2E24;
-    --t-rail-ink: #E2F0E8;
-    --t-rail-dim: #9EC3B0;
-    --t-rail-line: rgb(255 255 255 / .08);
-    --t-rail-hover: rgb(255 255 255 / .07);
+    --brand-50: 234 243 238;
+    --brand-100: 222 236 229;
+    --brand-200: 191 219 205;
+    --brand-300: 146 194 170;
+    --brand-400: 84 159 122;
+    --brand-500: 18 122 70;
+    --brand-600: 17 112 66;
+    --brand-700: 17 101 62;
+    --brand-800: 16 86 57;
+    --brand-900: 15 70 51;
+    --t-rail: #0F6B45;
+    --t-rail-head: #0F6B45;
+    --t-rail-ink: #F0FBF5;
+    --t-rail-dim: #C4EAD4;
+    --t-rail-line: rgb(255 255 255 / .14);
+    --t-rail-hover: rgb(255 255 255 / .10);
     --t-rail-strong: #FFFFFF;
-    --t-rail-mark: #6FD39B;
-    --t-rail-mark-ink: #0F2E24;
-    --t-accent: #6FD39B;
-    --t-active-bg: #1C4A3A;
-    --t-active-ink: #FFFFFF;
-    --t-group-bg: rgb(255 255 255 / .05);
-    --t-canvas: #F3F6F2;
-    --t-brand: #15803D;
-    --t-brand-solid: #15803D;
-    --t-brand-hover: #14713A;
-    --t-brand-ink: #116632;
-    --t-brand-tint: #E6F4EA;
-    --t-brand-tint-strong: #DEEDE4;
-    --t-brand-line: #C2DECD;
-    --t-ring: rgb(21 128 61 / .22);
-    --t-k1: #15803D;
+    --t-rail-mark: #9BEFC0;
+    --t-rail-mark-ink: #0F6B45;
+    --t-accent: #9BEFC0;
+    --t-active-bg: #FFFFFF;
+    --t-active-ink: #0F6B45;
+    --t-group-bg: rgb(255 255 255 / .07);
+    --t-canvas: #F0F7F2;
+    --t-brand: #127A46;
+    --t-brand-solid: #127A46;
+    --t-brand-hover: #106B3E;
+    --t-brand-ink: #0E6A3C;
+    --t-brand-tint: #EAF3EE;
+    --t-brand-tint-strong: #D5EDDF;
+    --t-brand-line: #BFDBCD;
+    --t-ring: rgb(18 122 70 / .22);
+    --t-k1: #127A46;
     --t-k2: #BF8410;
     --t-k3: #0369A1;
     --t-k4: #7C3AED;
@@ -5663,6 +5669,15 @@ button.app-att-day { cursor: pointer; }
     --st-warn-bg: #FFF4E0; --st-warn-ink: #8A5300; --st-warn-line: #F3D28A;
     --st-bad-bg: #FDECEA; --st-bad-ink: #B42318; --st-bad-line: #F6C9C4; --st-bad-bg-hover: #FBDDD9;
 }
+/* Laliguras charts in the rhododendron's LEAF, not its flower: with crimson
+   as the data accent, a full class and a healthy fee month were painted in
+   the colour every reader takes for "something is wrong". The menu and the
+   buttons keep the crimson. 5.47:1 on white, 4.63:1 on its own track; the
+   night step (#2BA597, 5.70:1 on the dark card) is in NIGHT below. */
+:root[data-ui-theme="laliguras"] {
+    --viz-accent: #0F766E;
+    --viz-accent-track: #DDF0ED;
+}
 /* A part of a segmented bar answers the pointer: the hovered mark lifts. */
 .app-dash-seg { transition: filter var(--m-fast) var(--ease-out); }
 .app-dash-seg:hover { filter: brightness(1.12) saturate(1.05); }
@@ -5850,41 +5865,65 @@ button.app-att-day { cursor: pointer; }
     --t-ring: rgb(14 111 140 / .35);
     --viz-accent-track: #142C38;
 }
+/* Phewa and Terai at night: the menu goes deep but keeps its hue -- a bright
+   azure or green rail beside a #0D1117 page would glare. Menu text 12:1+. */
 :root[data-ui-mode="dark"][data-ui-theme="daylight"] {
-    --brand-50: 18 43 60;
-    --brand-100: 16 50 73;
-    --brand-200: 13 62 92;
-    --brand-300: 10 78 117;
-    --brand-400: 6 93 142;
-    --brand-500: 3 105 161;
-    --brand-600: 48 132 178;
-    --brand-700: 104 165 199;
-    --brand-800: 157 196 219;
-    --brand-900: 195 219 233;
-    --t-brand-ink: #68A5C7;
-    --t-brand-tint: #122B3C;
-    --t-brand-tint-strong: #103249;
-    --t-brand-line: #0C4262;
-    --t-ring: rgb(3 105 161 / .35);
-    --viz-accent-track: #122B3C;
+    --brand-50: 13 33 56;
+    --brand-100: 12 40 69;
+    --brand-200: 12 51 93;
+    --brand-300: 12 66 123;
+    --brand-400: 11 83 156;
+    --brand-500: 11 99 189;
+    --brand-600: 60 130 202;
+    --brand-700: 109 161 215;
+    --brand-800: 157 193 229;
+    --brand-900: 194 216 239;
+    --t-brand-ink: #6DA1D7;
+    --t-brand-tint: #0D2138;
+    --t-brand-tint-strong: #0C2845;
+    --t-brand-line: #0C427B;
+    --t-ring: rgb(11 99 189 / .35);
+    --viz-accent-track: #0D2138;
+    --t-rail: #0B2744;
+    --t-rail-head: #0B2744;
+    --t-rail-ink: #DCE9F7;
+    --t-rail-dim: #93AFCC;
+    --t-rail-line: rgb(255 255 255 / .08);
+    --t-rail-hover: rgb(255 255 255 / .06);
+    --t-rail-mark: #7FC2FF;
+    --t-rail-mark-ink: #0B2744;
+    --t-accent: #7FC2FF;
+    --t-active-bg: #17457A;
+    --t-active-ink: #FFFFFF;
 }
 :root[data-ui-mode="dark"][data-ui-theme="evergreen"] {
-    --brand-50: 22 47 40;
-    --brand-100: 22 57 43;
-    --brand-200: 22 72 47;
-    --brand-300: 21 93 52;
-    --brand-400: 21 113 57;
-    --brand-500: 21 128 61;
-    --brand-600: 63 151 96;
-    --brand-700: 105 174 131;
-    --brand-800: 158 202 174;
-    --brand-900: 195 223 205;
-    --t-brand-ink: #69AE83;
-    --t-brand-tint: #162F28;
-    --t-brand-tint-strong: #16392B;
-    --t-brand-line: #164E30;
-    --t-ring: rgb(21 128 61 / .35);
-    --viz-accent-track: #162F28;
+    --brand-50: 14 38 32;
+    --brand-100: 14 46 36;
+    --brand-200: 15 61 43;
+    --brand-300: 16 80 51;
+    --brand-400: 17 101 61;
+    --brand-500: 18 122 70;
+    --brand-600: 65 149 107;
+    --brand-700: 113 175 144;
+    --brand-800: 160 202 181;
+    --brand-900: 196 222 209;
+    --t-brand-ink: #71AF90;
+    --t-brand-tint: #0E2620;
+    --t-brand-tint-strong: #0E2E24;
+    --t-brand-line: #105033;
+    --t-ring: rgb(18 122 70 / .35);
+    --viz-accent-track: #0E2620;
+    --t-rail: #0A2B1E;
+    --t-rail-head: #0A2B1E;
+    --t-rail-ink: #DDF1E6;
+    --t-rail-dim: #8FB9A3;
+    --t-rail-line: rgb(255 255 255 / .08);
+    --t-rail-hover: rgb(255 255 255 / .06);
+    --t-rail-mark: #7FE0AA;
+    --t-rail-mark-ink: #0A2B1E;
+    --t-accent: #7FE0AA;
+    --t-active-bg: #155238;
+    --t-active-ink: #FFFFFF;
 }
 :root[data-ui-mode="dark"][data-ui-theme="laliguras"] {
     --brand-50: 56 25 40;
@@ -5902,7 +5941,8 @@ button.app-att-day { cursor: pointer; }
     --t-brand-tint-strong: #48182A;
     --t-brand-line: #6A1630;
     --t-ring: rgb(190 18 60 / .35);
-    --viz-accent-track: #381928;
+    --viz-accent: #2BA597;
+    --viz-accent-track: #12302D;
     --t-rail: #0D1117;
     --t-rail-head: #0D1117;
     --t-rail-ink: #C9D1DC;
@@ -6160,10 +6200,15 @@ button.app-att-day { cursor: pointer; }
 :root[data-ui-mode="dark"] .app-select:focus {
     background-color: var(--d-surface) !important;
 }
+/* The rail is painted by its palette at night too. Its `bg-white` (the mobile
+   drawer's ground) used to fall to the neutral-surface mapping above, so every
+   theme's menu went the same grey and the selected item -- also set to that
+   grey -- disappeared into it. */
+:root[data-ui-mode="dark"][data-ui-theme] .app-rail-shell .app-rail.bg-white { background-color: var(--t-rail) !important; }
 :root[data-ui-mode="dark"][data-ui-theme] .app-rail .app-menu-item-active,
 :root[data-ui-mode="dark"][data-ui-theme] .app-rail .app-menu-item-active:hover,
 :root[data-ui-mode="dark"][data-ui-theme] .app-rail .app-menu-item-active:focus {
-    background-color: var(--d-surface) !important;
+    background-color: var(--t-active-bg) !important;
 }
 :root[data-ui-mode="dark"] .app-kpi {
     border-color: var(--d-line) !important;
