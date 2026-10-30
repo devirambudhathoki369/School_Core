@@ -80,7 +80,7 @@ export function Greeting() {
 /* ------------------------------------------------------------------- tiles */
 // A ratio against its whole. The unfilled track is a lighter step of the
 // fill's own ramp, so the state reads across the whole bar.
-function Meter({ share, tone = "var(--viz-accent)", track = "var(--viz-accent-track)" }) {
+export function Meter({ share, tone = "var(--viz-accent)", track = "var(--viz-accent-track)" }) {
     const pct = Math.max(0, Math.min(100, share));
     return (
         <span className="app-dash-meter block h-2 overflow-hidden rounded-full" style={{ background: track }} aria-hidden="true">
@@ -89,7 +89,7 @@ function Meter({ share, tone = "var(--viz-accent)", track = "var(--viz-accent-tr
     );
 }
 
-function Tile({ label, Icon, children }) {
+export function Tile({ label, Icon, children }) {
     return (
         <div className="app-kpi app-dash-tile flex flex-col gap-2 rounded-xl bg-white p-4 sm:p-5">
             <span className="flex items-center gap-2">

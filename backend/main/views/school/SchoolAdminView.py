@@ -44,7 +44,9 @@ class SchoolAdminView(SecuredAPIView):
     def get(self, request):
         admins = list(
             SchoolAdmin.objects.values(
-                "account__id", "account__username", *ADMIN_PROFILE_RETURN_FIELDS
+                # uses_sms is the console's, not the sign-in profile's: it is
+                # read here so the superadmin dashboard can count SMS schools.
+                "account__id", "account__username", "uses_sms", *ADMIN_PROFILE_RETURN_FIELDS
             ).order_by("id")
         )
         # each school's facilities, from one query for all of them

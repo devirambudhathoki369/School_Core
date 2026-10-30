@@ -139,3 +139,23 @@ class DashboardTodayTests(TestCase):
 
     def test_a_day_with_nothing_collected(self):
         self.assertEqual(collected_on(self.school.id, TODAY), {"date": TODAY, "amount": Decimal("0"), "receipts": 0, "by_mode": []})
+
+
+class ConsoleSchoolListTests(TestCase):
+    """The superadmin dashboard reads its estate figures from /api/admins."""
+
+    def test_each_school_carries_what_the_console_counts(self):
+        from main.views.school.SchoolAdminView import SchoolAdminView
+
+        fy = EconomicYear.objects.create(name="2083/84", start_date="2083-04-01", end_date="2084-03-31")
+        SchoolAdmin.objects.create(
+            name="School one", address="Test address", estd_date="2080-01-01", renew_date="2083-07-20",
+            pan_no="123", email="one@example.com", account=AdminAccount.objects.create(username="admin-one"),
+            economic_year=fy, uses_sms=True, ui_theme="laliguras",
+        )
+        row = dict(SchoolAdminView().get(SimpleNamespace(query_params={})).data[0])
+        self.assertEqual(
+            {key: row.get(key) for key in ("renew_date", "uses_sms", "uses_mobile_app", "test_account", "ui_theme", "uses_hostel")},
+            {"renew_date": "2083-07-20", "uses_sms": True, "uses_mobile_app": False,
+             "test_account": False, "ui_theme": "laliguras", "uses_hostel": False},
+        )
