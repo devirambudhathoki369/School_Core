@@ -192,7 +192,7 @@ DATABASES = {
         else {
             "ENGINE": "django.db.backends.postgresql_psycopg2",
             "NAME": os.environ.get("POSTGRES_NAME"),
-            # `migrate` alone may use the role that owns the tables; see deploy/db_roles.sql.
+            # `migrate` alone may use the role that owns the tables; see tools/database/db_roles.sql.
             "USER": (RUNNING_MIGRATE and os.environ.get("POSTGRES_MIGRATE_USER")) or os.environ.get("POSTGRES_USER"),
             "PASSWORD": (RUNNING_MIGRATE and os.environ.get("POSTGRES_MIGRATE_PASSWORD")) or os.environ.get("POSTGRES_PASSWORD"),
             "HOST": os.getenv("POSTGRES_HOST", "localhost"),
@@ -463,6 +463,7 @@ ENFORCE_ORIGIN_CHECK = (
 # same Cloudflare edge into one bucket. Set NUM_PROXIES if the chain changes.
 # Only throttles read this (the sign-in lockout is keyed on username).
 REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "main.views.errors.api_exception_handler",
     "NUM_PROXIES": int(os.environ.get("NUM_PROXIES", "2") or 0),
 }
 

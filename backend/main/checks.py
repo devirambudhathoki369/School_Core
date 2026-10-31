@@ -14,7 +14,7 @@ def database_login_has_only_the_rights_it_needs(app_configs, **kwargs):
         return [
             Warning(
                 "The app signs in to PostgreSQL as a role that is a superuser or skips row security.",
-                hint="Use a role with data rights only: deploy/db_roles.sql.",
+                hint="Use a role with data rights only: tools/database/db_roles.sql.",
                 id="main.W001",
             )
         ]
