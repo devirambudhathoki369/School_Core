@@ -8,6 +8,7 @@ import ImageForm from "@/components/inputs/ImageForm";
 import { removeStaffImage, saveStaff } from "@/services/functions/staffs";
 import { useMemo } from "react";
 import QRCode from 'react-qr-code';
+import useDigitalIdCode from "@/hooks/digitalIdCode";
 
 const domain = typeof window !== "undefined" ? window.location.origin : "";
 const Role = 2;
@@ -16,10 +17,11 @@ function PersonalInfoTab({ tab }) {
     const { data: { staff, errors }, methods, images: { onImageSaved }, view: { isReadOnly } } = useStaffProfile();
     const readOnly = isReadOnly(tab.key);
     // 
+    const qrCode = useDigitalIdCode(staff.school, staff.id, Role);
     const qrUrl = useMemo(() => {
         const roleParam = `&role=${encodeURIComponent(Role)}`;
-        return `${domain}/profiles?org=${encodeURIComponent(staff.school)}&user=${encodeURIComponent(staff.id)}${roleParam}`;
-    }, [staff.id]);
+        return `${domain}/profiles?org=${encodeURIComponent(staff.school)}&user=${encodeURIComponent(staff.id)}${roleParam}${qrCode}`;
+    }, [staff.id, qrCode]);
     // 
     return (
         <>

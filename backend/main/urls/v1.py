@@ -27,7 +27,7 @@ from ..views.school.BirthdayTemplateView import (
     BirthdayTemplateBackgroundView,
 )
 from ..views.school.SchoolsView import SchoolsView, SchoolImageView
-from ..views.school.PublicProfileViews import PublicProfileView
+from ..views.school.PublicProfileViews import DigitalIdCodeView, PublicProfileView
 from ..views.school.SchoolAdminView import SchoolAdminView
 from ..views.StudentViews import StudentsView, StudentDiscountView
 from ..views.StaffViews import StaffRoleView, StaffView
@@ -197,6 +197,7 @@ urlpatterns = [
     ),
     path("admins", SchoolAdminView.as_view(), name="school admins"),
     path("schools", SchoolsView.as_view(), name="schools"),
+    path("digital_id_codes", DigitalIdCodeView.as_view(), name="the codes on digital id links"),
     path(
         "public_profile",
         PublicProfileView.as_view(),

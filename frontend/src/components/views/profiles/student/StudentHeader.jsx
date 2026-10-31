@@ -2,6 +2,7 @@ import Image from "next/image";
 import QRCode from "react-qr-code";
 import { useMemo } from "react";
 import { useStudentProfile } from "@/contexts/StudentProfile";
+import useDigitalIdCode from "@/hooks/digitalIdCode";
 import { useAppContext } from "@/contexts/AppContext";
 import { formatImagePath } from "@/methods/formatMediaPath";
 import showOnlyClass from "@/methods/showOnlyClass";
@@ -42,9 +43,10 @@ function StudentHeader() {
     const initials = [student?.first_name, student?.last_name]
         .filter(Boolean).map(n => n.trim()[0]).join("").toUpperCase();
 
+    const qrCode = useDigitalIdCode(student?.school, student?.id);
     const qrUrl = useMemo(() => (
-        `${domain}/profiles?org=${encodeURIComponent(student?.school)}&user=${encodeURIComponent(student?.id)}`
-    ), [student?.id, student?.school]);
+        `${domain}/profiles?org=${encodeURIComponent(student?.school)}&user=${encodeURIComponent(student?.id)}${qrCode}`
+    ), [student?.id, student?.school, qrCode]);
 
     // `classesBackup` is a list of [key, class] PAIRS — every other caller
     // destructures it that way. This one searched it for objects with an `id`,

@@ -2,6 +2,7 @@ import Image from "next/image";
 import QRCode from "react-qr-code";
 import { useEffect, useMemo, useState } from "react";
 import { useStaffProfile } from "@/contexts/StaffProfile";
+import useDigitalIdCode from "@/hooks/digitalIdCode";
 import { formatImagePath } from "@/methods/formatMediaPath";
 import { fetchStaffRoles } from "@/services/functions/staffs";
 import STAFF_STATUS_OPTIONS from "@/components/inputs/options/staff_status";
@@ -48,9 +49,10 @@ function StaffHeader() {
     const role = roles.find((r) => String(r.value) === String(staff?.role))?.name;
     const status = STAFF_STATUS_OPTIONS.find((s) => s.value === Number(staff?.status));
     const info = staff?.other_info || {};
+    const qrCode = useDigitalIdCode(staff?.school, staff?.id, ROLE_STAFF);
     const qrUrl = useMemo(() => (
-        `${domain}/profiles?org=${encodeURIComponent(staff?.school)}&user=${encodeURIComponent(staff?.id)}&role=${ROLE_STAFF}`
-    ), [staff?.school, staff?.id]);
+        `${domain}/profiles?org=${encodeURIComponent(staff?.school)}&user=${encodeURIComponent(staff?.id)}&role=${ROLE_STAFF}${qrCode}`
+    ), [staff?.school, staff?.id, qrCode]);
 
     return (
         <div className="mb-4 overflow-hidden rounded-xl border border-[var(--line)] bg-white">

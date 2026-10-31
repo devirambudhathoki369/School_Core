@@ -4,6 +4,7 @@ from rest_framework.test import APIClient
 from account.auth.AuthToken import AdminAuthToken
 from account.models import AdminAccount
 from account.passwords import password_problem
+from account.auth.context import users_context
 
 
 class PasswordRuleTests(SimpleTestCase):
@@ -18,6 +19,10 @@ class PasswordRuleTests(SimpleTestCase):
 
 
 class ServerRefusesWeakPasswordsTests(TestCase):
+    def setUp(self):
+        # A request leaves its account in the context for the next request to clear.
+        self.addCleanup(users_context.set, None)
+
     def test_changing_a_password_by_the_api(self):
         account = AdminAccount.objects.create_user(username="admin-rule", password="Schoo1@core")
         client = APIClient()

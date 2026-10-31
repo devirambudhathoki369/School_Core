@@ -13,12 +13,12 @@ function PublicProfilePage() {
     const { fetching, statusHandler } = useRequestStatus();
 
     const router = useRouter();
-    const { org, user, role = 1 } = router.query; // role: 1 | 2 [student | staff]
+    const { org, user, role = 1, c } = router.query; // role: 1 | 2 [student | staff]
 
     useEffect(() => {
         if (org && user) {
             const getDetails = async () => {
-                const res = await __fetch(API_PATH, { org, user, role });
+                const res = await __fetch(API_PATH, { org, user, role, c });
                 if (res) setDetails(res);
             }
             statusHandler.toggleFetching()
@@ -32,7 +32,7 @@ function PublicProfilePage() {
             {
                 fetching ?
                     <Loader minutes={1} /> :
-                    <PublicProfile role={role} details={details} />
+                    <PublicProfile role={Number(role)} details={details} />
             }
         </>
     )

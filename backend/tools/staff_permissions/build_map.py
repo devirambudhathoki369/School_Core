@@ -65,6 +65,14 @@ SELF_SERVICE = {
     "main.views.HomeworkViews.HomeworkView": ("get", "post", "put", "delete"),
     "main.views.HomeworkViews.HomeworkSubmissionView": ("get", "post", "put", "delete"),
     "main.views.CalendarEventViews.CalendarEventView": ("get",),
+    # What the mobile app's home screen and a teacher's timetable read. Nothing
+    # here is more than the school already tells every member of its staff.
+    "main.views.NewsEventViews.NewsEventView": ("get",),
+    "main.views.school.SchoolsView.SchoolImageView": ("get",),
+    "main.views.BusStationViews.BusStationView": ("get",),
+    "main.views.ClassPeriodViews.ClassPeriodView": ("get",),
+    # The code on a Digital ID link, drawn on the profile and card screens.
+    "main.views.school.PublicProfileViews.DigitalIdCodeView": ("get",),
 }
 # Reachable from a screen staff can open, but offered there to admins only
 # (the trace sees the call, not the role check around it).

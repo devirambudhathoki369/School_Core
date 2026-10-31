@@ -9,6 +9,7 @@ import AutoFitText from "@/components/AutoFitText";
 import { CardOptions } from "./configs";
 import CardCanvas from "@/components/designer/CardCanvas";
 import { getIDCardTemplate } from "@/services/functions/idcardTemplates";
+import useDigitalIdCode from "@/hooks/digitalIdCode";
 /**
  * Displayed/View : 150PPI = 300 x 450 px
  * Required/Export : 300PPI = 600 x 900 px
@@ -68,10 +69,11 @@ function cardData({ type, student, validity, profileImage, sign, school, qrUrl }
 function IDCard({ type, schoolId, student, validity, profileImage = null, sign = null, filters = {}, school = null }, ref) {
     const barcodeRef = useRef(null);
     //
+    const qrCode = useDigitalIdCode(schoolId, student.id, type === CardOptions.staff ? 2 : 1);
     const qrUrl = useMemo(() => {
         const roleParam = type === CardOptions.staff ? `&role=${encodeURIComponent(type)}` : '';
-        return `${domain}/profiles?org=${encodeURIComponent(schoolId)}&user=${encodeURIComponent(student.id)}${roleParam}`;
-    }, [student.id]);
+        return `${domain}/profiles?org=${encodeURIComponent(schoolId)}&user=${encodeURIComponent(student.id)}${roleParam}${qrCode}`;
+    }, [student.id, qrCode]);
 
     /**
      * The school's own design, if it has one.

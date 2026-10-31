@@ -9,13 +9,21 @@ from rest_framework.throttling import SimpleRateThrottle, AnonRateThrottle
 from django.conf import settings
 
 #
+from account.models import StudentAccount
+from account.auth.Authentication import (
+    AdminTokenAuthentication,
+    StaffTokenAuthentication,
+    StudentTokenAuthentication,
+)
 from main.methods.bloodgroupQuery import bloodgroupQuery
+from main.methods.digitalId import code_is_good, digital_id_code
 from main.models.SchoolAdmin import SchoolAdmin
 from main.models.Student import Student
 from main.models.Staff import Staff
 from main.models.ClassInfo import ClassInfo
 from main.methods.nameConcat import nameConcat
 from main.methods.genClassname import getClassDetails
+from main.views.BaseViews import SecuredAPIView
 
 school_fields = [
     "name",
@@ -53,6 +61,7 @@ Roles = {
     "student": 1,
     "staff": 2,
 }
+LINK_WITHOUT_CODE = ("name", "classname", "designation")
 
 
 class PublicProfileThrottle(SimpleRateThrottle):
@@ -108,6 +117,10 @@ class PublicProfileView(APIView):
                 _user = self.getStaff(user, organization)
             elif role == Roles["student"]:
                 _user = self.getStudent(user, organization)
+            # A link without its code could have been guessed from its ids, and
+            # cards printed before codes have none: they show who, not how to reach.
+            if _user and not code_is_good(request.query_params.get("c"), role, organization, user):
+                _user = {key: _user.get(key) for key in LINK_WITHOUT_CODE if key in _user}
             return Response({"org": _org, "user": _user})
         return Response(
             {"message": "Invalid request!"}, status=status.HTTP_400_BAD_REQUEST
@@ -177,3 +190,37 @@ class PublicProfileView(APIView):
             .first()
         )
         return _user
+
+
+class DigitalIdCodeView(SecuredAPIView):
+    """The codes for the links a signed-in screen draws as QR codes: {id: code}."""
+
+    authentication_classes = (
+        AdminTokenAuthentication,
+        StaffTokenAuthentication,
+        StudentTokenAuthentication,
+    )
+    MAX_IDS = 500
+
+    def get(self, request):
+        school = request.query_params.get("school")
+        role = request.query_params.get("role") or str(Roles["student"])
+        if not (str(school).isdigit() and role.isdigit()):
+            return self.RESPONSE__INVALID_REQUEST
+        school, role = int(school), int(role)
+        ids = [
+            int(i)
+            for i in (request.query_params.get("ids") or "").split(",")[: self.MAX_IDS]
+            if i.strip().isdigit()
+        ]
+        if not school or not ids or role not in Roles.values():
+            return self.RESPONSE__INVALID_REQUEST
+        if role == Roles["staff"]:
+            people = Staff.objects.filter(id__in=ids, school_id=school)
+        else:
+            people = Student.objects.filter(id__in=ids, class_info__school_id=school)
+        if isinstance(request.user, StudentAccount):
+            people = Student.objects.filter(account=request.user, class_info__school_id=school) if role == Roles["student"] else people.none()
+        return Response(
+            {pk: digital_id_code(role, school, pk) for pk in people.values_list("id", flat=True)}
+        )

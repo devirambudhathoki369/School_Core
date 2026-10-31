@@ -1,4 +1,6 @@
 from contextlib import contextmanager
+from django.urls import resolve
+from main.constants.staff_permissions import STAFF_PERMISSIONS
 from datetime import datetime, timezone as dt_timezone
 from types import SimpleNamespace
 
@@ -392,6 +394,10 @@ class InvoiceAuditOverHttpTests(AuditSchool, TestCase):
         return client
 
     def test_staff_pays_admin_reprints_and_deletes(self):
+        payments = resolve("/api/payments").func.view_class
+        Staff.objects.filter(account=self.sankalpa).update(
+            permissions=list(STAFF_PERMISSIONS[f"{payments.__module__}.{payments.__qualname__}"]["post"])
+        )
         staff = self.client_for(StaffAuthToken, self.sankalpa)
         admin = self.client_for(AdminAuthToken, self.admin)
         paid = staff.post("/api/payments", {

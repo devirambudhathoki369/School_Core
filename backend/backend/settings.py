@@ -413,12 +413,12 @@ ENFORCE_SCHOOL_SCOPE = (
 )
 
 # Whether a staff token is REFUSED a call its permissions' screens never make
-# (SecuredAPIView.enforce_staff_permissions). Off: every such call is logged to
-# django.security as "staff permission would refuse" and still served. Watch
-# that log -- the mobile app's calls are not in the generated map -- then set
-# ENFORCE_STAFF_PERMISSIONS=true.
+# (SecuredAPIView.enforce_staff_permissions). ENFORCE_STAFF_PERMISSIONS=false is
+# the way back if a release turns out to refuse something it should not: such
+# calls are then logged to django.security as "staff permission would refuse"
+# and still served.
 ENFORCE_STAFF_PERMISSIONS = (
-    os.environ.get("ENFORCE_STAFF_PERMISSIONS", "false").lower() == "true"
+    os.environ.get("ENFORCE_STAFF_PERMISSIONS", "true").lower() != "false"
 )
 
 # Whether a ZKTeco reader with no push_comm_key may still use /iclock/*.

@@ -20,27 +20,32 @@ function PublicProfile({ role = Role_Student, details }) {
                     />
                     <div className="text-center sm:text-left">
                         <h2 className="text-xl font-semibold text-blue-800 uppercase">{details?.user?.name}</h2>
-                        <p className="text-gray-600 flex items-center gap-2 capitalize">
-                            <CalendarIcon className="icon text-green-600" />Birth Date : {details?.user?.birth_date}
-                        </p>
-                        <p className="text-gray-600 flex items-center gap-2 capitalize">
-                            <BloodIcon className="icon text-red-600" />Blood Group : {details?.user?.blood_group}
-                        </p>
+                        {details?.user?.birth_date &&
+                            <p className="text-gray-600 flex items-center gap-2 capitalize">
+                                <CalendarIcon className="icon text-green-600" />Birth Date : {details?.user?.birth_date}
+                            </p>}
+                        {details?.user?.blood_group &&
+                            <p className="text-gray-600 flex items-center gap-2 capitalize">
+                                <BloodIcon className="icon text-red-600" />Blood Group : {details?.user?.blood_group}
+                            </p>}
                         <>
                             {role === Role_Student &&
                                 <>
                                     <p className="text-gray-600 flex items-center gap-2 capitalize">
                                         <BookmarkIcon className="icon text-teal-600" />Class : {details?.user?.classname}
                                     </p>
-                                    <p className="text-gray-600 flex items-center gap-2 capitalize">
-                                        <UserIcon className="icon text-cyan-600" />Guardian : {details?.user?.guardian_name}
-                                    </p>
-                                    <p className="text-gray-600 flex items-center gap-2">
-                                        <PhoneIcon className="icon text-green-600" />Contact : {details?.user?.guardian_contact}
-                                    </p>
-                                    <p className="text-gray-600 flex items-center gap-2 capitalize">
-                                        <MapPinIcon className="icon text-blue-600" />Address : {details?.user?.guardian_address}
-                                    </p>
+                                    {details?.user?.guardian_name &&
+                                        <p className="text-gray-600 flex items-center gap-2 capitalize">
+                                            <UserIcon className="icon text-cyan-600" />Guardian : {details?.user?.guardian_name}
+                                        </p>}
+                                    {details?.user?.guardian_contact &&
+                                        <p className="text-gray-600 flex items-center gap-2">
+                                            <PhoneIcon className="icon text-green-600" />Contact : {details?.user?.guardian_contact}
+                                        </p>}
+                                    {details?.user?.guardian_address &&
+                                        <p className="text-gray-600 flex items-center gap-2 capitalize">
+                                            <MapPinIcon className="icon text-blue-600" />Address : {details?.user?.guardian_address}
+                                        </p>}
                                 </>
                             }
                         </>
@@ -50,13 +55,15 @@ function PublicProfile({ role = Role_Student, details }) {
                                     <p className="text-gray-600 flex items-center gap-2 capitalize">
                                         <DesignationIcon className="icon text-green-600" />Designation : {details?.user?.designation}
                                     </p>
-                                    <p className="text-gray-600 flex items-center gap-2">
-                                        <PhoneIcon className="icon text-orange-600" />
-                                        Contact : {details?.user?.primary_contact} {details?.user?.secondary_contact}
-                                    </p>
-                                    <p className="text-gray-600 flex items-center gap-2 capitalize">
-                                        <MapPinIcon className="icon text-blue-600" />Address : {details?.user?.location}
-                                    </p>
+                                    {details?.user?.primary_contact &&
+                                        <p className="text-gray-600 flex items-center gap-2">
+                                            <PhoneIcon className="icon text-orange-600" />
+                                            Contact : {details?.user?.primary_contact} {details?.user?.secondary_contact}
+                                        </p>}
+                                    {details?.user?.location &&
+                                        <p className="text-gray-600 flex items-center gap-2 capitalize">
+                                            <MapPinIcon className="icon text-blue-600" />Address : {details?.user?.location}
+                                        </p>}
                                 </>
                             }
                         </>
