@@ -1,7 +1,8 @@
+from customs.EncryptedField import EncryptedCharField
 from main.models.BaseModel import CustomCharField
 from django.db.models import Model, CharField, BooleanField, DateTimeField
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.core.validators import MinLengthValidator
+from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.base_user import BaseUserManager
 
@@ -31,8 +32,8 @@ class BaseAccount(AbstractBaseUser):
     #
     created_at = DateTimeField(auto_now_add=True)
     verified = BooleanField(default=True)
-    secret = CharField(max_length=100, null=True, blank=True)
-    otp = CharField(max_length=6, null=True, blank=True)
+    secret = EncryptedCharField(null=True, blank=True, validators=[MaxLengthValidator(100)])
+    otp = EncryptedCharField(null=True, blank=True, validators=[MaxLengthValidator(6)])
 
     USERNAME_FIELD = "username"
 
@@ -58,7 +59,9 @@ class AdminAccount(BaseAccount):
     Admin refers to institutional accounts which can be created by superadmins.
     """
 
-    sms_api = CustomCharField(min_length=5, max_length=100, null=True, blank=True)
+    sms_api = EncryptedCharField(
+        null=True, blank=True, validators=[MinLengthValidator(5), MaxLengthValidator(100)]
+    )
 
 
 class AppCreds(Model):

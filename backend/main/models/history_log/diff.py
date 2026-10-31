@@ -116,6 +116,11 @@ def mask_str(value: str) -> str:
     return "*" * mask_limit + value[mask_limit:]
 
 
+# The audit trail says these changed, and never what they were: passwords and PINs,
+# OTPs and their secrets, a school's SMS key, a reader's key.
+NEVER_LOGGED = {"password", "otp", "secret", "sms_api", "push_comm_key"}
+
+
 def model_instance_diff(
     old: Optional[Model], new: Optional[Model], fields_to_check=None
 ):
@@ -196,7 +201,9 @@ def model_instance_diff(
         new_value = get_field_value(new, field)
 
         if old_value != new_value:
-            if model_fields and field.name in model_fields["mask_fields"]:
+            if field.name in NEVER_LOGGED:
+                diff[field.name] = ("changed", "changed")
+            elif model_fields and field.name in model_fields["mask_fields"]:
                 diff[field.name] = (
                     mask_str(smart_str(old_value)),
                     mask_str(smart_str(new_value)),

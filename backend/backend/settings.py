@@ -421,6 +421,13 @@ ENFORCE_STAFF_PERMISSIONS = (
     os.environ.get("ENFORCE_STAFF_PERMISSIONS", "true").lower() != "false"
 )
 
+# Keys for customs/EncryptedField.py, newest first, comma separated. Each one is
+# Fernet.generate_key(). Left empty, a key is derived from SECRET_KEY, so changing
+# SECRET_KEY then makes the encrypted values unreadable.
+FIELD_ENCRYPTION_KEYS = [
+    key.strip() for key in os.environ.get("FIELD_ENCRYPTION_KEYS", "").split(",") if key.strip()
+]
+
 # Whether a ZKTeco reader with no push_comm_key may still use /iclock/*.
 # Off until every reader (and its Device row) has a key: a keyless device is
 # identified only by its serial, so anyone who knows it can read the card

@@ -1,4 +1,7 @@
+from django.core.validators import MaxLengthValidator
 from django.db import models
+
+from customs.EncryptedField import EncryptedCharField
 from main.models.BaseModel import BaseModel
 from .Device import Device
 
@@ -11,7 +14,7 @@ class RFIDAttdUser(BaseModel):
     device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name="users")
     pin = models.CharField(max_length=24)
     privilege = models.IntegerField(default=0)
-    password = models.CharField(max_length=16, blank=True)
+    password = EncryptedCharField(blank=True, validators=[MaxLengthValidator(16)])
     card = models.CharField(max_length=32, blank=True)
     group_id = models.IntegerField(default=1)
     tz_str = models.CharField(max_length=32, blank=True)

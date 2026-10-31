@@ -1,4 +1,7 @@
+from django.core.validators import MaxLengthValidator
 from django.db import models
+
+from customs.EncryptedField import EncryptedCharField
 
 
 class Device(models.Model):
@@ -39,7 +42,7 @@ class Device(models.Model):
     firmware = models.CharField(max_length=64, blank=True)
     push_version = models.CharField(max_length=16, blank=True)
     device_type = models.CharField(max_length=32, blank=True)
-    push_comm_key = models.CharField(max_length=64, blank=True)
+    push_comm_key = EncryptedCharField(blank=True, validators=[MaxLengthValidator(64)])
     timezone_min = models.IntegerField(default=0)
     real_time = models.BooleanField(default=True)
     state = models.CharField(

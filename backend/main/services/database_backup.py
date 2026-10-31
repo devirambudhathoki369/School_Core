@@ -5,6 +5,7 @@ from datetime import datetime, time
 from pathlib import PurePosixPath
 from zipfile import ZIP_DEFLATED, ZipFile
 
+from customs.EncryptedField import EncryptedCharField
 from django.apps import apps
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection, transaction
@@ -104,6 +105,11 @@ def ownership_paths(models):
                 raise RuntimeError(f"Unclassified backup models: {', '.join(unknown)}")
             return paths
         paths.update(added)
+
+
+def stored_value(field, value):
+    """A backup holds an encrypted column as the database does, not read in the clear."""
+    return field.get_prep_value(value) if isinstance(field, EncryptedCharField) else value
 
 
 def chunks(values, size=500):
@@ -217,7 +223,7 @@ def write_school_backup(output, school_id):
                         for row in rows.iterator(chunk_size=500):
                             record = {"model": model._meta.label_lower,
                                       "pk": row[model._meta.pk.attname],
-                                      "fields": {f.name: row[f.attname] for f in fields}}
+                                      "fields": {f.name: stored_value(f, row[f.attname]) for f in fields}}
                             for field in fields:
                                 if isinstance(field, FileField) and row[field.attname]:
                                     media.setdefault(str(row[field.attname]), field.storage)
