@@ -31,6 +31,7 @@ from django.db.models import (
     ForeignKey,
     JSONField,
     Model,
+    OneToOneField,
     PositiveIntegerField,
     PositiveSmallIntegerField,
     TextField,
@@ -192,3 +193,27 @@ class CleanupChange(Model):
     old_value = JSONField(null=True)
     new_value = JSONField(null=True)
     created_at = DateTimeField(auto_now_add=True)
+
+
+class ExtraActivityGrade(Model):
+    """ExtraActivityEntry 1 ──── 0..* ExtraActivityGrade 0..* ──── 1 ExtraActivity"""
+
+    entry = ForeignKey("main.ExtraActivityEntry", on_delete=CASCADE, db_index=False, related_name="grades")
+    activity = ForeignKey("main.ExtraActivity", on_delete=CASCADE, related_name="+")
+    grade = CharField(max_length=100)
+
+    class Meta:
+        constraints = [UniqueConstraint(fields=["entry", "activity"], name="one_grade_per_entry_activity")]
+
+
+class ClassResultCriteria(Model):
+    """ClassResult 1 ──── 0..1 ClassResultCriteria: the marks a subject is out of, and its pass marks."""
+
+    class_result = OneToOneField("main.ClassResult", on_delete=CASCADE, primary_key=True, related_name="marks_criteria")
+    full_marks = DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    pass_marks = DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    full_marks_theory = DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    pass_marks_theory = DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    full_marks_practical = DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    pass_marks_practical = DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    attendance_total = DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)

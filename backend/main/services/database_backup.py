@@ -35,6 +35,9 @@ DERIVED_MODELS = {
     "main.classperiodslot", "main.examschedulesubject", "main.subjectassignmentstudent",
     "main.staffpermissiongrant", "main.studentledgerline", "main.studentinvoiceline",
     "main.staffledgerline", "main.staffinvoiceline",
+    "main.extraactivitygrade", "main.classresultcriteria",
+    "extra_billing.extraledgerline", "extra_billing.extrainvoiceline",
+    "canteen.canteentransactionline", "canteen.canteenuserpage", "canteen.canteenpostingplan",
 }
 # The trigger runs as each parent row is restored, which can be before the subject
 # or teacher it names is back. So the script runs the same sync again at its end.
@@ -47,6 +50,13 @@ DERIVED_RESYNC = {
     "main.studentinvoice": "norm_student_invoice_lines(id, details)",
     "main.staffledger": "norm_staff_ledger_lines(id, details)",
     "main.staffinvoice": "norm_staff_invoice_lines(id, details)",
+    "main.extraactivityentry": "norm_extra_activity_grades(id, extra_activities)",
+    "main.classresult": "norm_class_result_criteria(id, criteria)",
+    "extra_billing.extraledger": "norm_extra_ledger_lines(id, details)",
+    "extra_billing.extrainvoice": "norm_extra_invoice_lines(id, details)",
+    "canteen.canteentransaction": "norm_canteen_txn_lines(id, details)",
+    "canteen.canteenuser": "norm_canteen_user_pages(id, permissions)",
+    "canteen.canteenposting": "norm_canteen_posting_plans(id, plans)",
 }
 # A restored school signs in again: a backup must not be able to open a session.
 SESSION_MODELS = {

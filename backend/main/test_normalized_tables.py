@@ -1,3 +1,4 @@
+from decimal import Decimal
 from types import SimpleNamespace
 
 from django.db import IntegrityError, connection, transaction
@@ -207,3 +208,84 @@ class NormalizedTablesTests(TestCase):
         self.ledger({"od": 100}, 100)
         self.invoice({"od": {"amt": 100}}, number=1)
         self.assertEqual(audit(), [])
+
+
+class MoreNormalizedTablesTests(TestCase):
+    """The same pattern on the rest of the facts held in JSON."""
+
+    def setUp(self):
+        ey = EconomicYear.objects.create(name="2083/84", start_date="2083-04-01", end_date="2084-03-30")
+        self.ey = ey
+        self.school = SchoolAdmin.objects.create(
+            name="School", address="Test address", estd_date="2080-01-01", renew_date="2084-01-01", pan_no="123",
+            email="one@example.com", account=AdminAccount.objects.create(username="admin-one"), economic_year=ey,
+        )
+
+    def test_a_party_bill_and_receipt_get_lines(self):
+        from extra_billing.models import BillingParty, BillingTitle, ExtraInvoice, ExtraLedger, ExtraLedgerPosting
+
+        title = BillingTitle.objects.create(school=self.school, title="Rent")
+        party = BillingParty.objects.create(school=self.school, name="Tenant")
+        posting = ExtraLedgerPosting.objects.create(school=self.school, economic_year=self.ey, date="2083-07-01", months=[1])
+        ledger = ExtraLedger.objects.create(
+            posting=posting, party=party, school=self.school, economic_year=self.ey, date="2083-07-01", months=[1],
+            details={str(title.id): "15000.00", "__titles": {str(title.id): "Rent"}}, total=15000,
+        )
+        line = ledger.lines.get()
+        self.assertEqual((line.title_id, line.label, line.amount), (title.id, "Rent", Decimal("15000.00")))
+        receipt = ExtraInvoice.objects.create(
+            school=self.school, economic_year=self.ey, party=party, invoice_id=1, date="2083-07-01",
+            details={str(title.id): "10000.00", "od": "500.00"}, total_paid=10500,
+        )
+        self.assertEqual(sorted(l.amount for l in receipt.lines.all()), [Decimal("500.00"), Decimal("10000.00")])
+        self.assertEqual(receipt.lines.get(code="od").title_id, None)
+
+    def test_canteen_transaction_user_and_posting_rows(self):
+        from canteen.models import CanteenAccount, CanteenItem, CanteenPlan, CanteenPosting, CanteenTransaction, CanteenUser
+
+        item = CanteenItem.objects.create(school=self.school, name="Samosa", price=20)
+        klass_year = AcademicYear.objects.create(school=self.school, name="2083", start_date="2083-01-01", end_date="2083-12-30")
+        klass = ClassInfo.objects.create(school=self.school, academic_year=klass_year, education_level=2, grade=4)
+        student = Student.objects.create(
+            first_name="Asha", last_name="Pun", birth_date="2070-01-01", gender=2, location="Dang",
+            class_info=klass, academic_year=klass_year,
+            guardian_info=StudentGuardianInfo.objects.create(father_name="F", mother_name="M", guardian_contact="9800000000"),
+        )
+        account = CanteenAccount.objects.create(school=self.school, student=student)
+        txn = CanteenTransaction.objects.create(
+            school=self.school, economic_year=self.ey, account=account, kind=1, amount=-20, date="2083-07-01",
+            details={str(item.id): "-20.00", "__titles": {str(item.id): "Samosa"}},
+        )
+        self.assertEqual(txn.lines.get().item_id, item.id)
+        user = CanteenUser.objects.create(username="counter01", school=self.school, full_name="Sita", permissions=[2701, 2702, 2701])
+        self.assertEqual(sorted(user.pages.values_list("page", flat=True)), [2701, 2702])
+        plan = CanteenPlan.objects.create(school=self.school, name="Tiffin", kind=1)
+        posting = CanteenPosting.objects.create(
+            school=self.school, economic_year=self.ey, bs_year=2083, months=[1], plans=[plan.id, 999999], date="2083-07-01",
+        )
+        self.assertEqual(list(posting.plan_links.values_list("plan_id", flat=True)), [plan.id])
+
+    def test_activity_grades_and_marks_criteria(self):
+        from main.models.Normalized import ClassResultCriteria, ExtraActivityGrade
+        from main.models.exams.Exam import Exam
+        from main.models.exams.ExtraActivity import ExtraActivity, ExtraActivityEntry
+        from main.models.exams.Result import ClassResult
+
+        year = AcademicYear.objects.create(school=self.school, name="2083", start_date="2083-01-01", end_date="2083-12-30")
+        klass = ClassInfo.objects.create(school=self.school, academic_year=year, education_level=2, grade=4)
+        student = Student.objects.create(
+            first_name="Asha", last_name="Pun", birth_date="2070-01-01", gender=2, location="Dang",
+            class_info=klass, academic_year=year,
+            guardian_info=StudentGuardianInfo.objects.create(father_name="F", mother_name="M", guardian_contact="9800000000"),
+        )
+        exam = Exam.objects.create(school=self.school, academic_year=year, name="First term")
+        activity = ExtraActivity.objects.create(school=self.school, name="Discipline")
+        entry = ExtraActivityEntry.objects.create(
+            school=self.school, class_info=klass, exam=exam, student=student,
+            extra_activities={str(activity.id): "Excellent", "999999": "gone"},
+        )
+        self.assertEqual(list(ExtraActivityGrade.objects.filter(entry=entry).values_list("activity_id", "grade")), [(activity.id, "Excellent")])
+        subject = Subject.objects.create(school=self.school, class_info=klass, subject="Maths", type=1, order=1, code="M1", credit_hours=4)
+        result = ClassResult.objects.create(exam=exam, class_info=klass, subject=subject, criteria={"fm": "100", "pm": 35, "fm_th": "not a number"})
+        criteria = ClassResultCriteria.objects.get(class_result=result)
+        self.assertEqual((criteria.full_marks, criteria.pass_marks, criteria.full_marks_theory), (Decimal("100"), Decimal("35"), None))

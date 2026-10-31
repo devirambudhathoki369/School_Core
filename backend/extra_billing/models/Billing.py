@@ -25,6 +25,7 @@ the one code path that maintains it, and a drifted balance is a fight with a
 tenant.
 """
 
+from django.db import models
 from django.db.models import (
     CASCADE,
     DecimalField,
@@ -112,3 +113,31 @@ class ExtraInvoice(BaseModel):
 
     def __str__(self):
         return f"Extra receipt {self.invoice_id} ({self.party_id})"
+
+
+class ExtraLedgerLine(models.Model):
+    """ExtraLedger 1 ──── 0..* ExtraLedgerLine, written from `details` by a trigger. Read it; never write it."""
+
+    ledger = models.ForeignKey(ExtraLedger, on_delete=models.CASCADE, db_index=False, related_name="lines")
+    line_no = models.PositiveSmallIntegerField()
+    title = models.ForeignKey("extra_billing.BillingTitle", on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+    code = models.CharField(max_length=32, blank=True, default="")
+    label = models.TextField(null=True, blank=True)
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["ledger", "line_no"], name="one_extra_ledger_line_no")]
+
+
+class ExtraInvoiceLine(models.Model):
+    """ExtraInvoice 1 ──── 0..* ExtraInvoiceLine, written from `details` by a trigger. Read it; never write it."""
+
+    invoice = models.ForeignKey(ExtraInvoice, on_delete=models.CASCADE, db_index=False, related_name="lines")
+    line_no = models.PositiveSmallIntegerField()
+    title = models.ForeignKey("extra_billing.BillingTitle", on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+    code = models.CharField(max_length=32, blank=True, default="")
+    label = models.TextField(null=True, blank=True)
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["invoice", "line_no"], name="one_extra_invoice_line_no")]

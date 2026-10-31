@@ -32,7 +32,9 @@ from .PayrollClose import StaffPayrollClose  # noqa: F401
 from .SchoolModule import Module, SchoolModule  # noqa: F401
 from .Normalized import (  # noqa: F401
     ClassPeriodSlot,
+    ClassResultCriteria,
     ExamScheduleSubject,
+    ExtraActivityGrade,
     StaffInvoiceLine,
     CleanupChange,
     StaffLedgerLine,

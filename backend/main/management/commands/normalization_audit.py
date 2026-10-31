@@ -56,6 +56,24 @@ RECONCILE = [
 ]
 
 
+def plain_reconcile(table, lines, parent):
+    """A details blob of {key: amount} against its lines."""
+    return (
+        table,
+        f"""SELECT count(*) FROM {table} p
+           LEFT JOIN LATERAL (SELECT coalesce(sum(amount), 0) s FROM {lines} x WHERE x.{parent} = p.id) a ON true
+           LEFT JOIN LATERAL (SELECT coalesce(sum(norm_numeric(e.value)), 0) s FROM jsonb_each(p.details) e WHERE e.key <> '__titles') b ON true
+           WHERE abs(a.s - b.s) > 0.01""",
+    )
+
+
+RECONCILE += [
+    plain_reconcile("extra_billing_extraledger", "extra_billing_extraledgerline", "ledger_id"),
+    plain_reconcile("extra_billing_extrainvoice", "extra_billing_extrainvoiceline", "invoice_id"),
+    plain_reconcile("canteen_canteentransaction", "canteen_canteentransactionline", "transaction_id"),
+]
+
+
 def scalar(cursor, sql, params=None):
     cursor.execute(sql, params or [])
     return cursor.fetchone()[0]
