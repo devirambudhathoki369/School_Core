@@ -121,7 +121,10 @@ def student_rows(ids):
 
 
 class CanteenPlanView(CanteenBaseView):
-    pages_for = {method: (PAGE_USE_TYPES,) for method in ("POST", "PUT", "DELETE")}
+    pages_for = {
+        "GET": (PAGE_USE_TYPES, PAGE_MONTHLY_POSTING),
+        **{method: (PAGE_USE_TYPES,) for method in ("POST", "PUT", "DELETE")},
+    }
 
     def get(self, request):
         denied = self.gate(request)
@@ -261,7 +264,7 @@ class CanteenPlanView(CanteenBaseView):
 
 
 class CanteenEnrollmentView(CanteenBaseView):
-    pages_for = {method: (PAGE_USE_TYPES,) for method in ("POST", "PUT", "DELETE")}
+    pages_for = {method: (PAGE_USE_TYPES,) for method in ("GET", "POST", "PUT", "DELETE")}
 
     def get(self, request):
         denied = self.gate(request)
@@ -417,7 +420,7 @@ class CanteenEnrollmentView(CanteenBaseView):
 
 
 class CanteenMonthlyPostingView(CanteenBaseView):
-    pages_for = {"POST": (PAGE_MONTHLY_POSTING,), "DELETE": (PAGE_MONTHLY_POSTING,)}
+    pages_for = {method: (PAGE_MONTHLY_POSTING,) for method in ("GET", "POST", "DELETE")}
 
     def _months(self, raw):
         if isinstance(raw, str):

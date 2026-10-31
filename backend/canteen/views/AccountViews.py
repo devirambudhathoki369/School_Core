@@ -104,6 +104,7 @@ class CanteenAccountView(CanteenBaseView):
     # Money in and out is taken at Card Accounts and at Collect & Receipt alike;
     # limits and blocked cards only at Card Accounts.
     pages_for = {
+        "GET": (PAGE_ACCOUNTS, PAGE_COLLECT),
         "POST": (PAGE_ACCOUNTS, PAGE_COLLECT),
         "PUT": (PAGE_ACCOUNTS,),
         "DELETE": (PAGE_ACCOUNTS, PAGE_COLLECT),
@@ -393,6 +394,8 @@ class CanteenAccountView(CanteenBaseView):
 
 class CanteenReceiptView(CanteenBaseView):
     """One office receipt (a top-up or a refund), for the printed copy."""
+
+    pages_for = {"GET": (PAGE_ACCOUNTS, PAGE_COLLECT)}
 
     def get(self, request):
         denied = self.gate(request)

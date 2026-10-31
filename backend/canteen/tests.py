@@ -23,8 +23,8 @@ from main.models.Staff import Staff
 from main.models.Student import Student, StudentGuardianInfo
 
 from .constants import (
-    BUYER_STAFF, BUYER_STUDENT, BUYER_WALKIN, PAGE_COUNTER, PAGE_ITEMS, PAGE_REPORTS, PAGE_USE_TYPES,
-    PAGE_USERS,
+    BUYER_STAFF, BUYER_STUDENT, BUYER_WALKIN, PAGE_ACCOUNTS, PAGE_COLLECT, PAGE_COUNTER, PAGE_ITEMS,
+    PAGE_MONTHLY_POSTING, PAGE_REPORTS, PAGE_USE_TYPES, PAGE_USERS, PAGES,
     PAY_ACCOUNT, PAY_CASH, PAY_PLAN, TXN_POSTING,
 )
 from .methods.balances import balance
@@ -605,6 +605,39 @@ class CanteenUserTests(CanteenFixture, TestCase):
         out = browser.post("/auth/logout", {"role": "canteen"}, format="json")
         self.assertEqual(out.status_code, 200, out.content)
         self.assertFalse(CanteenUserToken.objects.filter(key=token).exists())
+
+    def test_a_page_opens_only_the_reads_its_screen_makes(self):
+        """A read used to be open to anyone holding any canteen page."""
+        reads = {
+            "/canteen/settings": PAGES,
+            "/canteen/categories": (PAGE_ITEMS,),
+            "/canteen/items": (PAGE_ITEMS, PAGE_COUNTER, PAGE_USE_TYPES),
+            "/canteen/class-rates": (PAGE_ITEMS,),
+            "/canteen/classes": (PAGE_USE_TYPES, PAGE_MONTHLY_POSTING, PAGE_REPORTS),
+            "/canteen/buyers": (PAGE_COUNTER, PAGE_ACCOUNTS, PAGE_COLLECT),
+            "/canteen/sales": (PAGE_COUNTER,),
+            "/canteen/accounts": (PAGE_ACCOUNTS, PAGE_COLLECT),
+            "/canteen/receipts": (PAGE_ACCOUNTS, PAGE_COLLECT),
+            "/canteen/plans": (PAGE_USE_TYPES, PAGE_MONTHLY_POSTING),
+            "/canteen/enrollments": (PAGE_USE_TYPES,),
+            "/canteen/monthly-posting": (PAGE_MONTHLY_POSTING,),
+            "/canteen/reports": (PAGE_REPORTS,),
+            "/canteen/users": (PAGE_USERS,),
+        }
+        self.add_user(pages=(PAGE_ITEMS,))
+        clerk = self.signed_in()
+        user = CanteenUser.objects.get(username="counter01")
+        for page in PAGES:
+            CanteenUser.objects.filter(pk=user.pk).update(permissions=[page])
+            for path, pages in reads.items():
+                refused = self.call("get", path, client=clerk).status_code == 403
+                self.assertEqual(refused, page not in pages, f"page {page} on {path}")
+
+    def test_buyer_search_does_not_hand_out_contact_numbers(self):
+        self.add_user(pages=(PAGE_COUNTER,))
+        buyers = self.call("get", "/canteen/buyers", q=self.student.first_name, client=self.signed_in()).json()["buyers"]
+        self.assertTrue(buyers)
+        self.assertNotIn("contact", buyers[0])
 
     def test_staff_need_the_page_too(self):
         clerk = APIClient()

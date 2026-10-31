@@ -35,6 +35,8 @@ from ..constants import (
     BUYER_WALKIN,
     MAX_LINES,
     MAX_QTY,
+    PAGE_ACCOUNTS,
+    PAGE_COLLECT,
     PAGE_COUNTER,
     PAY_ACCOUNT,
     PAY_CASH,
@@ -74,6 +76,8 @@ class Refused(Exception):
 
 
 class CanteenBuyerView(CanteenBaseView):
+    pages_for = {"GET": (PAGE_COUNTER, PAGE_ACCOUNTS, PAGE_COLLECT)}
+
     def get(self, request):
         denied = self.gate(request)
         if denied:
@@ -85,18 +89,21 @@ class CanteenBuyerView(CanteenBaseView):
         card = (params.get("card") or "").strip()
         q = (params.get("q") or "").strip()
         kind = self.int_or_none(params.get("type"))
+        # Every page that looks a buyer up needs who they are, not how to reach
+        # their family: the contact number stays on Card Accounts.
+        def found(students, staff):
+            buyers = describe_buyers(school_id, settings, today, students, staff)
+            return [{k: v for k, v in b.items() if k != "contact"} for b in buyers]
+
         if card:
             students = find_students(school_id, card=card, limit=2)
             staff = [] if students else find_staff(school_id, card=card, limit=2)
-            buyers = describe_buyers(school_id, settings, today, students, staff)
-            return Response({"buyers": buyers, "by_card": True})
+            return Response({"buyers": found(students, staff), "by_card": True})
         if len(q) < 1:
             return Response({"buyers": [], "by_card": False})
         students = find_students(school_id, q=q) if kind in (None, BUYER_STUDENT) else []
         staff = find_staff(school_id, q=q) if kind in (None, BUYER_STAFF) else []
-        return Response(
-            {"buyers": describe_buyers(school_id, settings, today, students, staff), "by_card": False}
-        )
+        return Response({"buyers": found(students, staff), "by_card": False})
 
 
 def sale_json(sale, with_lines=True):
@@ -160,7 +167,7 @@ def buyer_names(sales):
 
 
 class CanteenSaleView(CanteenBaseView):
-    pages_for = {"POST": (PAGE_COUNTER,), "DELETE": (PAGE_COUNTER,)}
+    pages_for = {method: (PAGE_COUNTER,) for method in ("GET", "POST", "DELETE")}
 
     def get(self, request):
         denied = self.gate(request)

@@ -14,7 +14,18 @@ from django.db import transaction
 from django.db.models import Count
 from rest_framework.response import Response
 
-from ..constants import FOOD_CHOICES, PAGE_ITEMS, PAGE_SETUP, RUN_BY_CHOICES, label
+from ..constants import (
+    FOOD_CHOICES,
+    PAGE_COUNTER,
+    PAGE_ITEMS,
+    PAGE_MONTHLY_POSTING,
+    PAGE_REPORTS,
+    PAGE_SETUP,
+    PAGE_USE_TYPES,
+    PAGES,
+    RUN_BY_CHOICES,
+    label,
+)
 from ..methods.settings import settings_for
 from ..methods.classes import school_classes
 from ..models import CanteenCategory, CanteenClassRate, CanteenItem
@@ -34,7 +45,8 @@ def settings_json(row):
 
 
 class CanteenSettingsView(CanteenBaseView):
-    pages_for = {"PUT": (PAGE_SETUP,)}
+    # Every canteen page reads the rules: the common header shows them.
+    pages_for = {"GET": PAGES, "PUT": (PAGE_SETUP,)}
 
     def get(self, request):
         denied = self.gate(request)
@@ -76,7 +88,7 @@ class CanteenSettingsView(CanteenBaseView):
 
 
 class CanteenCategoryView(CanteenBaseView):
-    pages_for = {method: (PAGE_ITEMS,) for method in ("POST", "PUT", "DELETE")}
+    pages_for = {method: (PAGE_ITEMS,) for method in ("GET", "POST", "PUT", "DELETE")}
 
     def get(self, request):
         denied = self.gate(request)
@@ -156,7 +168,10 @@ class CanteenCategoryView(CanteenBaseView):
 
 
 class CanteenItemView(CanteenBaseView):
-    pages_for = {method: (PAGE_ITEMS,) for method in ("POST", "PUT", "DELETE")}
+    pages_for = {
+        "GET": (PAGE_ITEMS, PAGE_COUNTER, PAGE_USE_TYPES),
+        **{method: (PAGE_ITEMS,) for method in ("POST", "PUT", "DELETE")},
+    }
 
     def get(self, request):
         denied = self.gate(request)
@@ -303,7 +318,7 @@ class CanteenClassRateView(CanteenBaseView):
     2,500". GET lists every class that has running students, with its rate (0
     when none is set). PUT takes the whole table and stores what is on screen."""
 
-    pages_for = {"PUT": (PAGE_ITEMS,)}
+    pages_for = {"GET": (PAGE_ITEMS,), "PUT": (PAGE_ITEMS,)}
 
     def _item(self, school_id, item_id):
         return CanteenItem.objects.filter(id=item_id, school_id=school_id, is_active=True).first()
@@ -373,6 +388,8 @@ class CanteenClassRateView(CanteenBaseView):
 class CanteenClassesView(CanteenBaseView):
     """The school's classes as the canteen keys its rates — the grade, for every
     section and stream of it — with how many running students each has."""
+
+    pages_for = {"GET": (PAGE_USE_TYPES, PAGE_MONTHLY_POSTING, PAGE_REPORTS)}
 
     def get(self, request):
         denied = self.gate(request)

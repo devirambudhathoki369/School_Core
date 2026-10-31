@@ -61,10 +61,10 @@ class CanteenBaseView(SecuredAPIView):
 
     authentication_classes = CANTEEN_AUTH
 
-    # Which canteen page each method needs: {"POST": (page, ...)} — any ONE of
-    # them will do. A method left out needs any canteen page at all: the pages
-    # read each other's lists (the counter reads the items, Collect reads an
-    # account), so reads are shared across the module and writes are not.
+    # Which canteen pages may make each call: {"POST": (page, ...)} — any ONE of
+    # them will do. A method left out is refused to anyone who holds pages, so a
+    # new handler starts closed. Reads list every page whose screen makes them:
+    # the counter reads the items, Collect reads an account.
     pages_for = {}
 
     RESPONSE__MODULE_OFF = Response(
@@ -125,7 +125,8 @@ class CanteenBaseView(SecuredAPIView):
         if not school_has_canteen(school_id):
             return self.RESPONSE__MODULE_OFF
         if getattr(request, "user_role", None) in PAGE_HOLDERS:
-            wanted = self.pages_for.get(request.method) or PAGES
+            method = "GET" if request.method == "HEAD" else request.method
+            wanted = self.pages_for.get(method, ())
             if not set(wanted) & set(self.pages_held(request, school_id)):
                 return self.RESPONSE__NO_PAGE
         return None
