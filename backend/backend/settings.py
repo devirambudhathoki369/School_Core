@@ -7,7 +7,7 @@ from sentry_sdk.integrations.logging import ignore_logger
 
 load_dotenv()
 
-DEBUG = os.environ.get("DEBUG", "true").lower() == "true"
+DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
 print("\t>> DEBUG MODE :", DEBUG)
 
 # SENTRY

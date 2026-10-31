@@ -15,6 +15,7 @@ header/detail discount rule all hold. Transport and hostel are billed as their
 and every facility is switched on.
 """
 import random
+import secrets
 from datetime import timedelta
 from decimal import Decimal
 
@@ -98,14 +99,16 @@ class Command(BaseCommand):
         parser.add_argument("--school-name", default="Demo Secondary School")
         parser.add_argument("--admin-username", default="demoschool")  # the sign-in form wants 6-25 characters
         parser.add_argument("--superadmin-username", default="superadmin")
-        parser.add_argument("--password", default="SchoolCore@2083",
-                            help="password for every demo login; change it after signing in")
+        parser.add_argument("--password", default=None,
+                            help="password for every demo login; a random one is made and printed if left out")
         parser.add_argument("--seed", type=int, default=2083, help="random seed, so the school is reproducible")
 
     def handle(self, *args, **opts):
         if model("main.SchoolAdmin").objects.exists():
             raise CommandError("This database already has a school. The demo seed only runs on an empty one.")
         self.rng = random.Random(opts["seed"])
+        # Random, because a default written here would be public and would open a superadmin.
+        opts["password"] = opts["password"] or "Demo@" + secrets.token_urlsafe(9)
         with transaction.atomic():
             self.build(opts)
         self.stdout.write(self.style.SUCCESS(self.summary()))

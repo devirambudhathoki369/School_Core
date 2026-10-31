@@ -41,6 +41,15 @@ SCRIPTABLE_TYPES = {
 }
 
 
+# What homework may be. A teacher opens these on their own computer, so an .exe
+# or .hta a browser would never run is still not something to hand them.
+HOMEWORK_EXTENSIONS = {
+    "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "odt", "ods", "odp", "rtf", "txt", "csv",
+    "jpg", "jpeg", "png", "gif", "webp", "heic", "heif", "bmp",
+    "mp3", "m4a", "wav", "ogg", "mp4", "mov", "webm",
+}
+
+
 def is_scriptable_type(content_type):
     """
     True for a served type a browser renders as a document that can run script.
@@ -124,4 +133,14 @@ def reject_active_content(files):
         getattr(f, "name", "")
         for f in files or []
         if hasattr(f, "name") and is_active_content(f.name)
+    ]
+
+
+def reject_non_homework(files):
+    """The uploaded files that are not on the homework list, by name."""
+    return [
+        getattr(f, "name", "")
+        for f in files or []
+        if hasattr(f, "name")
+        and os.path.splitext(str(f.name).strip().rstrip("."))[1].lower().lstrip(".") not in HOMEWORK_EXTENSIONS
     ]
