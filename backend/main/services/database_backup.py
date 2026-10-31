@@ -24,6 +24,26 @@ GLOBAL_MODELS = {
     "main.schoolfoundation", "main.noticesa",
     # the catalog of modules; a school's grants (main.schoolmodule) are its own
     "main.module",
+    "main.staffpermission",
+}
+# Rows the database writes from a JSON column by trigger (main/models/Normalized.py).
+# Restoring the parent writes them again, so an export of them would collide.
+DERIVED_MODELS = {
+    "main.classperiodslot", "main.examschedulesubject", "main.subjectassignmentstudent",
+    "main.staffpermissiongrant", "main.studentledgerline", "main.studentinvoiceline",
+    "main.staffledgerline", "main.staffinvoiceline",
+}
+# The trigger runs as each parent row is restored, which can be before the subject
+# or teacher it names is back. So the script runs the same sync again at its end.
+DERIVED_RESYNC = {
+    "main.classperiod": "norm_class_period_slots(id, subjects, teachers)",
+    "main.examschedule": "norm_exam_schedule_subjects(id, schedule)",
+    "main.subjectassignment": "norm_assignment_students(id, students)",
+    "main.staff": "norm_staff_grants(id, permissions)",
+    "main.studentledger": "norm_student_ledger_lines(id, details)",
+    "main.studentinvoice": "norm_student_invoice_lines(id, details)",
+    "main.staffledger": "norm_staff_ledger_lines(id, details)",
+    "main.staffinvoice": "norm_staff_invoice_lines(id, details)",
 }
 OWNED_DETAILS = {
     "account.adminaccount": "schooladmin__pk",
@@ -89,7 +109,8 @@ def chunks(values, size=500):
 
 def write_school_backup(output, school_id):
     models = [m for m in apps.get_models() if m._meta.app_label in APP_LABELS
-              and m._meta.managed and not m._meta.proxy]
+              and m._meta.managed and not m._meta.proxy
+              and m._meta.label_lower not in DERIVED_MODELS]
     paths = ownership_paths(models)
     selected = {m: set() for m in models}
     external = {}
@@ -273,6 +294,11 @@ def write_school_sql(archive, school, models, selected):
                     written += 1
             if isinstance(model._meta.pk, AutoField):
                 sequences.append((table, model._meta.pk.column))
+        for model in sorted(models, key=lambda m: m._meta.label_lower):
+            sync = DERIVED_RESYNC.get(model._meta.label_lower)
+            for batch in chunks(sorted(selected[model])) if sync else ():
+                ids = ",".join(str(pk) for pk in batch)
+                write(f"SELECT count({sync}) FROM {quote(model._meta.db_table)} WHERE id IN ({ids});\n")
         # New rows made after a restore must not reuse the numbers just put back.
         for table, column in sequences:
             write(f"SELECT setval(pg_get_serial_sequence('{table}', '{column}'), "
