@@ -2,6 +2,7 @@ from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from django.db import connection
 from django.test import TestCase
 
 from account.models import AdminAccount
@@ -39,6 +40,9 @@ class ClassLabelTests(TestCase):
 class DashboardTodayTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        # A day marked twice on two sheets, as a database not yet cleaned can still hold.
+        with connection.cursor() as cursor:
+            cursor.execute("DROP INDEX IF EXISTS uniq_class_attendance_per_day")
         cls.fy = EconomicYear.objects.create(name="2083/84", start_date="2083-04-01", end_date="2084-03-31")
         cls.school, cls.year = cls.make_school("one")
         cls.other, cls.other_year = cls.make_school("two")
@@ -93,7 +97,7 @@ class DashboardTodayTests(TestCase):
 
     @classmethod
     def mark(cls, student, date, status):
-        roll, _ = ClassAttendance.objects.get_or_create(date=date, class_info=student.class_info, school=student.class_info.school)
+        roll = ClassAttendance.objects.create(date=date, class_info=student.class_info, school=student.class_info.school)
         return StudentAttendance.objects.create(class_attendance=roll, student=student, status=status, reason="")
 
     def attendance(self):
