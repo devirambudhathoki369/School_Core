@@ -5672,12 +5672,16 @@ button.app-att-day { cursor: pointer; }
 /* Laliguras charts in the rhododendron's LEAF, not its flower: with crimson
    as the data accent, a full class and a healthy fee month were painted in
    the colour every reader takes for "something is wrong". The menu and the
-   buttons keep the crimson. 5.47:1 on white, 4.63:1 on its own track; the
-   night step (#2BA597, 5.70:1 on the dark card) is in NIGHT below. */
+   buttons keep the crimson. 5.31:1 on white and over the chroma floor (the
+   first leaf, #0F766E, read grey); the night step is in NIGHT below. */
 :root[data-ui-theme="laliguras"] {
-    --viz-accent: #0F766E;
-    --viz-accent-track: #DDF0ED;
+    --viz-accent: #0B7A5C;
+    --viz-accent-track: #DCEFE7;
 }
+/* Himalaya's glacier teal (#0E6F8C) is under the validator's chroma floor:
+   as the only colour in a chart it read as grey. Its charts take the same
+   glacier one step clearer (#08789A, 5.04:1 on white); buttons keep theirs. */
+:root[data-ui-theme="vivid"] { --viz-accent: #08789A; }
 /* A part of a segmented bar answers the pointer: the hovered mark lifts. */
 .app-dash-seg { transition: filter var(--m-fast) var(--ease-out); }
 .app-dash-seg:hover { filter: brightness(1.12) saturate(1.05); }
@@ -5883,6 +5887,8 @@ button.app-att-day { cursor: pointer; }
     --t-brand-tint-strong: #0C2845;
     --t-brand-line: #0C427B;
     --t-ring: rgb(11 99 189 / .35);
+    /* the day blue is 2.91:1 on the dark card; this step is over 3:1 */
+    --viz-accent: #3D8AD8;
     --viz-accent-track: #0D2138;
     --t-rail: #0B2744;
     --t-rail-head: #0B2744;
@@ -5941,7 +5947,7 @@ button.app-att-day { cursor: pointer; }
     --t-brand-tint-strong: #48182A;
     --t-brand-line: #6A1630;
     --t-ring: rgb(190 18 60 / .35);
-    --viz-accent: #2BA597;
+    --viz-accent: #1FA27A;
     --viz-accent-track: #12302D;
     --t-rail: #0D1117;
     --t-rail-head: #0D1117;
@@ -5972,6 +5978,8 @@ button.app-att-day { cursor: pointer; }
     --t-brand-tint-strong: #2F2654;
     --t-brand-line: #402E74;
     --t-ring: rgb(105 65 198 / .35);
+    /* the day violet is 2.61:1 on the dark card; this step is over 3:1 */
+    --viz-accent: #8F6BE0;
     --viz-accent-track: #272344;
 }
 
