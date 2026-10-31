@@ -1,4 +1,3 @@
-import re
 from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
@@ -15,6 +14,7 @@ from datetime import timedelta
 
 #
 from main.views.BaseViews import SecuredAPIView
+from .passwords import password_problem
 from .auth.Authentication import (
     UserTokenAuthentication,
     AdminTokenAuthentication,
@@ -864,6 +864,9 @@ class PasswordChangeView(SecuredAPIView):
                 )
             try:
                 acc = self.AccountModel.objects.get(id=user_id)
+                problem = password_problem(password, acc)
+                if problem:
+                    return Response({"message": problem}, status=status.HTTP_400_BAD_REQUEST)
                 with transaction.atomic():
                     acc.set_password(password)
                     acc.save()
@@ -915,20 +918,9 @@ class OwnPasswordChangeView(SecuredAPIView):
                 {"message": "Passwords do not match!"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        # same rule the form enforces (strong_password in schemas/validations)
-        if not (
-            6 <= len(password) <= 20
-            and re.search(r"[a-z]", password)
-            and re.search(r"[A-Z]", password)
-            and re.search(r"[0-9]", password)
-            and re.search(r"[@$!%*#?&]", password)
-        ):
-            return Response(
-                {
-                    "message": "Password must be 6-20 characters with upper and lower case letters, a number and one of @$!%*#?&"
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        problem = password_problem(password, acc)
+        if problem:
+            return Response({"message": problem}, status=status.HTTP_400_BAD_REQUEST)
         if acc.check_password(password):
             return Response(
                 {"message": "New password must differ from the current one!"},

@@ -189,7 +189,7 @@ class SchoolFormTests(TestCase):
 
     def new_school(self, username, **flags):
         return self.provider.post("/api/admins", {
-            "account": {"username": username, "password": "secret123"},
+            "account": {"username": username, "password": "Secret@123"},
             "name": "Chosen Facilities School", "address": "Tulsipur", "estd_date": "2080-01-01",
             "renew_date": "2084-01-01", "pan_no": "123", "email": f"{username}@example.com",
             "economic_year": self.year.id, **flags,

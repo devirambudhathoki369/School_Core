@@ -7,17 +7,26 @@ from main.models.Student import Student
 from main.models.Staff import Staff
 from .methods.extractSchoolSMSAPIKey import extractSchoolSMSAPIKey
 from .auth.OTP import BaseOTP
+from .passwords import password_problem
 from .utils.send_sms import send_sms
 
 
-class AdminAccountSerializer(serializers.ModelSerializer):
+class PasswordRuleMixin:
+    def validate_password(self, value):
+        problem = password_problem(value)
+        if problem:
+            raise serializers.ValidationError(problem)
+        return value
+
+
+class AdminAccountSerializer(PasswordRuleMixin, serializers.ModelSerializer):
     class Meta:
         model = AdminAccount
         fields = "__all__"
         extra_kwargs = {"password": {"write_only": True}}
 
 
-class SuperAdminAccountSerializer(serializers.ModelSerializer):
+class SuperAdminAccountSerializer(PasswordRuleMixin, serializers.ModelSerializer):
     class Meta:
         model = SuperAdminAccount
         fields = "__all__"
@@ -35,7 +44,7 @@ class AppCredsSerializer(serializers.Serializer):
         fields = "__all__"
 
 
-class StaffAccountSerializer(serializers.ModelSerializer, AppCredsSerializer):
+class StaffAccountSerializer(PasswordRuleMixin, serializers.ModelSerializer, AppCredsSerializer):
     staff = serializers.IntegerField(required=False)
 
     class Meta:
@@ -80,6 +89,7 @@ def contact_on_file(student, contact):
 
 
 class StudentAccountSerializer(
+    PasswordRuleMixin,
     serializers.ModelSerializer, AppCredsSerializer, BaseOTP
 ):
     student = serializers.PrimaryKeyRelatedField(

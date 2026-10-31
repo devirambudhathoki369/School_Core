@@ -21,31 +21,16 @@ from django.db import IntegrityError, transaction
 from rest_framework.response import Response
 
 from account.auth.UserRole import UserRoles
+from account.passwords import password_problem
 
 from ..auth import CanteenUserTokenAuthentication
-from ..constants import PAGE_CHOICES, PAGE_USERS
+from ..constants import PAGE_CHOICES, PAGE_USERS, PAGES
 from ..methods.users import clean_pages
 from ..models import CanteenUser, CanteenUserToken
 from .BaseViews import CanteenBaseView
 
 USERNAME = re.compile(r"^[\w.@+-]{6,25}$")
 PAGE_NAMES = dict(PAGE_CHOICES)
-
-
-def password_problem(password):
-    """The rule every password in the portal follows (OwnPasswordChangeView,
-    schemas/validations strong_password): 6-20 characters, upper and lower
-    case, a number and one of @$!%*#?&."""
-    if not (
-        6 <= len(password) <= 20
-        and re.search(r"[a-z]", password)
-        and re.search(r"[A-Z]", password)
-        and re.search(r"[0-9]", password)
-        and re.search(r"[@$!%*#?&]", password)
-    ):
-        return ("A password needs 6 to 20 characters with upper and lower case letters, "
-                "a number and one of @$!%*#?&.")
-    return None
 
 
 def user_json(user):
@@ -185,6 +170,7 @@ class CanteenOwnPasswordView(CanteenBaseView):
     unattended cannot be used to lock its owner out."""
 
     authentication_classes = (CanteenUserTokenAuthentication,)
+    pages_for = {"PUT": PAGES}
 
     def put(self, request):
         denied = self.gate(request)
