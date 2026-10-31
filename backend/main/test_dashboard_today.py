@@ -93,7 +93,7 @@ class DashboardTodayTests(TestCase):
 
     @classmethod
     def mark(cls, student, date, status):
-        roll = ClassAttendance.objects.create(date=date, class_info=student.class_info, school=student.class_info.school)
+        roll, _ = ClassAttendance.objects.get_or_create(date=date, class_info=student.class_info, school=student.class_info.school)
         return StudentAttendance.objects.create(class_attendance=roll, student=student, status=status, reason="")
 
     def attendance(self):

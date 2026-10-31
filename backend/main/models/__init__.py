@@ -34,6 +34,7 @@ from .Normalized import (  # noqa: F401
     ClassPeriodSlot,
     ExamScheduleSubject,
     StaffInvoiceLine,
+    CleanupChange,
     StaffLedgerLine,
     StaffPermission,
     StaffPermissionGrant,

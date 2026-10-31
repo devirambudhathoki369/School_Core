@@ -65,6 +65,7 @@ def audit():
     """Every finding as a line of text."""
     integrity = import_module("main.migrations.0110_integrity_keys")
     tenant = import_module("main.migrations.0111_tenant_keys")
+    later = import_module("main.migrations.0114_cleanup_log_and_keys")
     findings = []
     with connection.cursor() as cursor:
         if scalar(cursor, "SELECT to_regproc('norm_numeric') IS NOT NULL"):
@@ -74,7 +75,8 @@ def audit():
                     findings.append(f"{table}: {differ} row(s) whose lines differ from their JSON")
         else:
             findings.append("Normalized tables are not installed yet (run migrate to 0109).")
-        for name, table, key, where in integrity.UNIQUE_RULES:
+        rules = [rule[:4] for rule in (*integrity.UNIQUE_RULES, *later.UNIQUE_RULES)]
+        for name, table, key, where in rules:
             condition = f"WHERE {where}" if where else ""
             duplicates = scalar(
                 cursor,

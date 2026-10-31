@@ -26,6 +26,8 @@ GLOBAL_MODELS = {
     # the catalog of modules; a school's grants (main.schoolmodule) are its own
     "main.module",
     "main.staffpermission",
+    # manage.py normalization_cleanup's own log, across every school
+    "main.cleanupchange",
 }
 # Rows the database writes from a JSON column by trigger (main/models/Normalized.py).
 # Restoring the parent writes them again, so an export of them would collide.

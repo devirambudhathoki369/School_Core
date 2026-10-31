@@ -137,7 +137,7 @@ class AttendanceHistoryViewTests(TestCase):
 
     @classmethod
     def mark(cls, student, date, status, **fields):
-        roll = ClassAttendance.objects.create(
+        roll, _ = ClassAttendance.objects.get_or_create(
             date=date, class_info=student.class_info, school=student.class_info.school,
         )
         fields.setdefault("reason", "")

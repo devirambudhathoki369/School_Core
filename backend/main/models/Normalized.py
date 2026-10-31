@@ -21,12 +21,15 @@ where the line must survive), because a foreign key cannot hold it.
 """
 
 from django.db.models import (
+    BigIntegerField,
     CASCADE,
     PROTECT,
     SET_NULL,
     CharField,
+    DateTimeField,
     DecimalField,
     ForeignKey,
+    JSONField,
     Model,
     PositiveIntegerField,
     PositiveSmallIntegerField,
@@ -176,3 +179,16 @@ class StaffInvoiceLine(Model):
         constraints = [
             UniqueConstraint(fields=["invoice", "line_no"], name="one_staff_invoice_line_no")
         ]
+
+
+class CleanupChange(Model):
+    """One value manage.py normalization_cleanup changed, and what it was. Undo reads this."""
+
+    batch = CharField(max_length=32, db_index=True)
+    step = CharField(max_length=60)
+    table_name = CharField(max_length=63)
+    row_id = BigIntegerField()
+    column_name = CharField(max_length=63)
+    old_value = JSONField(null=True)
+    new_value = JSONField(null=True)
+    created_at = DateTimeField(auto_now_add=True)
