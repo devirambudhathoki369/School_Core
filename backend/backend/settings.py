@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 import os
 from dotenv import load_dotenv
 import sentry_sdk
@@ -179,6 +180,7 @@ POSTGRE = os.environ.get("POSTGRE", "").lower() == "true"
 USE_PROD_DB_DURING_DEBUG = (
     os.environ.get("USE_PROD_DB_DURING_DEBUG", "").lower() == "true"
 )
+RUNNING_MIGRATE = len(sys.argv) > 1 and sys.argv[1] == "migrate"
 
 DATABASES = {
     "default": (
@@ -190,8 +192,9 @@ DATABASES = {
         else {
             "ENGINE": "django.db.backends.postgresql_psycopg2",
             "NAME": os.environ.get("POSTGRES_NAME"),
-            "USER": os.environ.get("POSTGRES_USER"),
-            "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+            # `migrate` alone may use the role that owns the tables; see deploy/db_roles.sql.
+            "USER": (RUNNING_MIGRATE and os.environ.get("POSTGRES_MIGRATE_USER")) or os.environ.get("POSTGRES_USER"),
+            "PASSWORD": (RUNNING_MIGRATE and os.environ.get("POSTGRES_MIGRATE_PASSWORD")) or os.environ.get("POSTGRES_PASSWORD"),
             "HOST": os.getenv("POSTGRES_HOST", "localhost"),
             "PORT": os.environ.get("POSTGRES_PORT"),
             #

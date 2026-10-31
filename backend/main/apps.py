@@ -35,4 +35,5 @@ class AccountConfig(AppConfig):
     name = 'main'
 
     def ready(self):
+        from . import checks  # noqa: F401  registers `manage.py check --deploy` checks
         post_migrate.connect(sync_module_catalog, sender=self, dispatch_uid="main_module_catalog")
