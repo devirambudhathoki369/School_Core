@@ -9,6 +9,8 @@ from unittest.mock import patch
 from zipfile import ZipFile
 from django.apps import apps
 from django.core.management import call_command
+from django.core.signals import request_finished
+from django.db import close_old_connections
 from django.test import TestCase, SimpleTestCase, TransactionTestCase
 from main.services.database_backup import write_school_backup
 from main.views.superadmin.DatabaseBackupView import DatabaseBackupView, write_full_backup
@@ -29,6 +31,17 @@ def make(label, **values):
     obj = model(**values)
     model._base_manager.bulk_create([obj])
     return obj
+
+
+def close_response(response):
+    """A response's close() ends the request, and the end of a request closes the
+    database connection, which a test's transaction still needs. The test client
+    holds that back the same way."""
+    request_finished.disconnect(close_old_connections)
+    try:
+        response.close()
+    finally:
+        request_finished.connect(close_old_connections)
 
 
 class SchoolBackupTests(TestCase):
@@ -95,7 +108,7 @@ class SchoolBackupTests(TestCase):
             with ZipFile(io.BytesIO(b''.join(response.streaming_content))) as archive:
                 self.assertIsNone(archive.testzip())
         finally:
-            response.close()
+            close_response(response)
 
 
 class SchoolBackupSqlTests(TransactionTestCase):
@@ -189,11 +202,11 @@ class FullBackupTests(SimpleTestCase):
 
 
 class CompleteSchoolBackupTests(SchoolBackupTests):
-    def test_sessions_untagged_audit_and_timestamp_precision(self):
+    def test_sessions_stay_out_with_untagged_audit_and_timestamp_precision(self):
         from django.contrib.contenttypes.models import ContentType
         from datetime import datetime, timezone
         admin = self.schools[0].account
-        mine = make('account.AdminAuthToken', key='a' * 40, user=admin)
+        make('account.AdminAuthToken', key='a' * 40, user=admin)
         make('account.AdminAuthToken', key='b' * 40, user=self.schools[1].account)
         student_type = ContentType.objects.get_for_model(self.students[0])
         user_type = ContentType.objects.get_for_model(admin)
@@ -207,7 +220,7 @@ class CompleteSchoolBackupTests(SchoolBackupTests):
         write_school_backup(output, self.schools[0].pk)
         with ZipFile(output) as archive:
             records = json.loads(archive.read('data.json'))
-        self.assertEqual([r['pk'] for r in records if r['model'] == 'account.adminauthtoken'], [mine.pk])
+        self.assertEqual([r for r in records if r['model'].endswith('authtoken')], [])
         logs = [r for r in records if r['model'] == 'main.historylog']
         self.assertEqual([r['pk'] for r in logs], [log.pk])
         self.assertEqual(logs[0]['fields']['timestamp'], timestamp.isoformat())
@@ -264,7 +277,7 @@ class BackupJobTests(SimpleTestCase):
                     self.assertEqual(gzip.decompress(b''.join(response.streaming_content)), b'complete database')
                     self.assertIn('no-store', response['Cache-Control'])
                 finally:
-                    response.close()
+                    close_response(response)
 
     def test_job_lock_and_invalid_ids(self):
         import fcntl

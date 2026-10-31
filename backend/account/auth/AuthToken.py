@@ -4,11 +4,36 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 import binascii
+import hashlib
 import os
 from django.utils.translation import gettext_lazy as _
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from django.contrib.auth.models import User
 from django.contrib import admin
+
+
+class TokenDigest(str):
+    """A token as the database holds it: already hashed, so never hashed again."""
+
+
+class HashedTokenField(models.CharField):
+    """
+    Keeps the SHA-256 of a session token, never the token, so a copy of the table
+    or a backup opens no session. A token is hashed on its way to the database, in
+    saves and lookups alike; a new row still hands its token back through `.key`
+    for the sign-in response. What is read back is a TokenDigest and goes back as
+    it is, which is why a stolen digest presented as a token is hashed again and
+    matches nothing.
+    """
+
+    def from_db_value(self, value, expression, connection):
+        return None if value is None else TokenDigest(value)
+
+    def get_prep_value(self, value):
+        value = super().get_prep_value(value)
+        if value is None or isinstance(value, TokenDigest):
+            return value
+        return hashlib.sha256(value.encode()).hexdigest()
 
 
 class AuthToken(models.Model):
@@ -18,7 +43,7 @@ class AuthToken(models.Model):
     # me out" complaint this whole model exists to remove.
     MAX_ACTIVE_SESSIONS = 25
 
-    key = models.CharField(_("Token"), max_length=40, primary_key=True)
+    key = HashedTokenField(_("Token"), max_length=64, primary_key=True)
     created = models.DateTimeField(_("Created"), auto_now_add=True)
     # The FCM registration id this session signed in with, when it came from the
     # mobile app. It is what lets logout tell "this is the phone, drop its push

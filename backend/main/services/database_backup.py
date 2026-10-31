@@ -45,6 +45,11 @@ DERIVED_RESYNC = {
     "main.staffledger": "norm_staff_ledger_lines(id, details)",
     "main.staffinvoice": "norm_staff_invoice_lines(id, details)",
 }
+# A restored school signs in again: a backup must not be able to open a session.
+SESSION_MODELS = {
+    "account.adminauthtoken", "account.staffauthtoken", "account.studentauthtoken",
+    "canteen.canteenusertoken",
+}
 OWNED_DETAILS = {
     "account.adminaccount": "schooladmin__pk",
     "account.studentaccount": "student__class_info__school_id",
@@ -110,13 +115,16 @@ def chunks(values, size=500):
 def write_school_backup(output, school_id):
     models = [m for m in apps.get_models() if m._meta.app_label in APP_LABELS
               and m._meta.managed and not m._meta.proxy
-              and m._meta.label_lower not in DERIVED_MODELS]
+              and m._meta.label_lower not in DERIVED_MODELS
+              and m._meta.label_lower not in SESSION_MODELS]
     paths = ownership_paths(models)
     selected = {m: set() for m in models}
     external = {}
+    # Only the outermost transaction can choose its isolation level.
+    outermost = not connection.in_atomic_block
     with transaction.atomic():
         # All tables must describe the same instant, even during active billing.
-        if connection.vendor == "postgresql":
+        if connection.vendor == "postgresql" and outermost:
             with connection.cursor() as cursor:
                 cursor.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY")
         school = SchoolAdmin._base_manager.get(pk=school_id)
