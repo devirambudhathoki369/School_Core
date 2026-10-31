@@ -1,3 +1,4 @@
+from main.methods.uploads import private_documents
 from django.db.models import (
     Model,
     IntegerField,
@@ -71,10 +72,10 @@ class Student(BaseModel):
     )
     emis = CustomCharField(min_length=1, max_length=50, **_allow_empty)
     image = ImageField(upload_to="student_profiles/%Y/", **_allow_empty)
-    birth_certificate = ImageField(upload_to="student_documents/%Y/", **_allow_empty)
-    nid = ImageField(upload_to="student_documents/%Y/", **_allow_empty)
-    citizenship_front = ImageField(upload_to="student_documents/%Y/", **_allow_empty)
-    citizenship_back = ImageField(upload_to="student_documents/%Y/", **_allow_empty)
+    birth_certificate = ImageField(upload_to="student_documents/%Y/", storage=private_documents, **_allow_empty)
+    nid = ImageField(upload_to="student_documents/%Y/", storage=private_documents, **_allow_empty)
+    citizenship_front = ImageField(upload_to="student_documents/%Y/", storage=private_documents, **_allow_empty)
+    citizenship_back = ImageField(upload_to="student_documents/%Y/", storage=private_documents, **_allow_empty)
     previous_school = CustomCharField(min_length=10, max_length=50, **_allow_empty)
     remarks = CustomCharField(min_length=1, max_length=50, **_allow_empty)
     # RFID card number, storable independently of any attendance device so it

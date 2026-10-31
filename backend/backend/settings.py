@@ -335,6 +335,9 @@ LOGGING = {
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.environ.get("MEDIA_ROOT") or "media"
+# Identity documents. The web server must never serve this folder.
+PRIVATE_MEDIA_ROOT = os.environ.get("PRIVATE_MEDIA_ROOT") or "private_media"
+DOCUMENT_LINK_SECONDS = int(os.environ.get("DOCUMENT_LINK_SECONDS") or 3600)
 
 # Media refuses file types a browser would run (main/methods/uploads.py).
 # Static storage is spelled out as what Django 5.1 already uses: it no longer

@@ -14,6 +14,7 @@ error.json
 .env
 .git_backup
 /media
+/private_media
 /.venv
 
 # deployment (kept local, shipped to VPS via rsync — never committed)

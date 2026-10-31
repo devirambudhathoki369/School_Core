@@ -1,6 +1,8 @@
 import mimetypes
 import os
 
+from django.conf import settings
+from django.core import signing
 from django.core.exceptions import SuspiciousFileOperation
 from django.core.files.storage import FileSystemStorage
 
@@ -94,6 +96,50 @@ class UploadStorage(FileSystemStorage):
                 "Refused to store %r: browsers run that file type." % name
             )
         return super()._save(name, content)
+
+
+class PrivateDocumentStorage(UploadStorage):
+    """
+    Identity documents: birth certificates, NID, citizenship.
+
+    Public media is served by the web server to anyone with the address. These
+    live outside it, and a screen gets a signed link that stops working after
+    DOCUMENT_LINK_SECONDS. A file from before this still sits in public media until
+    `manage.py move_student_documents` moves it, so reads fall back to there.
+    """
+
+    SALT = "main.student_document"
+
+    def __init__(self):
+        super().__init__(location=settings.PRIVATE_MEDIA_ROOT)
+
+    def _old_home(self):
+        return FileSystemStorage(location=settings.MEDIA_ROOT)
+
+    def url(self, name):
+        return "/api/documents/" + signing.dumps(name, salt=self.SALT, compress=True)
+
+    @classmethod
+    def name_from_link(cls, token):
+        """The file a signed link names. Raises BadSignature when forged or too old."""
+        return signing.loads(token, salt=cls.SALT, max_age=settings.DOCUMENT_LINK_SECONDS)
+
+    def _open(self, name, mode="rb"):
+        try:
+            return super()._open(name, mode)
+        except FileNotFoundError:
+            return self._old_home()._open(name, mode)
+
+    def exists(self, name):
+        return super().exists(name) or self._old_home().exists(name)
+
+    def delete(self, name):
+        super().delete(name)
+        self._old_home().delete(name)
+
+
+def private_documents():
+    return PrivateDocumentStorage()
 
 
 def is_safe_image(upload):
