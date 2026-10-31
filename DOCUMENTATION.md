@@ -255,8 +255,8 @@ Notation: `FK→X`, `1:1→X`, `(opt)` optional, `BS` Nepali date, money = Decim
 - **Course** (`course`, `education_level`, `school`); **Section** (`section`, `school`).
 - **ClassDetails** (abstract key): `education_level`, `grade`(opt), `faculty`(opt),
   `course`(opt), `section`(opt), `year`(opt), `semester`(opt), `name`(opt).
-- **ClassInfo** = ClassDetails + `academic_year`(opt) + `school`; **unique** on the full
-  tuple.
+- **ClassInfo** = ClassDetails + `academic_year`(opt) + `school`; `unique_together` on the
+  tuple, though a NULL in any column lets a duplicate through.
 - **Subject** — `type` (compulsory/optional), `order`, `code`, `subject`, `credit_hours`;
   practical `code_pr`/`subject_pr`/`credit_hours_pr`(opt); `is_protected`; `school`,
   `class_info`.
@@ -444,6 +444,57 @@ Notation: `FK→X`, `1:1→X`, `(opt)` optional, `BS` Nepali date, money = Decim
   `discounts`, `lib_fine` library fine, `cfo` carry-forward-out (negative balancing entry in
   the old year; never collectable).
 - **Invoice detail keys:** `amt`, `dis`, `due`, `tdsp` (tax %), `tdsa` (tax amt).
+
+### 4.20 Normalized tables (`main`)
+
+Real rows for facts that still live in JSON. Triggers on the parent rewrite them whenever the
+JSON changes, so `bulk_create` and `update()` are covered. **Read them; never write them from
+the app.** The JSON stays the source of truth until a later release moves the writers here and
+drops it.
+
+- **StudentLedgerLine** — `ledger` FK (CASCADE), `line_no`, `title` FK→FeeTitle (opt, SET_NULL),
+  `code` (the JSON key when it is not a fee title: `tn`, `od`, `ob`, `cfo`), `label` (the title
+  as printed that day), `amount`. Unique (ledger, line_no).
+  `StudentLedger 1 — 0..* StudentLedgerLine 0..* — 0..1 FeeTitle`.
+- **StudentInvoiceLine** — the same on `invoice`, + `due`(opt), `discount`(opt). A cash receipt's
+  particulars use code `cash`.
+- **StaffLedgerLine** — `ledger` FK (CASCADE), `line_no`, `code`, `amount`.
+  **StaffInvoiceLine** — `invoice` FK (CASCADE), `line_no`, `code`, `amount`, `due`(opt).
+- **ClassPeriodSlot** — `class_period` FK (CASCADE), `period_no`, `subject` FK (opt, SET_NULL),
+  `teacher` FK→Staff (opt, SET_NULL). Unique (class_period, period_no).
+- **ExamScheduleSubject** — `schedule` FK (CASCADE), `subject` FK (CASCADE), `exam_date` (BS, opt).
+  Unique (schedule, subject).
+- **SubjectAssignmentStudent** — `assignment` FK (CASCADE), `student` FK (CASCADE). Unique
+  (assignment, student). `SubjectAssignment 0..* — 0..* Student`.
+- **StaffPermission** — the catalog: `code` (PK, the id the menus use), `name`.
+  **StaffPermissionGrant** — `staff` FK (CASCADE), `permission` FK (PROTECT). Unique
+  (staff, permission). `Staff 0..* — 0..* StaffPermission`. An unknown id joins the catalog as
+  `Permission <id>`.
+
+A trigger never stops a save: a value it cannot read logs a warning and the line is left out.
+Per-school backups leave these tables out, and a restore rebuilds them from the JSON.
+
+### 4.21 Rules the database enforces
+
+Beyond foreign keys, `main` migrations 0110 and 0111 add rules the data was measured to keep.
+They are plain indexes and constraints, not `Meta.constraints`, so the API's validators do not
+change. A violation raises `IntegrityError`.
+
+- **Unique keys** (`uniq_*`): student attendance per sheet; staff attendance per day; ledger per
+  student and posting; receipt and voucher numbers per school and economic year, over voided
+  rows too; economic year and staff role names; per school, course, extra activity, shareholder,
+  stock category, stock item and accounting year names, and staff card; homework submission per
+  student; open issue per book copy. A rule the data still breaks is skipped with a warning.
+- **Date format checks** (`chk_*_bsdate`): a BS date column must be empty or `YYYY-MM-DD`. The
+  calendar itself stays with `NepaliDateField`. A column holding an old bad date gets no check
+  until it is cleaned, because a check runs on every save of the row.
+- **School keys** (`tn_*`): `(column, school_id)` references `parent(id, school_id)`, so a row can
+  only link inside its own school. A key over rows that already cross stays `NOT VALID`: it guards
+  new links, and the old rows keep saving. `library_bookissue.student` and `.staff` are left out,
+  because a library lends to its guest schools' people.
+- **`python manage.py normalization_audit`** is read-only. It lists lines that differ from their
+  JSON, rules skipped, keys not validated and rows that cross schools, and exits 1 on any finding.
+  Run it before and after a deploy.
 
 ---
 
