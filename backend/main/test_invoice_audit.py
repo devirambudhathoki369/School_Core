@@ -237,8 +237,11 @@ class StatementTimeTests(AuditSchoolWithStudent, TestCase):
             details={"tn": 395}, total=395, **year,
         )])
         with self.signed_in(self.admin):
+            own_posting = LedgerPosting.objects.create(
+                class_info=self.ten, date="2083-06-02", months=[], single_student=True, **year,
+            )
             own = StudentLedger.objects.create(
-                student=self.student, school=self.school, ledger_posting=posting, date="2083-06-02",
+                student=self.student, school=self.school, ledger_posting=own_posting, date="2083-06-02",
                 details={"tn": 100}, total=100, **year,
             )
             payment = StudentInvoice.objects.create(

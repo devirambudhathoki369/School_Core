@@ -11,7 +11,7 @@ from account.auth.context import users_context
 from account.models import AdminAccount, SuperAdminAccount
 from main.methods.academicYear import gen_class_key
 from main.models.ClassInfo import CLASS_DETAILS_FIELDS, ClassInfo
-from main.models.FiscalYears import AcademicYearMapping
+from main.models.FiscalYears import AcademicYear, AcademicYearMapping
 from main.methods.schoolModules import set_school_modules
 from main.models.Invoice import StudentInvoice
 from main.models.Ledger import StudentLedger
@@ -520,12 +520,15 @@ class CanteenUserTests(CanteenFixture, TestCase):
             name="Other", address="x", estd_date="2080-01-01", renew_date="2084-01-01",
             pan_no="9", email="o@example.com", account=other, economic_year=self.fy,
         )
+        stranger_year = AcademicYear.objects.create(
+            school=stranger_school, name="2083", start_date="2083-01-01", end_date="2083-12-30",
+        )
         stranger = Student.objects.create(
             first_name="Other", last_name="Pupil", birth_date="2070-01-01", gender=2, location="x",
             class_info=ClassInfo.objects.create(
-                school=stranger_school, academic_year=self.ay, education_level=2, grade=10,
+                school=stranger_school, academic_year=stranger_year, education_level=2, grade=10,
             ),
-            academic_year=self.ay,
+            academic_year=stranger_year,
             guardian_info=StudentGuardianInfo.objects.create(
                 father_name="Father", mother_name="Mother", guardian_contact="9800000001",
             ),
