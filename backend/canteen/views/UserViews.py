@@ -21,7 +21,7 @@ from django.db import IntegrityError, transaction
 from rest_framework.response import Response
 
 from account.auth.UserRole import UserRoles
-from account.passwords import password_problem
+from account.passwords import password_problem, require_current_password
 
 from ..auth import CanteenUserTokenAuthentication
 from ..constants import PAGE_CHOICES, PAGE_USERS, PAGES
@@ -129,6 +129,8 @@ class CanteenUserView(CanteenBaseView):
             end_sessions = end_sessions or (user.is_active and not active)
             user.is_active = active
         if data.get("password"):
+            if is_self:
+                return Response({"message": "Use Change my password to change your own password securely."}, status=400)
             problem = password_problem(data.get("password"))
             if problem:
                 return Response({"message": problem}, status=400)
@@ -179,8 +181,7 @@ class CanteenOwnPasswordView(CanteenBaseView):
         user = request.user
         data = request.data
         password = data.get("password") or ""
-        if not user.check_password(data.get("current_password") or ""):
-            return Response({"message": "The current password is not right."}, status=400)
+        require_current_password(user, data.get("current_password"))
         problem = password_problem(password)
         if problem:
             return Response({"message": problem}, status=400)

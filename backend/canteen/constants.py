@@ -126,6 +126,7 @@ PAGE_USE_TYPES = 2707
 PAGE_MONTHLY_POSTING = 2708
 PAGE_COLLECT = 2709
 PAGE_USERS = 2710
+PAGE_PROFILE = 2711
 PAGE_CHOICES = (
     (PAGE_COUNTER, "Counter"),
     (PAGE_ITEMS, "Items & Rates"),
@@ -133,6 +134,7 @@ PAGE_CHOICES = (
     (PAGE_MONTHLY_POSTING, "Monthly Posting"),
     (PAGE_COLLECT, "Collect & Receipt"),
     (PAGE_ACCOUNTS, "Card Accounts"),
+    (PAGE_PROFILE, "Student Profile"),
     (PAGE_REPORTS, "Canteen Reports"),
     (PAGE_SETUP, "Canteen Setup"),
     (PAGE_USERS, "Canteen Users"),

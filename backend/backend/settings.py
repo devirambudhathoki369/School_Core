@@ -135,6 +135,7 @@ if DEBUG:
     INSTALLED_APPS.append("debug_toolbar")
 
 MIDDLEWARE = [
+    "account.auth.middleware.AuthResponseSecurityMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "account.auth.middleware.ResetUsersContextMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -235,6 +236,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 15},
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",

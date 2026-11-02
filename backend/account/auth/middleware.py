@@ -18,3 +18,16 @@ class ResetUsersContextMiddleware:
     def __call__(self, request):
         users_context.set(None)
         return self.get_response(request)
+
+
+class AuthResponseSecurityMiddleware:
+    """Credentials and restored session profiles must never enter shared caches."""
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if request.path.startswith("/auth/"):
+            response["Cache-Control"] = "no-store, private"
+            response["Pragma"] = "no-cache"
+        return response

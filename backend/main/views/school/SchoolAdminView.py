@@ -24,6 +24,7 @@ from main.models.FiscalYears import EconomicYear
 from main.methods.payrollClose import closePayrollAfterYearSwitch
 from main.serializers.SchoolAdminSerializer import SchoolAdminSerializer
 from main.views.BaseViews import SecuredAPIView
+from accounting.methods.ensureAccountingYear import ensure_accounting_year
 
 
 logger = logging.getLogger(__name__)
@@ -81,6 +82,8 @@ class SchoolAdminView(SecuredAPIView):
                 # A new school starts with the default modules (SchoolModule's
                 # post_save); this makes them exactly what was ticked.
                 set_school_modules(ins, chosen)
+                if chosen.get("accounting"):
+                    ensure_accounting_year(ins)
             return Response(self.prepResponse(ins, "added"))
         else:
             if "account" in s.errors and "username" in s.errors["account"]:
@@ -106,6 +109,8 @@ class SchoolAdminView(SecuredAPIView):
                     with transaction.atomic():
                         ins = s.save()
                         set_school_modules(ins, chosen)
+                        if chosen.get("accounting"):
+                            ensure_accounting_year(ins)
                     return Response(self.prepResponse(ins, "updated"))
                 # else:
                 #     print(s.errors)

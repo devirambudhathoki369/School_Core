@@ -25,6 +25,7 @@ from ..constants import (
     MONTH_NAMES,
     PAGE_ACCOUNTS,
     PAGE_COLLECT,
+    PAGE_PROFILE,
     TXN_CHOICES,
     TXN_REFUND,
     TXN_TOPUP,
@@ -395,7 +396,7 @@ class CanteenAccountView(CanteenBaseView):
 class CanteenReceiptView(CanteenBaseView):
     """One office receipt (a top-up or a refund), for the printed copy."""
 
-    pages_for = {"GET": (PAGE_ACCOUNTS, PAGE_COLLECT)}
+    pages_for = {"GET": (PAGE_ACCOUNTS, PAGE_COLLECT, PAGE_PROFILE)}
 
     def get(self, request):
         denied = self.gate(request)

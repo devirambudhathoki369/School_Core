@@ -11,6 +11,7 @@ from rest_framework import exceptions
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
+from urllib.parse import urlsplit
 import logging
 import sentry_sdk
 
@@ -27,6 +28,22 @@ SAFE_METHODS = ("GET", "HEAD", "OPTIONS", "TRACE")
 logger = logging.getLogger("django.security")
 
 
+def request_token(request):
+    """Return (credential, cookie_source), using the same parser on every endpoint."""
+    cookie = request.COOKIES.get(COOKIE_NAME)
+    if cookie:
+        return cookie, True
+    parts = get_authorization_header(request).split()
+    if not parts:
+        return None, False
+    if len(parts) != 2 or parts[0].lower() != b"ignite":
+        raise exceptions.AuthenticationFailed("Invalid authorization header.")
+    try:
+        return parts[1].decode("ascii"), False
+    except UnicodeError:
+        raise exceptions.AuthenticationFailed("Invalid authorization header.")
+
+
 # TODO : OPTIMIZE AUTHENTICATION !!!
 #
 class BaseTokenAuthentication(BaseAuthentication):
@@ -34,9 +51,9 @@ class BaseTokenAuthentication(BaseAuthentication):
     Simple token based authentication cloned from rest_framework with custom functionality.
 
     Clients should authenticate by passing the token key in the "Authorization"
-    HTTP header, prepended with the string "Token ".  For example:
+    HTTP header, prepended with the string "IGNITE ".  For example:
 
-        Authorization: Token 401f7ac837da42b97f613d789819ff93537bee6a
+        Authorization: IGNITE 401f7ac837da42b97f613d789819ff93537bee6a
     """
 
     keyword = "IGNITE"  # normally [BEARER, TOKEN] are used
@@ -70,38 +87,9 @@ class BaseTokenAuthentication(BaseAuthentication):
     """
 
     def authenticate(self, request):
-        from_cookie = False
-        try:
-            auth = request.COOKIES.get(COOKIE_NAME)
-            if auth:
-                auth = auth.encode("utf-8")
-                from_cookie = True
-            else:
-                auth = get_authorization_header(request).split()
-                auth = auth[1]  # actual token!
-        except:
+        token, from_cookie = request_token(request)
+        if not token:
             return None
-        if not auth:
-            return None
-        auth = [self.keyword.encode("utf-8"), auth]
-
-        if auth[0].lower() != self.keyword.lower().encode():
-            return None
-
-        if len(auth) == 1:
-            msg = _("Invalid token header. No credentials provided.")
-            raise exceptions.AuthenticationFailed(msg)
-        elif len(auth) > 2:
-            msg = _("Invalid token header. Token string should not contain spaces.")
-            raise exceptions.AuthenticationFailed(msg)
-
-        try:
-            token = auth[1].decode()
-        except UnicodeError:
-            msg = _(
-                "Invalid token header. Token string should not contain invalid characters."
-            )
-            raise exceptions.AuthenticationFailed(msg)
         #
         school_id = None
         school_ids = []
@@ -131,48 +119,24 @@ class BaseTokenAuthentication(BaseAuthentication):
         return (user, auth)
 
     def enforce_trusted_origin(self, request, user):
-        """
-        CROSS-SITE REQUEST FORGERY, for sessions carried by the cookie.
-
-        The web session is the `smsys` cookie, set `SameSite=None` because the
-        frontend and the API live on different hosts. `None` means the browser
-        attaches it to requests that ANY website starts — and nothing checked
-        where a write came from: DRF only enforces CSRF for its own session
-        authentication, never for a custom token read out of a cookie. So a page
-        on any site could auto-submit a form to this API while a school admin
-        had it open in another tab, and the write would land as that admin
-        (post a notice, send SMS on the school's credits, change a record).
-        CORS does not help: it hides the RESPONSE from the other site, it does
-        not stop a simple form POST from being sent and acted on.
-
-        The fix is the browser's own statement of where a request came from.
-        Every current browser sends `Origin` on a cross-origin POST, PUT, PATCH
-        and DELETE, and it cannot be forged by page script. A cookie-borne
-        write is accepted only from an origin this API already trusts for CORS
-        (the portal's own hosts) or from itself. Everything else that matters
-        is untouched:
-
-          · reads (GET/HEAD/OPTIONS) — not state-changing, and CORS already
-            keeps their responses from foreign pages;
-          · the mobile app — it sends its token in the Authorization header,
-            not a cookie, and a native client sends no `Origin`;
-          · a request with no `Origin` at all is a non-browser client, unless
-            the browser's own `Sec-Fetch-Site` says it was cross-site.
-
-        Refusals are logged to django.security with the account and origin, and
-        `ENFORCE_ORIGIN_CHECK=false` in the environment turns the refusal into
-        log-only, so a legitimate flow that trips it can be unblocked without a
-        redeploy while it is investigated.
-        """
+        """Require a trusted Origin or Referer for cookie-authenticated writes."""
         origin = request.META.get("HTTP_ORIGIN")
+        referer = request.META.get("HTTP_REFERER")
         if origin:
             if origin in self.trusted_origins(request):
                 return
-            reason = f"origin {origin}"
+            reason = "untrusted origin"
+        elif referer:
+            try:
+                parsed = urlsplit(referer)
+                if (not parsed.username and not parsed.password
+                        and f"{parsed.scheme}://{parsed.netloc}" in self.trusted_origins(request)):
+                    return
+            except ValueError:
+                pass
+            reason = "untrusted referer"
         else:
-            if request.META.get("HTTP_SEC_FETCH_SITE") != "cross-site":
-                return
-            reason = "cross-site request without an Origin"
+            reason = "missing origin and referer"
         logger.warning(
             "cross-site write refused: %s %s by %s account %s (%s)",
             request.method,
@@ -266,7 +230,7 @@ class BaseTokenAuthentication(BaseAuthentication):
         except model.DoesNotExist:
             raise exceptions.AuthenticationFailed(_("Unauthorized."))
 
-        if not token.user.is_active:
+        if not token.user.is_active or not getattr(token.user, "verified", True):
             raise exceptions.AuthenticationFailed(_("User inactive or deleted."))
         # An expired session is deleted, not merely refused: leaving the row in
         # place means the same dead key is re-checked on every subsequent

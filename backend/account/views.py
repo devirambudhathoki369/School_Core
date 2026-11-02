@@ -7,14 +7,16 @@ from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.authentication import get_authorization_header
+from django.contrib.auth.hashers import make_password
+from hashlib import sha256
 from rest_framework import permissions, status
 from drf_yasg.utils import swagger_auto_schema
 from datetime import timedelta
 
 #
 from main.views.BaseViews import SecuredAPIView
-from .passwords import password_problem
+from .passwords import password_problem, require_current_password
+from rest_framework.exceptions import APIException
 from .auth.Authentication import (
     UserTokenAuthentication,
     AdminTokenAuthentication,
@@ -22,6 +24,8 @@ from .auth.Authentication import (
     StaffTokenAuthentication,
     StudentTokenAuthentication,
     COOKIE_NAME,
+    BaseTokenAuthentication,
+    request_token,
 )
 from .models import SuperAdminAccount, AdminAccount, StaffAccount, StudentAccount
 from .serializers import (
@@ -57,6 +61,7 @@ from .methods.getStaffProfile import getStaffProfile
 from .methods.getStudentProfile import getStudentProfile
 from .methods.extractSchoolSMSAPIKey import extractSchoolSMSAPIKey
 from .auth.OTP import BaseOTP
+from .methods.smsKey import SMS_KEY_REFUSED, looks_like_sms_key
 from .utils.send_sms import send_sms
 from canteen.methods.users import canteen_user_profile, refusal as canteen_refusal
 from canteen.models import CanteenUser, CanteenUserToken
@@ -151,7 +156,7 @@ LOGIN_LOCKOUT_SECONDS = 15 * 60
 
 def _login_throttle_key(username, request):
     who = (username or "").strip().lower() or f"ip:{request.META.get('REMOTE_ADDR', '?')}"
-    return f"login-fail:{who}"
+    return "login-fail:" + sha256(who.encode()).hexdigest()
 
 
 def _login_is_locked(username, request):
@@ -238,8 +243,12 @@ class LoginView(APIView):
         """
         Login api for different users based on the given role i.e. either "student" or "staff".
         """
+        if any(request.META.get(h) for h in ("HTTP_ORIGIN", "HTTP_REFERER", "HTTP_SEC_FETCH_SITE")) or request.COOKIES.get(COOKIE_NAME):
+            BaseTokenAuthentication().enforce_trusted_origin(request, None)
         username = request.data.get("username")
         password = request.data.get("password")
+        if not isinstance(username, str) or not isinstance(password, str) or len(username) > 254 or len(password) > 1024:
+            return Response({"message": INVALID_CREDENTIALS}, status=status.HTTP_400_BAD_REQUEST)
         role = request.data.get("role")
         if role:
             self.assignUserModel(role)
@@ -263,8 +272,10 @@ class LoginView(APIView):
                     user = User.objects.get(username=username)
                 except User.DoesNotExist:
                     # Was 404 "Account doesn't exist!" — a free username oracle.
+                    make_password(password)  # Match the expensive wrong-password path.
                     return _login_rejected(username, request)
             else:
+                make_password(password)
                 return _login_rejected(username, request)
         # user found, proceed further for pw validation and token management;
         if user is not None:
@@ -275,6 +286,8 @@ class LoginView(APIView):
                     return _login_rejected(username, request)
                 # Said only after the password was right, so it tells nobody
                 # whether a username exists.
+                if not getattr(user, "is_active", True):
+                    return _login_rejected(username, request)
                 refused = self.refuse_signin(user)
                 if refused:
                     _login_clear_failures(username, request)
@@ -450,13 +463,9 @@ class ObtainView(APIView):
             self.assignToken(user_role)
         USER_NOT_FOUND = Response({"message": "User not found!"})
         user = {"username": "", "role": self.role}
-        try:
-            token = request.COOKIES.get(COOKIE_NAME)
-            if not token:
-                token = get_authorization_header(request).split()
-                token = token[1].decode("utf-8")
-        except:
-            return Response({})
+        if self.Token is None:
+            return Response({"message": "Invalid role."}, status=status.HTTP_400_BAD_REQUEST)
+        token, _ = request_token(request)
         if not token:
             return USER_NOT_FOUND
         token_obj = None
@@ -483,7 +492,9 @@ class ObtainView(APIView):
             )
         #
         if token_obj:
-            if self.refuse_session(token_obj.user):
+            if (not getattr(token_obj.user, "is_active", True)
+                    or not getattr(token_obj.user, "verified", True)
+                    or self.refuse_session(token_obj.user)):
                 return USER_NOT_FOUND
             user["username"] = token_obj.user.username
             user["token"] = token
@@ -747,7 +758,7 @@ class OTPView(APIView, BaseOTP):
             try:
                 student = Student.objects.select_related(
                     "class_info__school", "account", "guardian_info"
-                ).get(account__username=username)
+                ).get(account__username=username, account__verified=False)
                 # the code goes only to a number the school holds for this
                 # student — see account.serializers.contact_on_file
                 if student and contact_on_file(student, contact):
@@ -755,14 +766,16 @@ class OTPView(APIView, BaseOTP):
                         student.class_info.school.id
                     )
                     if school_sms_api_key:
+                        resend_key = "otp-resend:" + sha256(username.encode()).hexdigest()
+                        if not cache.add(resend_key, True, 60):
+                            return Response({"message": "Please wait before requesting another code."}, status=429)
                         _otp_clear_failures(username)
                         otp, secret = self.generateOTP()
                         user = student.account
                         user.secret = secret
                         user.otp = otp
-                        user.verified = False
                         user.created_at = timezone.now()
-                        user.save()
+                        user.save(update_fields=["secret", "otp", "created_at"])
                         send_sms(
                             contact,
                             otp,
@@ -864,6 +877,9 @@ class PasswordChangeView(SecuredAPIView):
                 )
             try:
                 acc = self.AccountModel.objects.get(id=user_id)
+                own_account = isinstance(request.user, self.AccountModel) and request.user.pk == acc.pk
+                if own_account:
+                    require_current_password(acc, request.data.get("current_password"))
                 problem = password_problem(password, acc)
                 if problem:
                     return Response({"message": problem}, status=status.HTTP_400_BAD_REQUEST)
@@ -875,12 +891,15 @@ class PasswordChangeView(SecuredAPIView):
                     # device, deleting a single row would have left the other
                     # devices signed in on the old password.
                     self.TokenModel.objects.filter(user=user_id).delete()
-                    return Response({"message": "Password changed!"})
+                    response = Response({"message": "Password changed!"})
+                    return clear_auth_cookie(response) if own_account else response
             except self.AccountModel.DoesNotExist:
                 return Response(
                     {"message": "Account not found!"},
                     status=status.HTTP_404_NOT_FOUND,
                 )
+            except APIException:
+                raise
             except:
                 return Response(
                     {"message": "Password change failed!"},
@@ -904,15 +923,11 @@ class OwnPasswordChangeView(SecuredAPIView):
 
     def put(self, request):
         current_password = request.data.get("current_password") or ""
-        password = (request.data.get("password") or "").strip()
-        confirm_password = (request.data.get("confirm_password") or "").strip()
+        password = request.data.get("password") or ""
+        confirm_password = request.data.get("confirm_password") or ""
         acc = request.user
 
-        if not acc.check_password(current_password):
-            return Response(
-                {"message": "Current password is incorrect!"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        require_current_password(acc, current_password)
         if password != confirm_password:
             return Response(
                 {"message": "Passwords do not match!"},
@@ -989,6 +1004,12 @@ class AccountView(SecuredAPIView):
                 )
             # update sms-api-key!
             if sms_api and role == UserRoles.ROLE_ADMIN:
+                sms_api = str(sms_api).strip()
+                if not looks_like_sms_key(sms_api):
+                    return Response(
+                        {"message": SMS_KEY_REFUSED},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
                 acc = Account.objects.get(id=user_id)
                 if acc:
                     acc.sms_api = sms_api
@@ -1224,11 +1245,9 @@ class LogoutView(APIView):
             {"message": "Logout failed!"}, status=status.HTTP_400_BAD_REQUEST
         )
         role = request.data.get("role") or None
-        token = request.COOKIES.get(COOKIE_NAME)
-        if not token:
-            auth = get_authorization_header(request).split()
-            if len(auth) > 1:
-                token = auth[1]
+        token, from_cookie = request_token(request)
+        if from_cookie:
+            BaseTokenAuthentication().enforce_trusted_origin(request, None)
         #
         if not role or not token:
             return LOGOUT_FAILED

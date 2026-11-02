@@ -3,6 +3,7 @@ from django.urls import path
 from ..views.AccountViews import CanteenAccountView, CanteenReceiptView
 from ..views.ManageAccessView import ManageCanteenAccessView
 from ..views.PlanViews import CanteenEnrollmentView, CanteenMonthlyPostingView, CanteenPlanView
+from ..views.ProfileViews import CanteenProfileView
 from ..views.ReportViews import CanteenDuesReminderView, CanteenReportView
 from ..views.SaleViews import CanteenBuyerView, CanteenSaleView
 from ..views.SetupViews import (
@@ -31,6 +32,8 @@ urlpatterns = [
     path("plans", CanteenPlanView.as_view(), name="canteen use types"),
     path("enrollments", CanteenEnrollmentView.as_view(), name="regular users of a use type"),
     path("monthly-posting", CanteenMonthlyPostingView.as_view(), name="monthly posting to canteen accounts"),
+    # one person's own canteen page: billing, payments, every transaction
+    path("profile", CanteenProfileView.as_view(), name="a person's canteen profile"),
     # records
     path("reports", CanteenReportView.as_view(), name="canteen records"),
     path("dues-reminder", CanteenDuesReminderView.as_view(), name="app reminder to families who owe"),

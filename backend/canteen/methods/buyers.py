@@ -69,6 +69,18 @@ def person_name(row):
     return " ".join(p.strip() for p in parts if p and p.strip()) or "—"
 
 
+def name_match(q):
+    """Every word typed appears somewhere in the name."""
+    cond = Q()
+    for word in q.split():
+        cond &= (
+            Q(first_name__icontains=word)
+            | Q(middle_name__icontains=word)
+            | Q(last_name__icontains=word)
+        )
+    return cond
+
+
 def find_students(school_id, q=None, card=None, ids=None, limit=20):
     qs = Student.objects.filter(
         class_info__school_id=school_id, is_active=True, status=STUDENT_RUNNING
@@ -78,16 +90,7 @@ def find_students(school_id, q=None, card=None, ids=None, limit=20):
     elif ids is not None:
         qs = qs.filter(id__in=ids)
     elif q:
-        words = q.split()
-        cond = Q(roll_no__iexact=q)
-        name_q = Q()
-        for word in words:
-            name_q &= (
-                Q(first_name__icontains=word)
-                | Q(middle_name__icontains=word)
-                | Q(last_name__icontains=word)
-            )
-        qs = qs.filter(cond | name_q)
+        qs = qs.filter(Q(roll_no__iexact=q) | name_match(q))
     else:
         return []
     return list(
@@ -104,20 +107,38 @@ def find_staff(school_id, q=None, card=None, ids=None, limit=10):
     elif ids is not None:
         qs = qs.filter(id__in=ids)
     elif q:
-        name_q = Q()
-        for word in q.split():
-            name_q &= (
-                Q(first_name__icontains=word)
-                | Q(middle_name__icontains=word)
-                | Q(last_name__icontains=word)
-            )
-        qs = qs.filter(name_q)
+        qs = qs.filter(name_match(q))
     else:
         return []
     return list(
         qs.annotate(name=full_name_expr(), designation=F("role__role"))
         .order_by("first_name", "last_name")
         .values("id", "name", "designation", "rfid_card", "primary_contact")[:limit]
+    )
+
+
+def former_students(school_id, q, limit=10):
+    """Students off the running list who still have a canteen account here. They
+    can still owe the canteen, or be owed by it, so their profile stays findable."""
+    return list(
+        Student.objects.filter(canteen_accounts__school_id=school_id, canteen_accounts__is_active=True)
+        .exclude(is_active=True, status=STUDENT_RUNNING)
+        .filter(Q(roll_no__iexact=q) | name_match(q))
+        .annotate(name=full_name_expr())
+        .order_by("first_name", "last_name")
+        .values("id", "name", "roll_no", *CLASS_VALUES)[:limit]
+    )
+
+
+def former_staff(school_id, q, limit=5):
+    """The same for staff no longer employed here."""
+    return list(
+        Staff.objects.filter(canteen_accounts__school_id=school_id, canteen_accounts__is_active=True)
+        .exclude(is_active=True, status=STAFF_EMPLOYED)
+        .filter(name_match(q))
+        .annotate(name=full_name_expr(), designation=F("role__role"))
+        .order_by("first_name", "last_name")
+        .values("id", "name", "designation")[:limit]
     )
 
 

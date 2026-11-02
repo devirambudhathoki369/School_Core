@@ -3,7 +3,9 @@
 from decimal import Decimal
 
 from django.core.cache import cache
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 from rest_framework.test import APIClient
 
 from account.auth.AuthToken import AdminAuthToken, StaffAuthToken, SuperAdminAuthToken
@@ -23,7 +25,7 @@ from main.models.Staff import Staff
 from main.models.Student import Student, StudentGuardianInfo
 
 from .constants import (
-    BUYER_STAFF, BUYER_STUDENT, BUYER_WALKIN, PAGE_ACCOUNTS, PAGE_COLLECT, PAGE_COUNTER, PAGE_ITEMS,
+    BUYER_STAFF, BUYER_STUDENT, BUYER_WALKIN, PAGE_ACCOUNTS, PAGE_COLLECT, PAGE_COUNTER, PAGE_ITEMS, PAGE_PROFILE,
     PAGE_MONTHLY_POSTING, PAGE_REPORTS, PAGE_USE_TYPES, PAGE_USERS, PAGES,
     PAY_ACCOUNT, PAY_CASH, PAY_PLAN, TXN_POSTING,
 )
@@ -435,7 +437,7 @@ class ExtrasTests(BillingFixture, TestCase):
 class CanteenUserTests(CanteenFixture, TestCase):
     """Sign-ins that open the canteen and nothing else, added by the school."""
 
-    PASSWORD = "Counter@123"
+    PASSWORD = "Counter lunch garden 123"
 
     def add_user(self, username="counter01", pages=(PAGE_COUNTER,), client=None, **extra):
         return self.call("post", "/canteen/users", {
@@ -586,15 +588,15 @@ class CanteenUserTests(CanteenFixture, TestCase):
     def test_a_canteen_user_changes_their_own_password(self):
         self.add_user()
         counter, other_device = self.signed_in(), self.signed_in()
-        wrong = self.call("put", "/canteen/my-password", {"current_password": "nope", "password": "Newpass@1"}, client=counter)
+        wrong = self.call("put", "/canteen/my-password", {"current_password": "nope", "password": "New counter garden password"}, client=counter)
         self.assertEqual(wrong.status_code, 400)
-        res = self.call("put", "/canteen/my-password", {"current_password": self.PASSWORD, "password": "Newpass@1"}, client=counter)
+        res = self.call("put", "/canteen/my-password", {"current_password": self.PASSWORD, "password": "New counter garden password"}, client=counter)
         self.assertEqual(res.status_code, 200, res.content)
         self.assertEqual(self.call("get", "/canteen/items", client=counter).status_code, 200)
         self.assertEqual(self.call("get", "/canteen/items", client=other_device).status_code, 401)
-        self.assertEqual(self.sign_in(password="Newpass@1").status_code, 200)
+        self.assertEqual(self.sign_in(password="New counter garden password").status_code, 200)
         # staff and admins have their own way; this one is the canteen user's
-        self.assertIn(self.call("put", "/canteen/my-password", {"current_password": "x", "password": "Newpass@1"}).status_code, (401, 403))
+        self.assertIn(self.call("put", "/canteen/my-password", {"current_password": "x", "password": "New counter garden password"}).status_code, (401, 403))
 
     def test_sign_out_ends_that_session(self):
         self.add_user()
@@ -602,7 +604,7 @@ class CanteenUserTests(CanteenFixture, TestCase):
         res = browser.post("/auth/canteen/signin", {"username": "counter01", "password": self.PASSWORD}, format="json")
         token = res.json()["user"]["token"]
         self.assertEqual(browser.cookies["smsys"].value, token)   # the portal's session cookie
-        out = browser.post("/auth/logout", {"role": "canteen"}, format="json")
+        out = browser.post("/auth/logout", {"role": "canteen"}, format="json", HTTP_ORIGIN="http://testserver")
         self.assertEqual(out.status_code, 200, out.content)
         self.assertFalse(CanteenUserToken.objects.filter(key=token).exists())
 
@@ -617,7 +619,8 @@ class CanteenUserTests(CanteenFixture, TestCase):
             "/canteen/buyers": (PAGE_COUNTER, PAGE_ACCOUNTS, PAGE_COLLECT),
             "/canteen/sales": (PAGE_COUNTER,),
             "/canteen/accounts": (PAGE_ACCOUNTS, PAGE_COLLECT),
-            "/canteen/receipts": (PAGE_ACCOUNTS, PAGE_COLLECT),
+            "/canteen/receipts": (PAGE_ACCOUNTS, PAGE_COLLECT, PAGE_PROFILE),
+            "/canteen/profile": (PAGE_PROFILE,),
             "/canteen/plans": (PAGE_USE_TYPES, PAGE_MONTHLY_POSTING),
             "/canteen/enrollments": (PAGE_USE_TYPES,),
             "/canteen/monthly-posting": (PAGE_MONTHLY_POSTING,),
@@ -660,3 +663,173 @@ class EnrolByClassTests(BillingFixture, TestCase):
         rows = self.call("get", "/canteen/enrollments", plan=plan, class_key=self.key).json()
         self.assertEqual([(r["id"], r["enrolled"]) for r in rows], [(self.student.id, True)])
         self.assertEqual(self.call("get", "/canteen/enrollments", plan=plan, class_key="g4").json(), [])
+
+
+class CanteenProfileTests(BillingFixture, TestCase):
+    """A person's own canteen page: billing, payments, every transaction."""
+
+    def profile(self, client=None, **params):
+        return self.call(
+            "get", "/canteen/profile", client=client,
+            **{"buyer_type": BUYER_STUDENT, "buyer": self.student.id, **params},
+        )
+
+    def money(self, value):
+        return Decimal(str(value))
+
+    def billed_and_part_paid(self):
+        self.rates(self.tiffin, g10="1500")
+        self.enroll("Tiffin monthly")
+        self.post_months([7, 8])                                  # 3,000 billed
+        return self.collect("2000", {self.tiffin: "1500"})        # 1,500 paid, 500 advance
+
+    def test_billed_paid_due_and_advance_agree_with_the_ledger(self):
+        self.billed_and_part_paid()
+        data = self.profile().json()
+        summary = {k: self.money(data["summary"][k]) for k in ("billed", "paid", "refunded", "due", "advance", "balance")}
+        self.assertEqual(summary, {
+            "billed": Decimal("3000"), "paid": Decimal("2000"), "refunded": Decimal("0"),
+            "due": Decimal("1000"), "advance": Decimal("0"), "balance": Decimal("-1000"),
+        })
+        dues = self.dues()
+        self.assertEqual((summary["due"], summary["advance"]), (self.money(dues["due"]), self.money(dues["advance"])))
+        tiffin = data["items"][0]
+        self.assertEqual(
+            (tiffin["name"], self.money(tiffin["charged"]), self.money(tiffin["paid"]),
+             self.money(tiffin["from_advance"]), self.money(tiffin["due"])),
+            ("Tiffin", Decimal("3000"), Decimal("1500"), Decimal("500"), Decimal("1000")),
+        )
+        self.assertEqual(data["name"], self.call("get", "/canteen/buyers", q=self.student.first_name).json()["buyers"][0]["name"])
+
+    def test_history_has_every_kind_newest_first_with_the_running_balance(self):
+        self.billed_and_part_paid()
+        self.sell([(self.juice, 2)], payment=PAY_CASH, buyer_type=BUYER_STUDENT, buyer=self.student.id)
+        rows = self.profile().json()["history"]
+        self.assertEqual([r["what"] for r in rows], ["Cash purchase", "Payment", "Monthly bill"])
+        cash, payment, bill = rows
+        self.assertEqual((bill["group"], bill["months"], bill["bs_year"]), ("bill", ["Kartik", "Mangsir"], 2083))
+        self.assertEqual((self.money(bill["charged"]), self.money(bill["running"])), (Decimal("3000"), Decimal("-3000")))
+        self.assertEqual((payment["group"], payment["reference"][:2]), ("payment", "C-"))
+        self.assertEqual((self.money(payment["paid"]), self.money(payment["advance"])), (Decimal("2000"), Decimal("500")))
+        self.assertEqual(self.money(payment["running"]), Decimal("-1000"))
+        self.assertIsNotNone(payment["receipt"])
+        self.assertEqual(self.call("get", "/canteen/receipts", id=payment["receipt"]).status_code, 200)
+        # Cash is settled on the spot: on the history, off the bill.
+        self.assertEqual((cash["group"], cash["charged"], cash["paid"]), ("counter", None, None))
+        self.assertEqual(self.money(cash["cash"]), Decimal("80"))
+        self.assertEqual(self.money(cash["running"]), Decimal("-1000"))
+        self.assertEqual([(l["name"], l["qty"]) for l in cash["lines"]], [("Juice", 2)])
+        summary = self.profile().json()["summary"]
+        self.assertEqual((self.money(summary["cash_at_counter"]), summary["cash_sales"]), (Decimal("80"), 1))
+        self.assertEqual(self.money(summary["billed"]), Decimal("3000"))
+
+    def test_a_purchase_on_account_names_its_items_and_quantities(self):
+        self.top_up("500")
+        self.sell([(self.samosa, 3)], payment=PAY_ACCOUNT, buyer_type=BUYER_STUDENT, buyer=self.student.id)
+        row = self.profile().json()["history"][0]
+        self.assertEqual((row["what"], row["group"], self.money(row["charged"])), ("Counter purchase on account", "bill", Decimal("75")))
+        self.assertEqual([(l["name"], l["qty"], self.money(l["amount"])) for l in row["lines"]], [("Samosa", 3, Decimal("75"))])
+        self.assertTrue(row["reference"].startswith("Sale "))
+
+    def test_a_void_stays_listed_and_stops_counting(self):
+        self.rates(self.tiffin, g10="1500")
+        self.enroll("Tiffin monthly")
+        self.post_months([7])
+        paid = self.collect("1500", {self.tiffin: "1500"}).json()
+        self.call("delete", "/canteen/accounts", txn=paid["id"], remarks="wrong student")
+        data = self.profile().json()
+        self.assertEqual((self.money(data["summary"]["paid"]), self.money(data["summary"]["due"])), (Decimal("0"), Decimal("1500")))
+        voided = next(r for r in data["history"] if r["group"] == "payment")
+        self.assertEqual((voided["is_active"], voided["void_reason"]), (False, "wrong student"))
+        self.assertEqual(self.money(voided["running"]), Decimal("-1500"))
+
+    def test_a_refund_counts_as_money_given_back(self):
+        self.top_up("500")
+        self.call("post", "/canteen/accounts", {
+            "action": "refund", "buyer_type": BUYER_STUDENT, "buyer": self.student.id, "amount": "200",
+        })
+        summary = self.profile().json()["summary"]
+        self.assertEqual(
+            (self.money(summary["paid"]), self.money(summary["refunded"]), self.money(summary["advance"])),
+            (Decimal("500"), Decimal("200"), Decimal("300")),
+        )
+
+    def test_opening_an_unused_person_writes_nothing(self):
+        before = CanteenAccount.objects.count()
+        res = self.profile()
+        self.assertEqual(res.status_code, 200, res.content)
+        data = res.json()
+        self.assertEqual((data["account"], data["items"], data["history"]), (None, [], []))
+        self.assertEqual(self.money(data["summary"]["due"]), Decimal("0"))
+        self.assertEqual(CanteenAccount.objects.count(), before)
+
+    def test_it_never_reads_the_schools_fee_tables(self):
+        self.billed_and_part_paid()
+        with CaptureQueriesContext(connection) as queries:
+            self.assertEqual(self.profile().status_code, 200)
+        sql = " ".join(q["sql"] for q in queries.captured_queries).lower()
+        self.assertIn("canteen_canteentransaction", sql)
+        for fee_table in (StudentLedger._meta.db_table, StudentInvoice._meta.db_table):
+            self.assertNotIn(fee_table.lower(), sql)
+
+    def test_search_finds_by_name_roll_and_card_and_never_opens_an_account(self):
+        Student.objects.filter(id=self.student.id).update(rfid_card="CARD-77", roll_no="R7")
+        for params in ({"q": self.student.first_name}, {"q": "R7"}, {"card": "CARD-77"}):
+            people = self.call("get", "/canteen/profile", **params).json()["people"]
+            self.assertEqual([p["id"] for p in people if p["buyer_type"] == BUYER_STUDENT], [self.student.id], params)
+        self.assertEqual(self.call("get", "/canteen/profile").json()["people"], [])
+        self.assertEqual(CanteenAccount.objects.count(), 0)
+
+    def test_someone_who_left_is_still_found_while_they_have_an_account(self):
+        self.top_up("100")
+        Student.objects.filter(id=self.student.id).update(status=3)
+        people = self.call("get", "/canteen/profile", q=self.student.first_name).json()["people"]
+        self.assertEqual([(p["id"], p["left"]) for p in people], [(self.student.id, True)])
+        self.assertEqual(self.money(people[0]["balance"]), Decimal("100"))
+        data = self.profile().json()
+        self.assertTrue(data["left"])
+        self.assertEqual(self.money(data["summary"]["advance"]), Decimal("100"))
+
+    def test_a_person_of_another_school_is_not_found(self):
+        other_admin = AdminAccount.objects.create(username="other-admin")
+        other = SchoolAdmin.objects.create(
+            name="Other", address="x", estd_date="2080-01-01", renew_date="2084-01-01",
+            pan_no="9", email="o@example.com", account=other_admin, economic_year=self.fy,
+        )
+        grant_canteen(other, True)
+        self.assertEqual(self.profile(buyer=999999).status_code, 404)
+        # Their login, asking about our school: refused at the door.
+        stranger = APIClient()
+        stranger.credentials(HTTP_AUTHORIZATION=f"IGNITE {AdminAuthToken.objects.create(user=other_admin).key}")
+        self.assertIn(self.profile(client=stranger).status_code, (401, 403))
+        # Their login, naming their own school and our student: nothing.
+        res = stranger.get(f"/canteen/profile?school={other.id}&buyer_type={BUYER_STUDENT}&buyer={self.student.id}")
+        self.assertEqual(res.status_code, 404)
+
+    def test_the_page_must_be_held(self):
+        self.call("post", "/canteen/users", {
+            "username": "counter01", "password": "Counter lunch garden 123", "full_name": "Sita Thapa",
+            "permissions": [PAGE_COUNTER],
+        })
+        signed = APIClient().post("/auth/canteen/signin", {"username": "counter01", "password": "Counter lunch garden 123"}, format="json")
+        counter = APIClient()
+        counter.credentials(HTTP_AUTHORIZATION=f"IGNITE {signed.json()['user']['token']}")
+        self.assertEqual(self.profile(client=counter).status_code, 403)
+        self.assertEqual(self.call("get", "/canteen/profile", client=counter, q="a").status_code, 403)
+        CanteenUser.objects.filter(username="counter01").update(permissions=[PAGE_PROFILE])
+        self.assertEqual(self.profile(client=counter).status_code, 200)
+        # The family's number stays with Card Accounts, and search never carries it.
+        self.assertIsNone(self.profile(client=counter).json()["contact"])
+        self.assertIsNotNone(self.profile().json()["contact"])
+        CanteenUser.objects.filter(username="counter01").update(permissions=[PAGE_PROFILE, PAGE_ACCOUNTS])
+        self.assertIsNotNone(self.profile(client=counter).json()["contact"])
+        people = self.call("get", "/canteen/profile", q=self.student.first_name).json()["people"]
+        self.assertFalse([p for p in people if "contact" in p])
+        clerk = APIClient()
+        clerk.credentials(HTTP_AUTHORIZATION=f"IGNITE {StaffAuthToken.objects.create(user=self.sankalpa).key}")
+        self.assertEqual(self.profile(client=clerk).status_code, 403)
+        Staff.objects.filter(account=self.sankalpa).update(permissions=[PAGE_PROFILE])
+        self.assertEqual(self.profile(client=clerk).status_code, 200)
+
+    def test_a_walk_in_has_no_profile(self):
+        self.assertEqual(self.profile(buyer_type=BUYER_WALKIN).status_code, 400)

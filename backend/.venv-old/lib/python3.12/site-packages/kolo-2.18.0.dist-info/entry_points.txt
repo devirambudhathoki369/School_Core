@@ -1,0 +1,4 @@
+[console_scripts]
+kolo=kolo.__main__:cli
+[pytest11]
+kolo=kolo.pytest_plugin

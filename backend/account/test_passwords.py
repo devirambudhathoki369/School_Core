@@ -9,8 +9,10 @@ from account.auth.context import users_context
 
 class PasswordRuleTests(SimpleTestCase):
     def test_the_rule(self):
-        self.assertIsNone(password_problem("Schoo1@core"))
-        for weak in ("a", "simple", "Secret1", "secret@1", "SECRET@1", "Secret@", "Aa@1", "Toolong@12345678901234", None, 12345678):
+        self.assertIsNone(password_problem("three quiet rivers at dawn"))
+        self.assertIsNone(password_problem("雪" * 15))
+        self.assertIsNone(password_problem(" abcdefghijklmnop "))
+        for weak in ("a", "simple", "Secret1", "secret@1", "SECRET@1", "Secret@", "Aa@1", "x" * 129, "123456789012345", None, 12345678):
             self.assertIsNotNone(password_problem(weak), weak)
 
     def test_a_common_password_is_refused_even_when_it_fits_the_pattern(self):
@@ -27,7 +29,7 @@ class ServerRefusesWeakPasswordsTests(TestCase):
         account = AdminAccount.objects.create_user(username="admin-rule", password="Schoo1@core")
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION=f"IGNITE {AdminAuthToken.objects.create(user=account).key}")
-        body = {"role": "admin", "user": account.id, "password": "a", "confirm_password": "a"}
+        body = {"role": "admin", "user": account.id, "password": "a", "confirm_password": "a", "current_password": "Schoo1@core"}
         self.assertEqual(client.put("/auth/change_password", body, format="json").status_code, 400)
         account.refresh_from_db()
         self.assertTrue(account.check_password("Schoo1@core"))

@@ -23,14 +23,14 @@ class AdminAccountSerializer(PasswordRuleMixin, serializers.ModelSerializer):
     class Meta:
         model = AdminAccount
         fields = "__all__"
-        extra_kwargs = {"password": {"write_only": True}}
+        extra_kwargs = {"password": {"write_only": True, "trim_whitespace": False}}
 
 
 class SuperAdminAccountSerializer(PasswordRuleMixin, serializers.ModelSerializer):
     class Meta:
         model = SuperAdminAccount
         fields = "__all__"
-        extra_kwargs = {"password": {"write_only": True}}
+        extra_kwargs = {"password": {"write_only": True, "trim_whitespace": False}}
 
     def create(self, validated_data):
         super_admin = SuperAdminAccount.objects.create_user(**validated_data)
@@ -50,7 +50,7 @@ class StaffAccountSerializer(PasswordRuleMixin, serializers.ModelSerializer, App
     class Meta:
         model = StaffAccount
         fields = "__all__"
-        extra_kwargs = {"password": {"write_only": True}}
+        extra_kwargs = {"password": {"write_only": True, "trim_whitespace": False}}
 
     def create(self, validated_data):
         validated_data.pop("otp_verification")
@@ -100,7 +100,7 @@ class StudentAccountSerializer(
     class Meta:
         model = StudentAccount
         fields = "__all__"
-        extra_kwargs = {"password": {"write_only": True}}
+        extra_kwargs = {"password": {"write_only": True, "trim_whitespace": False}}
         # Server-owned. `fields = "__all__"` let the registering client set
         # them — `verified: true`, its own OTP `secret`, a backdated
         # `created_at` to dodge expiry.
