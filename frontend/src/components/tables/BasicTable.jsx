@@ -273,6 +273,18 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
         if (!isResponsive || isPrimaryColumn(col, i)) return '';
         return (hasWideColumns && wideColumns.includes(col[0])) ? 'hidden xl:table-cell' : 'hidden lg:table-cell';
     };
+    // A column that is blank on every row -- no contact numbers recorded, no
+    // e-mails -- still took its heading's width, and on a wide report four of
+    // them were what pushed the table past the page. On screen such a column
+    // steps aside and a line under the table names it; print, the exports and
+    // the column menu still have it. Only plain columns of a read-only table:
+    // a custom cell may draw from other fields, a form table is there to be
+    // filled in, and extra rows written by the caller assume every column.
+    const isBlankValue = (v) => v === undefined || v === null || (typeof v === 'string' && /^\s*-?\s*$/.test(v));
+    const blankKeys = (editable || (extendedRows || []).length > 0 || safeData.length === 0) ? [] :
+        gridColumns.filter((c) => !c?.[5] && safeData.every((row) => isBlankValue(row?.[c[0]]))).map((c) => c[0]);
+    const blankCls = (col) => (blankKeys.includes(col[0]) ? ' app-col-blank' : '');
+    const blankNames = gridColumns.filter((c) => blankKeys.includes(c[0])).map((c) => c[1] || c[0]);
     // Every column the header actually emits, so the empty-state row spans the
     // full table instead of stopping under the first few columns.
     const emptyColSpan = (showSelected ? 1 : 0) + (includeSN ? 1 : 0)
@@ -429,10 +441,10 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                         <thead className="uppercase bg-table-header">
                             <tr>
                                 {
-                                    showSelected && <ColumnHeader columnName={''} className={''} />
+                                    showSelected && <ColumnHeader columnName={''} className={'app-col-select'} />
                                 }
                                 {
-                                    includeSN && <ColumnHeader columnName={'S.N'} />
+                                    includeSN && <ColumnHeader columnName={'S.N'} className={'app-col-sn'} />
                                 }
                                 {
                                     gridColumns?.map((col, i) => {
@@ -440,7 +452,7 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                         const isSorted = isSortable && sort.col === col[0];
                                         const hideCls = collapseCls(col, i);
                                         if (!isSortable) {
-                                            return <ColumnHeader key={i} columnName={col[1] || col[0]} tooltip={col?.[2]} className={hideCls} />;
+                                            return <ColumnHeader key={i} columnName={col[1] || col[0]} tooltip={col?.[2]} className={hideCls + blankCls(col)} />;
                                         }
                                         const label = col[1] || col[0];
                                         return (
@@ -452,7 +464,7 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                             // sorting was mouse-only on all 89 tables.
                                             <th key={i}
                                                 aria-sort={isSorted ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
-                                                className={`py-3 !p-4 select-none ${hideCls}`}>
+                                                className={`py-3 !p-4 select-none ${hideCls}${blankCls(col)}`}>
                                                 <button type="button"
                                                     onClick={() => onSortClick(col[0])}
                                                     title={`Sort by ${label}`}
@@ -460,7 +472,11 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                                         cursor-pointer bg-transparent border-0 p-0 uppercase text-left
                                                         hover:opacity-100 focus-visible:outline-none focus-visible:ring-2
                                                         focus-visible:ring-offset-1 focus-visible:ring-teal-500 rounded">
-                                                    <span className="w-max">{label}</span>
+                                                    {/* No `w-max`: a heading locked on one line set its
+                                                        column's width, and on a wide report sixteen such
+                                                        columns pushed the table past the page. A heading
+                                                        may wrap between words like a plain one. */}
+                                                    <span>{label}</span>
                                                     {isSorted ? (
                                                         sort.dir === 'asc'
                                                             ? <ChevronUpIcon className="h-3 w-3" aria-hidden="true" />
@@ -472,7 +488,7 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                     })
                                 }
                                 {hasHiddenColumns && <ColumnHeader hideFromPrint={true} className={`text-center ${viewOnlyBelowLg}`} columnName={"View"} />}
-                                {actions && <ColumnHeader hideFromPrint={true} className={'text-center'} columnName={"Actions"} />}
+                                {actions && <ColumnHeader hideFromPrint={true} className={'app-col-actions text-center'} columnName={"Actions"} />}
                             </tr >
                         </thead>
                         <tbody className="m-3">
@@ -484,7 +500,7 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                         <tr key={ri} className={`hover:bg-teal-200 border-b border-sky-300`}>
                                             {
                                                 showSelected &&
-                                                <td>
+                                                <td className="app-col-select">
                                                     {/* Was announced as a bare
                                                         "checkbox" on every row,
                                                         with nothing to say which
@@ -502,7 +518,7 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                             {/* Serial Number */}
                                             {
                                                 (includeSN && !(isLast && highLightLast)) ?
-                                                    <td className="text-base">
+                                                    <td className="app-col-sn text-base">
                                                         {paginationActive
                                                             ? (startIndex + ri + 1)
                                                             : (useDataTable ? (ri + 1) : ((page - 1) * itemsPerPage + (ri + 1)))}
@@ -517,7 +533,7 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                                     // const [key:str|int, display-name:str, tooltip:str, highlightCol:bool, layout: (vertical | horizontal), custom-component]=col;
                                                     const Comp = col?.[5] || Cell;
                                                     return (
-                                                        <td key={ci} className={`py-2.5 ${collapseCls(col, ci)}`}>
+                                                        <td key={ci} className={`py-2.5 ${collapseCls(col, ci)}${blankCls(col)}`}>
                                                             {
                                                                 col ?
                                                                     <Comp
@@ -554,7 +570,7 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                             }
                                             {/* action-buttons */}
                                             {actions &&
-                                                <td className="hide-from-print">
+                                                <td className="app-col-actions hide-from-print">
                                                     <div className="flex justify-center items-start gap-x-1">
                                                         {actions?.map((action, i) => (
                                                             <ActionButton key={i} action={action} item={item} setSelected={setSelected} onSelect={onSelect} disabled={disabled} />
@@ -616,6 +632,10 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                         </tbody>
                     </table>
                 }
+                {!loading && blankNames.length > 0 &&
+                    <p className="app-table-note hide-from-print">
+                        Not shown, empty on every row: {blankNames.join(', ')}.
+                    </p>}
                 <>
                     {footer}
                 </>

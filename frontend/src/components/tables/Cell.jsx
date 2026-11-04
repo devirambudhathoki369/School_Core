@@ -13,6 +13,10 @@ const Cell = memo(function ({ index, col, data, highLighted = false, color = nul
         size = LIMIT;
     }
     const isImage = isAnImageFile(data || "");
+    // A short value with no spaces -- a date, a phone number, an amount, an ID --
+    // is one thing and never splits. "2066-11-13" broke at its hyphens and a
+    // phone number at any digit once a wide report narrowed its columns.
+    const unbroken = typeof data === 'string' && data.length > 0 && data.length <= 16 && !/\s/.test(data);
     // 
     const inputRef = useRef(null);
     layout = layout === "vertical" ? "flex-col" : "";
@@ -48,7 +52,7 @@ const Cell = memo(function ({ index, col, data, highLighted = false, color = nul
                                 <span
                                     style={{ color: color ? color : null }}
                                     className={`app-cell-text block px-2 text-blue-gray-900 leading-relaxed antialiased
-                                        whitespace-pre-wrap break-words
+                                        ${unbroken ? 'whitespace-nowrap' : 'whitespace-pre-wrap break-words'}
                                         ${highLighted ? '!font-bold' : 'font-normal'}`}>
                                     {data}
                                 </span>
