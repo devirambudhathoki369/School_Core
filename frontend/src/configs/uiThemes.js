@@ -20,7 +20,7 @@ export const UI_THEME_CONSOLE = 'console';
 
 // Five palettes on one layout. The keys are the ones schools already have
 // stored, so a new look never moves a school's setting, only what each key
-// paints: `classic` is Ocean, `vivid` Violet, `daylight` Teal, `evergreen`
+// paints: `classic` is Ocean, `vivid` Violet, `daylight` Graphite, `evergreen`
 // Emerald, `laliguras` Berry. The `swatches` are, in order, the menu, the
 // brand, the page and the accent.
 export const UI_THEMES = [
@@ -35,15 +35,15 @@ export const UI_THEMES = [
     {
         value: 'vivid',
         name: 'Violet',
-        blurb: 'A deep violet menu, violet buttons and mint for the small marks. Modern and confident.',
+        blurb: 'A white menu, deep violet buttons and mint for the small marks. Modern and confident.',
         swatches: ['#221A51', '#7C5CDE', '#F6F7F8', '#22AC81'],
         rail: '#221A51',
         railInk: '#EDEDF0',
     },
     {
         value: 'daylight',
-        name: 'Teal',
-        blurb: 'A deep teal menu, teal buttons and coral for the small marks. Steady and professional.',
+        name: 'Graphite',
+        blurb: 'Near-black buttons on a white menu, tangerine for the small marks. Calm and monochrome.',
         swatches: ['#002D25', '#037368', '#F5F7F7', '#E76558'],
         rail: '#002D25',
         railInk: '#EBEEEF',
@@ -59,7 +59,7 @@ export const UI_THEMES = [
     {
         value: 'laliguras',
         name: 'Berry',
-        blurb: 'A deep berry menu, berry buttons and teal for the small marks. Bold and warm.',
+        blurb: 'A white menu, deep berry buttons and teal for the small marks. Bold and warm.',
         swatches: ['#410F2C', '#C04380', '#F8F6F7', '#1CA9A3'],
         rail: '#410F2C',
         railInk: '#F0EDEE',
