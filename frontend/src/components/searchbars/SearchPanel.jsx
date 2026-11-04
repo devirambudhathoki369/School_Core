@@ -48,29 +48,24 @@ function SearchPanel({
     return (
         <section className="app-search-panel mb-3 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             <button type="button" onClick={onToggle} aria-expanded={open}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl"
-                    style={{
-                        backgroundColor: "color-mix(in srgb, var(--t-brand-solid, #0d9488) 13%, #fff)",
-                        color: "var(--t-brand-solid, #0d9488)",
-                    }}>
-                    <FunnelIcon className="h-4 w-4" />
-                </span>
+                className="app-search-head flex w-full items-center gap-3 px-6 py-4 text-left transition-colors hover:bg-gray-50">
+                {/* A plain glyph, not a tinted tile: an icon in a coloured
+                    square on every card is decoration, not information. */}
+                <FunnelIcon className="h-5 w-5 shrink-0 text-gray-500" aria-hidden="true" />
                 <span className="min-w-0 flex-1">
-                    <span className="block text-[0.95rem] font-semibold text-gray-900">{title}</span>
-                    <span className="block text-xs text-gray-500">
-                        {open ? "Fill what you know, then search." : "Tap to change the filters."}
+                    <span className="app-search-title block text-gray-900">{title}</span>
+                    <span className="app-search-sub block text-gray-500">
+                        {open ? "Fill what you know, then search." : "Open to change the filters."}
                     </span>
                 </span>
                 {/* How many filters are actually narrowing the search — the
                     thing you want to know at a glance once it is collapsed. */}
                 {activeCount > 0 && (
-                    <span className="shrink-0 rounded-full px-2.5 py-1 text-[0.7rem] font-bold text-white"
-                        style={{ backgroundColor: "var(--t-brand-solid, #0d9488)" }}>
+                    <span className="app-search-count shrink-0 rounded-full px-2.5 py-0.5">
                         {activeCount} filter{activeCount === 1 ? "" : "s"}
                     </span>
                 )}
-                <ChevronDownIcon className={`h-5 w-5 shrink-0 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} />
+                <ChevronDownIcon className={`h-5 w-5 shrink-0 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
             </button>
 
             {/* Which filters are on, and how to drop one.
@@ -85,7 +80,7 @@ function SearchPanel({
                 body on purpose: its whole value is being readable while the
                 panel is shut. */}
             {filters?.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 border-t border-gray-100 px-4 py-2.5">
+                <div className="flex flex-wrap items-center gap-1.5 border-t border-gray-100 px-6 py-2.5">
                     {filters.map((f) => (
                         <span key={f.key}
                             className="app-filter-pill inline-flex items-center gap-1.5 rounded-md
@@ -116,16 +111,15 @@ function SearchPanel({
 
             {open && (
                 <form onSubmit={onSubmit} className="border-t border-gray-100">
-                    <div className="px-4 py-4">
+                    <div className="px-6 py-5">
                         {children}
                     </div>
-                    {/* Actions belong to the form and sit on its edge, not
-                        floating under it. Search is last and primary. The two
-                        stand together under the middle of the form: at opposite
-                        corners of a wide panel, Reset and Search were a screen
-                        apart and neither sat near the fields. */}
-                    <div className="app-actions app-search-actions flex flex-col-reverse items-stretch justify-center gap-2 border-t border-gray-200
-                                    bg-gray-50 px-4 py-3 sm:flex-row sm:items-center sm:gap-3">
+                    {/* Actions belong to the form and end it, on the right,
+                        the way every form in the app now ends: the secondary
+                        action, then the main one. On a phone they stack, the
+                        main action on top. */}
+                    <div className="app-actions app-search-actions flex flex-col-reverse items-stretch justify-end gap-2 border-t border-gray-200
+                                    px-6 py-4 sm:flex-row sm:items-center sm:gap-3">
                         <ResetButton onClick={onReset}>Reset</ResetButton>
                         <FormSaveButton isSearch={true} searching={searching} />
                     </div>

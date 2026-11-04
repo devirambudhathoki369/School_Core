@@ -7368,3 +7368,97 @@ button.app-att-day { cursor: pointer; }
         font-weight: 600 !important;
     }
 }
+
+/* -- cards and sections: white, 12px corners, a 1px line, a soft shadow and
+      24px inside. A section's title is 16px bold over a 14px line saying what
+      it holds. A form ends with its actions on the right, on the same card. -- */
+@media screen {
+    :root .app-section {
+        padding: 24px !important;
+        margin-bottom: 24px !important;
+        border: 1px solid var(--line) !important;
+        border-radius: 12px !important;
+        box-shadow: var(--shadow-card) !important;
+    }
+    :root .app-section > .section-header { padding: 0 0 16px; border-bottom: 1px solid var(--line); }
+    :root .app-section > .section-header + div { margin-top: 20px; }
+    :root .app-section-title,
+    :root .app-section-title * {
+        font-family: var(--font-app, "Hanken Grotesk"), sans-serif !important;
+        font-size: 16px !important;
+        line-height: 24px;
+        font-weight: 700 !important;
+        letter-spacing: 0;
+        color: var(--ink-900);
+    }
+    :root .app-section-desc {
+        margin-top: 2px;
+        font-size: 14px !important;
+        line-height: 20px;
+        color: var(--ink-600) !important;
+    }
+
+    /* the form's footer: the card's own last row, white, a line above,
+       the actions on the right */
+    :root .app-section:has(+ .app-actions) { margin-bottom: 0 !important; }
+    :root .app-section + .app-actions,
+    :root .app-actions {
+        background: #FFFFFF !important;
+        border: 1px solid var(--line) !important;
+        border-radius: 12px !important;
+        padding: 16px 24px !important;
+        box-shadow: var(--shadow-card) !important;
+        gap: 12px !important;
+    }
+    :root .app-section + .app-actions {
+        margin-top: 0 !important;
+        margin-bottom: 24px;
+        border-top-color: var(--line) !important;
+        border-top-left-radius: 0 !important;
+        border-top-right-radius: 0 !important;
+        clip-path: inset(0 -12px -12px -12px);
+    }
+    :root .app-section:has(+ .app-actions) { clip-path: inset(-12px -12px 0 -12px); }
+    /* right-aligned, unless the caller asked for another shape */
+    :root .app-actions.justify-center:not(.justify-between):not(.justify-start):not(.\!justify-start):not(.justify-end):not(.justify-around) {
+        justify-content: flex-end;
+    }
+    /* a row of actions inside a table or a panel is part of that surface */
+    :root :is(.report-table-wrap, .app-search-panel, .app-table-card, [role="dialog"]) .app-actions {
+        background: transparent !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+    :root .app-search-panel .app-actions.app-search-actions {
+        padding: 16px 24px !important;
+        border-top: 1px solid var(--line) !important;
+    }
+
+    /* the search panel: one card, its title like a section's */
+    :root .app-search-panel {
+        border: 1px solid var(--line) !important;
+        border-radius: 12px !important;
+        box-shadow: var(--shadow-card) !important;
+        margin-bottom: 24px !important;
+    }
+    :root .app-search-title { font-size: 16px !important; line-height: 24px; font-weight: 700 !important; }
+    :root .app-search-sub { font-size: 13px !important; line-height: 18px; }
+    :root .app-search-count {
+        font-size: 12px !important; line-height: 18px; font-weight: 600;
+        background: var(--t-brand-tint); color: var(--t-brand-ink);
+        box-shadow: inset 0 0 0 1px var(--t-brand-line);
+    }
+    :root .app-search-panel > form { border-top-color: var(--line) !important; }
+}
+@media screen and (max-width: 539.98px) {
+    :root .app-section { padding: 16px !important; }
+    :root .app-section + .app-actions, :root .app-actions { padding: 12px 16px !important; }
+}
+:root[data-ui-mode="dark"] .app-section + .app-actions,
+:root[data-ui-mode="dark"] .app-actions:not(:is(.report-table-wrap, .app-search-panel, .app-table-card, [role="dialog"]) .app-actions) {
+    background: var(--d-surface) !important;
+    border-color: var(--d-line) !important;
+}
+:root[data-ui-mode="dark"] .app-search-head:hover { background: var(--d-surface-2) !important; }
