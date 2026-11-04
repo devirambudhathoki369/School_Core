@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/PortalLink';
 import {
     ArrowRightCircleIcon, BellAlertIcon, BoltIcon, ClockIcon, LockClosedIcon, MapIcon, MapPinIcon, TruckIcon, ViewfinderCircleIcon,
 } from '@heroicons/react/24/outline';

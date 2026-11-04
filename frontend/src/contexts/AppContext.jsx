@@ -1,11 +1,12 @@
+import { portalRole, portalView, portalHref, navigatePortal } from "@/methods/portalRoutes";
 import { adminMenu, superAdminMenu, canteenUserMenu } from "@/configs/menus";
 import { TESTED_PERMISSIONS } from "@/configs/permissions";
 import { adminViews, superAdminViews, canteenViews } from "@/configs/views";
 import useFiscalYears from "@/hooks/fiscalYears";
 import filterViews from "@/methods/filterViews";
-import { getAccountingEconomicYears, getClosedAccountingEconomicYears } from "@/services/functions/accounting/accounting_economic_year";
+import { getAccountingEconomicYears } from "@/services/functions/accounting/accounting_economic_year";
 import { fetchClassesInOrder } from "@/services/functions/classes";
-import { getAcademicYearMappings, getAcademicYears, getClosedAcademicYears } from "@/services/functions/fiscalYear";
+import { getAcademicYearMappings, getAcademicYears } from "@/services/functions/fiscalYear";
 import { useRouter } from "next/router";
 import { createContext, useContext, useCallback, useEffect, useState } from "react";
 import TempStateContextProvider from "./TempStateContext";
@@ -82,6 +83,10 @@ const AppContextProvider = ({ children }) => {
     const [promptData, setPromptData] = useState({ ...promptSchema });
     // school>classes
     const [classesBackup, setClassesBackup] = useState([]);
+    // `classesBackup: []` is ambiguous: it is both the initial value and the
+    // correct result for a brand-new school. Consumers need this bit to avoid
+    // presenting an empty school as a request that never finished.
+    const [classesLoaded, setClassesLoaded] = useState(false);
     const [coursesBackup, setCoursesBackup] = useState([]);
     const [facultyNames, setFacultyNames] = useState({});
     const [classes, setClasses] = useState([]); // formatted classes according to grade/faculties;
@@ -133,13 +138,15 @@ const AppContextProvider = ({ children }) => {
     };
     const router = useRouter();
     useEffect(() => {
-        const USERTYPE = router.asPath.split("#")[0].split("?")[0].replaceAll('/', ''); // /admin | /superadmin;
-        const DEFAULT_VIEW = `NEXT_PUBLIC_DEFAULT_${USERTYPE}_VIEW`;
-        const _sm = router.asPath.split('#')?.[1] ||
-            process?.env?.[DEFAULT_VIEW] ||
-            FALLBACK_VIEWS[USERTYPE];
-        setSelectedMenu(_sm);
-    }, [router.query, user]);
+        if (!router.isReady) return;
+        const role = portalRole(router.asPath);
+        const view = portalView(router.asPath) ||
+            process?.env?.[`NEXT_PUBLIC_DEFAULT_${role}_VIEW`] || FALLBACK_VIEWS[role];
+        setSelectedMenu(view || '');
+        // Replace, rather than append, so Back does not revisit a legacy hash.
+        const canonical = portalHref(router.asPath, router.asPath);
+        if (canonical !== router.asPath) void navigatePortal(router, canonical, { replace: true });
+    }, [router.isReady, router.asPath, user?.role, user?.profile?.permissions]);
 
     /**
      * Navigating opens the branch the page lives in, and closes every other.
@@ -190,18 +197,39 @@ const AppContextProvider = ({ children }) => {
     }, []);
     // 
     function loadFiscalYears(years) {
+        // Keep the dated API rows before `saveYears` turns them into select
+        // options. A fresh browser has no localStorage preference yet; that is
+        // not a reason to make the operator configure the school again. The
+        // newest OPEN year is the normal working year, while the header picker
+        // remains available for deliberately looking at an older period.
+        const academicYearRows = years.academicYears || [];
+        const accountingYearRows = years.accountingEconomicYears || [];
+        const newest = (rows) => (rows || []).reduce((latest, row) => {
+            if (!latest) return row;
+            const rowDate = row?.start_date || '';
+            const latestDate = latest?.start_date || '';
+            if (rowDate !== latestDate) return rowDate > latestDate ? row : latest;
+            return Number(row?.id || 0) > Number(latest?.id || 0) ? row : latest;
+        }, null)?.id || '';
         const formattedYears = fiscalYear.saveYears({
-            academicYears: years.academicYears,
+            academicYears: academicYearRows,
             closedAcademicYears: years.closedAcademicYears,
-            accountingEconomicYears: years.accountingEconomicYears,
+            accountingEconomicYears: accountingYearRows,
             closedAccountingEconomicYears: years.closedAccountingEconomicYears
         });
         years = { ...years, ...formattedYears };
         // 
         fiscalYear.setFYKeys({ academic_year: years.academic_year_key, accounting_economic_year: years.accounting_economic_year_key });
-        const academic_year = fiscalYear.getYear(years.academic_year_key) || '',
+        const savedAcademicYear = fiscalYear.getYear(years.academic_year_key),
+            savedAccountingYear = fiscalYear.getYear(years.accounting_economic_year_key),
+            // Ignore a stale browser choice after that year has been closed.
+            academic_year = academicYearRows.some(row => row.id === savedAcademicYear)
+                ? savedAcademicYear : newest(academicYearRows),
             economic_year = user?.profile?.economic_year || '',
-            accounting_economic_year = fiscalYear.getYear(years.accounting_economic_year_key) || '';
+            accounting_economic_year = accountingYearRows.some(row => row.id === savedAccountingYear)
+                ? savedAccountingYear : newest(accountingYearRows);
+        if (academic_year) localStorage.setItem(years.academic_year_key, academic_year);
+        if (accounting_economic_year) localStorage.setItem(years.accounting_economic_year_key, accounting_economic_year);
         const academic_year_name = fiscalYear.getAcademicYearName(academic_year, years.academicYears),
             economic_year_name = user?.profile?.economic_year__name || '',
             accounting_economic_year_name = fiscalYear.getAccountingEconomicYearName(accounting_economic_year, years.accountingEconomicYears);
@@ -235,7 +263,7 @@ const AppContextProvider = ({ children }) => {
         }
         if (!value) {
             updateNotification('', "Academic year mapping not-found/mis-matched!");
-            router.push('/admin#support');
+            void navigatePortal(router, '#support');
             return;
         }
         const acay = fiscalYear.mappedYears?.["academicYears"]?.[value];
@@ -380,11 +408,17 @@ const AppContextProvider = ({ children }) => {
     }
     async function loadClasses(_user = null, hardReset = false) {
         if (classes?.length === 0 || hardReset) {
-            const _classes = await fetchClassesInOrder(_user || user);
-            await extractCourses(_classes);
-            setClassesBackup(_classes);
-            return _classes;
+            setClassesLoaded(false);
+            try {
+                const _classes = await fetchClassesInOrder(_user || user);
+                await extractCourses(_classes);
+                setClassesBackup(Array.isArray(_classes) ? _classes : []);
+                return _classes;
+            } finally {
+                setClassesLoaded(true);
+            }
         }
+        setClassesLoaded(true);
         return classes;
     }
     useEffect(() => {
@@ -395,12 +429,15 @@ const AppContextProvider = ({ children }) => {
                 const schoolID = user?.profile?.school || user?.profile?.id;
                 (async () => {
                     if (schoolID) {
-                        const [academicYears, closedAcademicYears, accountingEconomicYears, closedAccountingEconomicYears, mappings] =
+                        // Fetch each kind of year once and split open/closed on
+                        // the client. These were four requests for two tables;
+                        // on every new session that doubled authentication,
+                        // middleware and database round trips before the first
+                        // screen could become ready.
+                        const [allAcademicYears, allAccountingEconomicYears, mappings] =
                             await Promise.all([
-                                getAcademicYears(schoolID),
-                                getClosedAcademicYears(schoolID),
-                                getAccountingEconomicYears(schoolID),
-                                getClosedAccountingEconomicYears(schoolID),
+                                getAcademicYears(schoolID, '', 'all'),
+                                getAccountingEconomicYears(schoolID, '', 'all'),
                                 (async () => {
                                     let mappings = await getAcademicYearMappings(schoolID);
                                     mappings = (mappings || []).reduce((acc, val) => {
@@ -411,6 +448,10 @@ const AppContextProvider = ({ children }) => {
                                     return mappings;
                                 })(),
                             ]);
+                        const academicYears = (allAcademicYears || []).filter(row => row.status !== 'closed');
+                        const closedAcademicYears = (allAcademicYears || []).filter(row => row.status === 'closed');
+                        const accountingEconomicYears = (allAccountingEconomicYears || []).filter(row => row.status !== 'closed');
+                        const closedAccountingEconomicYears = (allAccountingEconomicYears || []).filter(row => row.status === 'closed');
                         loadFiscalYears({ academic_year_key, academicYears, closedAcademicYears, accounting_economic_year_key, accountingEconomicYears, closedAccountingEconomicYears });
                         fiscalYear.setAssignedAcademicYears(mappings);
                         assignMenu(user);
@@ -452,7 +493,7 @@ const AppContextProvider = ({ children }) => {
             notification: { notification, updateNotification },
             theme: { uiTheme, isConsole },
             prompt: { promptSchema, showConfirmationPrompt, toggleConfirmationPrompt, promptData, resetPrompt },
-            class: { loadClasses, classesBackup, coursesBackup, classes, setClasses, facultyNames }
+            class: { loadClasses, classesBackup, classesLoaded, coursesBackup, classes, setClasses, facultyNames }
         }}>
             <TempStateContextProvider>
                 {children}

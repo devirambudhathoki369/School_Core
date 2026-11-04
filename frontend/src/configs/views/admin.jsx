@@ -31,6 +31,7 @@ const ManageFees = dynamic(() => import(/* webpackChunkName: "manage" */"@/compo
 const ManageBusStations = dynamic(() => import(/* webpackChunkName: "manage" */"@/components/views/managements/BusStations"));
 const ManageExtraActivities = dynamic(() => import("@/components/views/managements/extra_activities"));
 const ManageBatches = dynamic(() => import(/* webpackChunkName: "manage" */"@/components/views/managements/batches"));
+const SetupGuide = dynamic(() => import(/* webpackChunkName: "manage" */"@/components/views/managements/SetupGuide"));
 // 
 const RecentEnrollments = dynamic(() => import("@/components/views/reports/enrollments/students/recent_enrollments"));
 const RecentTransactions = dynamic(() => import("@/components/views/reports/transactions/recent_transactions"));
@@ -110,15 +111,7 @@ const adminViews = {
     'view-bus-tracking': () => <BusTracking />,
     // dashboard
     'dashboard': () => <SchoolSummary />,
-    /*
-    The two addresses these pages used to answer to. Bookmarks, the browser's
-    history and any link mailed out before this reshuffle carry
-    `#dashboard.summary` / `#dashboard.classwise-student-statistics`; without
-    these they would land on "That page isn't here". They are views only — no
-    menu row points at them.
-    */
-    'dashboard.summary': () => <SchoolSummary />,
-    'dashboard.classwise-student-statistics': () => <ClasswiseStudentStatistics />,
+    // Legacy addresses are normalized by methods/portalRoutes before lookup.
     // enrollment
     'enrollment.student': () => <StudentEnrollment />,
     'enrollment.classwise-student-statistics': () => <ClasswiseStudentStatistics />,
@@ -145,6 +138,7 @@ const adminViews = {
     'payroll.salary-sheet': () => <SalarySheet />,
     // management
     'manage.users': () => <ManageUsers />,
+    'manage.setup-guide': () => <SetupGuide />,
     'manage.academic-year': () => <AcademicYearManagementView />,
     'manage.academic-year-closing': () => <AcademicYearClosing />,
     'manage.academic-year-review': () => <AcademicYearReviewOrClose />,
@@ -205,8 +199,7 @@ const adminViews = {
     ...canteenViews,
     // 
     // Attendance and its card readers have their own menu group now. The new
-    // addresses first; the old `app.*` ones stay as aliases so a bookmark or a
-    // link written before the move still opens its page.
+    // addresses are canonical; portalRoutes resolves old app.* bookmarks.
     'attendance.entry': () => <AttendanceEntry />,
     'attendance.management': () => <AttendanceManagement />,
     'attendance.report': () => <AttendanceReport />,
@@ -220,19 +213,6 @@ const adminViews = {
     'attendance.rfid.registered-users': () => <RFIDAttdUsersSearchView />,
     'attendance.rfid.attd-logs': () => <RFIDAttendanceLogsView />,
     'attendance.rfid.time-set': () => <RFIDTimeSetView />,
-    'app.attendance.entry': () => <AttendanceEntry />,
-    'app.attendance.management': () => <AttendanceManagement />,
-    'app.attendance.report': () => <AttendanceReport />,
-    'app.attendance.overall': () => <OverallAttendance />,
-    'app.attendance.history': () => <AttendanceHistory />,
-    'app.attendance.staff-entry': () => <StaffAttendanceEntry />,
-    'app.attendance.staff-management': () => <StaffAttendanceManagement />,
-    'app.attendance.staff-report': () => <StaffAttendanceReport />,
-    'app.attendance.staff-history': () => <StaffAttendanceHistory />,
-    'app.rfid.users-setup': () => <RFIDUsersSetup />,
-    'app.rfid.registered-users': () => <RFIDAttdUsersSearchView />,
-    'app.rfid.attd-logs': () => <RFIDAttendanceLogsView />,
-    'app.rfid.time-set': () => <RFIDTimeSetView />,
     'app.notice': () => <NoticePage />,
     'app.notices': () => <NoticeListView />,
     'app.news-events': () => <NewsEvents />,
@@ -248,8 +228,6 @@ const adminViews = {
     'communication.notifications': () => <SendNotification />,
     'communication.sms.send-messages': () => <SendMessages />,
     'communication.sms.report': () => <SMSReport />,
-    // also surfaced as a top-level "Send SMS for absent students" menu
-    'send-sms-absent': () => <SendMessages />,
     'communication.letter-to-students': () => <LetterToStudents />,
     //
     'support': () => <Support />,

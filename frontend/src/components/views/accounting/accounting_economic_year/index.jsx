@@ -1,3 +1,4 @@
+import { navigatePortal } from "@/methods/portalRoutes";
 import AttentionBox from "@/components/AttentionBox";
 import BasicTable from "@/components/tables/BasicTable";
 import { customAction } from "@/components/tables/actions";
@@ -44,7 +45,7 @@ function AccountingEconomicYear() {
     function onActionClicked(action, id, item) {
         if (action === CloseActionButton.action) {
             saveTempState(AccountingEconomicYearClosingKey, item);
-            router.push("#accounting.economic-year-closing");
+            navigatePortal(router, "#accounting.economic-year-closing");
         }
     }
 

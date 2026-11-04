@@ -10,8 +10,13 @@ import { useCallback, useEffect, useState } from "react";
 import { object } from "yup";
 
 const smsSettingsSchema = { user: '', role: '', sms_api: '' };
+// One unbroken code from the SMS portal. A sentence saved here replaces the real
+// key and every SMS the school sends then fails. The server checks this too
+// (account/methods/smsKey.py).
+const SMS_KEY = /^[A-Za-z0-9._-]{20,100}$/;
+const NOT_A_KEY = "This is not an SMS API key. A key is one long code with no spaces, copied from the SMS portal.";
 const smsSettingsValidationSchema = object({
-    sms_api: text("API Key").must().size(5, 100),
+    sms_api: text("API Key").must().matches(SMS_KEY, NOT_A_KEY),
 });
 
 const ACCOUNT_API_PATH = "/auth/account_update";
@@ -46,7 +51,7 @@ function SMSSettings() {
         statusHandler.toggleUploading();
     }
     function allowEntry() {
-        return (data?.sms_api?.length >= 5 && data?.sms_api?.length < 100 &&
+        return (SMS_KEY.test((data?.sms_api || "").trim()) &&
             user?.role === "admin" && user?.profile?.account && !uploading);
     }
 
@@ -70,7 +75,8 @@ function SMSSettings() {
             <form onSubmit={onSave}>
                 <Section title={"SMS Settings"}>
                     <TextInput input={{ name: "sms_api", label: "SMS API Key" }} value={data?.sms_api}
-                        onChange={onChange} onBlur={onBlur} error={errors?.sms_api} />
+                        onChange={onChange} onBlur={onBlur} error={errors?.sms_api}
+                        info="Only the code copied from the SMS portal. To send a message, use Bulk SMS." />
                 </Section>
                 <ButtonsSecion>
                     <FormSaveButton isUpdate={data?.id} saving={uploading} disabled={!allowEntry()} />

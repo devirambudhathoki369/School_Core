@@ -98,7 +98,9 @@ function View({ type, children, selectedMenu }) {
     // said with a red glyph on a green button, which reads as a colour mistake
     // rather than a state. The whole control carries the state instead: settled
     // green when the years are chosen, alarm red when one is missing.
-    const fiscalYearSet = !!(year?.economic_year && year?.academic_year && year?.accounting_economic_year);
+    // Accounting chooses its latest open books period automatically and its
+    // reports carry their own historical-year filter. It is not global setup.
+    const fiscalYearSet = !!(year?.economic_year && year?.academic_year);
     const fiscalYearColor = fiscalYearSet ? "is-ok" : "is-warn";
     // 
     const schoolLogo = user?.profile?.school_logo || user?.profile?.logo;

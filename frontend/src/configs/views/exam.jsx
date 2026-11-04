@@ -9,7 +9,6 @@ const MarksEntrySlip = dynamic(() => import(/* webpackChunkName: "marks-entry" *
 const ExtraActivitiesEntry = dynamic(() => import(/* webpackChunkName: "marks-entry" */"@/components/views/exams/extra_activities_entry"));
 const EntryCards = dynamic(() => import("@/components/views/exams/entry_cards"));
 const SeatPlan = dynamic(() => import("@/components/views/exams/seat_plan"));
-const SeatPlanOld = dynamic(() => import("@/components/views/exams/seat_plan_old"));
 const ResultPublish = dynamic(() => import("@/components/views/exams/result_publish"));
 const CharacterCertificateView = dynamic(() => import("@/components/views/exams/character_certificate"));
 const CharacterCertificateListView = dynamic(() => import("@/components/views/exams/character_certificate/list_view"));
@@ -35,7 +34,6 @@ const examViews = {
     'exams.extra-activities-entry': () => <ExtraActivitiesEntry />,
     'exams.entry-cards': () => <EntryCards />,
     'exams.seat-plan': () => <SeatPlan />,
-    'exams.seat-plan-old': () => <SeatPlanOld />,
     'exams.publish-results': () => <ResultPublish />,
     'exams.character-certificate': () => <CharacterCertificateView />,
     'exams.character-certificates': () => <CharacterCertificateListView />,

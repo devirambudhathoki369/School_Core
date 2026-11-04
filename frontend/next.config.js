@@ -40,6 +40,8 @@ const SECURITY_HEADERS = [
 
 const nextConfig = {
   reactStrictMode: true,
+  // Keep a running development server from overwriting production build chunks.
+  distDir: process.env.NEXT_BUILD_DIR || (isDev ? '.next-dev' : '.next'),
   output: 'standalone',
   poweredByHeader: false,
   async headers() {

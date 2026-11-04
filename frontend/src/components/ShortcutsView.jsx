@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/PortalLink";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useAppContext } from "@/contexts/AppContext";
 import { collectMenuLeaves, pruneUnopenableMenus } from "@/methods/menuTree";

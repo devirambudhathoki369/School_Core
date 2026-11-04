@@ -1,3 +1,4 @@
+import { navigatePortal } from "@/methods/portalRoutes";
 import PreviousButton from "@/components/buttons/PreviousButton";
 import { ButtonsSecion, PaginationSection, Section } from "@/components/sections";
 import BasicTable from "@/components/tables/BasicTable";
@@ -69,7 +70,7 @@ function RecentAccountingLedgers() {
     function onLedgerSelect(action, id, item) {
         if (action === editAction.action) {
             saveTempState(tempStateKeys.ACC_LEDGER, item);
-            router.push("#accounting.create-ledger");
+            navigatePortal(router, "#accounting.create-ledger");
         }
         return null;
     }

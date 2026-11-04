@@ -1,3 +1,4 @@
+import { navigatePortal } from "@/methods/portalRoutes";
 import { Button } from "@material-tailwind/react";
 import { ChevronDoubleLeftIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
@@ -6,7 +7,7 @@ function PreviousButton({ name, href, onClick = null }) {
     const router = useRouter();
 
     function handleRoute() {
-        if (href) router.push(href);
+        if (href) navigatePortal(router, href);
         else router.back();
     }
 

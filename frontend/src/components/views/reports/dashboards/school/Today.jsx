@@ -1,3 +1,4 @@
+import { navigatePortal } from "@/methods/portalRoutes";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useAppContext } from "@/contexts/AppContext";
@@ -32,7 +33,7 @@ function greeting(hour) {
 
 /* ---------------------------------------------------------------- greeting */
 export function Greeting() {
-    const { user: { user }, menu: { menus, setSelectedMenu } } = useAppContext();
+    const { user: { user }, menu: { menus } } = useAppContext();
     const router = useRouter();
     // A staff sign-in carries the person's name; an admin's profile IS the
     // school, so it is greeted without one rather than as "Good morning, <school>".
@@ -47,8 +48,7 @@ export function Greeting() {
         { view: "payment.student", label: "Collect fee", Icon: BanknotesIcon, primary: true },
     ].filter((a) => views[a.view]);
     const open = (view) => {
-        setSelectedMenu(view);
-        router.push(`#${view}`);
+        navigatePortal(router, `#${view}`);
     };
     return (
         <div className="app-dash-greeting flex flex-wrap items-end justify-between gap-4 pt-1">

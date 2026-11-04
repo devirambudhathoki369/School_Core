@@ -1,3 +1,4 @@
+import { navigatePortal } from "@/methods/portalRoutes";
 import PreviousButton from "@/components/buttons/PreviousButton";
 import { ButtonsSecion, PaginationSection, Section } from "@/components/sections";
 import BasicTable from "@/components/tables/BasicTable";
@@ -215,7 +216,7 @@ function RecentEntriesView({ id, name, apiPath, pagePath, tableColumns, tag = "K
             const _entry = await reprintVoucher(id, false);
             if (_entry) {
                 saveTempState(_tempStateKey, _entry);
-                router.push(pagePath);
+                navigatePortal(router, pagePath);
             }
         }
     }

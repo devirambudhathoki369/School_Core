@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/PortalLink';
 import { TruckIcon } from '@heroicons/react/24/outline';
 import { useAppContext } from '@/contexts/AppContext';
 import { TRACKING_VIEW } from './tracking';

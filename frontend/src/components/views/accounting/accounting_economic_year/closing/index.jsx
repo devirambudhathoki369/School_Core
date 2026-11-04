@@ -1,3 +1,4 @@
+import { portalPath, portalRole } from "@/methods/portalRoutes";
 import { useEffect, useState } from "react";
 import { useAppContext } from "@/contexts/AppContext";
 import { Button, Stepper, Tooltip } from "@material-tailwind/react";
@@ -126,7 +127,7 @@ function AccountingEconomicYearClosing() {
         setErrors({});
         // 
         setTimeout(() => {
-            window.location.href = `/admin#${HOMEPAGE}`;
+            window.location.href = portalPath(portalRole(window.location.pathname) || 'admin', HOMEPAGE);
             window.location.reload();
             localStorage.removeItem(fyKeys?.accounting_economic_year);
         }, exitTime);

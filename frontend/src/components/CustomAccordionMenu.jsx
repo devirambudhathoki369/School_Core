@@ -10,7 +10,7 @@ import {
     AccordionBody,
 } from "@material-tailwind/react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
+import Link from "@/components/PortalLink";
 import { useAppContext } from "@/contexts/AppContext";
 
 export const Menu = memo(function Menu({ menu, viewName, onClick, isClicked = false, mini = false }) {

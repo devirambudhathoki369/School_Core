@@ -29,7 +29,7 @@ export const metadata = {
 
 export default function App({ Component, pageProps }) {
   return (
-    <AppContextProvider>
+    <AppContextProvider key={pageProps.role || "public"}>
       <ThemeProvider value={customTheme}>
         {/* The site-wide default. It sits here rather than in _document so the
             head manager owns it and a page CAN override it — one rendered by

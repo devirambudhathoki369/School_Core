@@ -17,7 +17,7 @@ import { MapIcon } from "@heroicons/react/24/outline";
 import { isSchoolBlocked } from "@/configs/blockedSchools";
 import { menuAccessKey, menuAccessOf } from "@/configs/moduleGates";
 
-const ALLOWED_ROLES = process.env.NEXT_PUBLIC_ALLOWED_ROLES.split(',');
+const ALLOWED_ROLES = (process.env.NEXT_PUBLIC_ALLOWED_ROLES || 'admin,staff,student,superadmin,superuser,canteen').split(',');
 
 export default function Page({ role }) {
     const { menu: { menus, selectedMenu },
@@ -73,7 +73,7 @@ export default function Page({ role }) {
     /**
      * Keep `user.today` current in a tab that stays open across midnight.
      *
-     * It is read once, above, and navigation is by `#fragment`, so the page
+     * It is read once, above, and navigation stays within the portal route, so the page
      * never reloads: a phone left open since yesterday kept defaulting every
      * bill, voucher and posting to YESTERDAY's date. Re-ask the server when the
      * tab comes back into view and every few minutes, and touch the user only
@@ -160,43 +160,6 @@ export default function Page({ role }) {
             window.removeEventListener('focus', refreshToday);
         };
     }, [role, signedInAs]);
-    /**
-     * Hand the browser one frame to paint before mounting a heavy view.
-     *
-     * This was a hard-coded `setTimeout(…, 500)`: the FIRST time a page was
-     * opened it rendered a loader for half a second and then rendered the view.
-     * Nothing was being fetched during that window — the view had not even
-     * mounted, and every screen does its own loading afterwards — so it was
-     * half a second of pure invented latency on the first visit to each of the
-     * ~90 pages in the menu, every session.
-     *
-     * The pattern was worth keeping for one reason, which is presumably why it
-     * was written: some views do enough work on first render to block the
-     * thread, and without this the click would land on a frozen page with no
-     * feedback. So the loader still appears — for ONE animation frame, which is
-     * all that is needed to get it painted before the work starts. The wait is
-     * gone; the feedback is not.
-     */
-    const [isPageLoading, setIsPageLoading] = useState(false);
-    const [loadedPages, setLoadedPages] = useState({});
-    useEffect(() => {
-        if (!selectedMenu || loadedPages?.[selectedMenu]) return;
-        setIsPageLoading(true);
-        // double rAF: the first callback runs BEFORE the paint that shows the
-        // loader, the second after it. Releasing on the first would let React
-        // batch both states into one render and the loader would never appear.
-        let raf2;
-        const raf1 = requestAnimationFrame(() => {
-            raf2 = requestAnimationFrame(() => {
-                setIsPageLoading(false);
-                setLoadedPages(state => ({ ...state, [selectedMenu]: true }));
-            });
-        });
-        return () => {
-            cancelAnimationFrame(raf1);
-            if (raf2) cancelAnimationFrame(raf2);
-        };
-    }, [selectedMenu]);
 
     return (
         <main className={`overflow-hidden h-screen`}>
@@ -218,8 +181,7 @@ export default function Page({ role }) {
                                                 <AppSidebar menus={menus?.menu || []} />
                                                 <View type={role} selectedMenu={selectedMenu || ''}>
                                                     {/* change component according to selectedMenu */}
-                                                    {isPageLoading ? <Loader /> :
-                                                        typeof menus?.views?.[selectedMenu] === 'function'
+                                                    {typeof menus?.views?.[selectedMenu] === 'function'
                                                             ? menus.views[selectedMenu]()
                                                             : menus?.views?.[selectedMenu] || (
                                                                 // The backstop, and it should never be
@@ -275,6 +237,7 @@ export default function Page({ role }) {
 
 export async function getServerSideProps(context) {
     const { role } = context.params;
+    if (!ALLOWED_ROLES.includes(role.toLowerCase())) return { notFound: true };
     return {
         props: {
             role

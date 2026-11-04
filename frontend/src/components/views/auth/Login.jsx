@@ -245,17 +245,7 @@ function Login({ role }) {
             updateNotification(code, message);
             if (code === 200) {
                 if (data?.user && data?.user?.username) {
-                    // A session always opens on the dashboard. The portal keeps
-                    // the open page in the fragment, so arriving on a bookmarked
-                    // (or just-signed-out-of) `/admin#accounting.entry` would
-                    // otherwise drop the user straight into that screen the
-                    // moment they signed in. Clearing it through the router —
-                    // not history.replaceState — is what matters: the view is
-                    // resolved from `router.asPath`, which a raw history write
-                    // would leave stale.
-                    if (window.location.hash) {
-                        await router.replace(window.location.pathname, undefined, { shallow: true });
-                    }
+                    // Preserve the requested page after signing in.
                     setUser(data?.user || {});
                     // Deliberately NOT clearing `status` on the success path:
                     // the view is about to be swapped for the portal, and

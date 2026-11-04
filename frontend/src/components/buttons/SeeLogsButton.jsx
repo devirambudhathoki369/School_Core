@@ -1,3 +1,4 @@
+import { navigatePortal } from "@/methods/portalRoutes";
 import { Button } from "@material-tailwind/react";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
@@ -6,7 +7,7 @@ function SeeLogsButton({ name, href, onClick = () => null }) {
     const router = useRouter();
 
     function handleRoute() {
-        router.push(href);
+        navigatePortal(router, href);
     }
 
     return (

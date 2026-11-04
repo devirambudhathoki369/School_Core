@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { SkeletonCards, SkeletonText } from "@/components/Skeleton";
-import Link from "next/link";
+import Link from "@/components/PortalLink";
 import {
     BuildingOffice2Icon, SwatchIcon, PaintBrushIcon, CalendarIcon, CalendarDaysIcon,
     UserIcon, CpuChipIcon, BellAlertIcon, AcademicCapIcon, ChartBarIcon, CheckCircleIcon,

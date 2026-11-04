@@ -17,7 +17,9 @@ export default function BusStationProvider({ children }) {
     busStationSchema['school'] = user?.profile?.school || user?.profile?.id;
     const [form, setForm] = useState(() => ({ ...busStationSchema }));
     const [errors, setErrors] = useState([]);
-    const [stations, setStations] = useState([]);
+    // null is loading; an empty array is a valid, completed response for a new
+    // school and must not be rendered as an endless loading state.
+    const [stations, setStations] = useState(null);
     const [locations, setLocations] = useState([]);
     const { uploading, statusHandler } = useRequestStatus();
     // 
@@ -93,7 +95,7 @@ export default function BusStationProvider({ children }) {
     }
     // keep the green map pins in step with the list after saves/deletes
     useEffect(() => {
-        setLocations(extractLocations(stations));
+        if (stations !== null) setLocations(extractLocations(stations));
     }, [stations]);
     // 
     useEffect(() => {

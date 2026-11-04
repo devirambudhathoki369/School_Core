@@ -1,3 +1,4 @@
+import { navigatePortal } from "@/methods/portalRoutes";
 import {
     Card,
     List,
@@ -70,7 +71,7 @@ function FiscalYearNames() {
 //
 export default function AppSidebar({ menus }) {
     const { sidebar: { sidebarOpened, setSidebarOpened },
-        menu: { selectedMenu, setSelectedMenu, menus: menuBundle },
+        menu: { selectedMenu, menus: menuBundle },
         user: { user }, notification: { updateNotification } } = useAppContext();
     const router = useRouter();
 
@@ -252,10 +253,9 @@ export default function AppSidebar({ menus }) {
         e.preventDefault();
         const first = matches[0];
         if (!first) return;
-        setSelectedMenu(first.view);
-        router.push(`#${first.view}`);
+        navigatePortal(router, `#${first.view}`);
         setQuery('');
-    }, [matches, query, router, setSelectedMenu]);
+    }, [matches, query, router]);
 
     // Ctrl/⌘+K puts the cursor in the box from anywhere in the app — the
     // shortcut every product with a search field has trained people to try. It
@@ -436,9 +436,6 @@ const afterLogoutReloadTime = 1 * 1000; // 1 seconds!
  * reloading and leave the signed-out session's state on screen.
  */
 function returnToLogin() {
-    const { pathname, search, hash } = window.location;
-    if (hash || search) {
-        window.history.replaceState(null, '', pathname);
-    }
-    window.location.reload();
+    const role = window.location.pathname.split('/').filter(Boolean)[0];
+    window.location.replace(`/${role}`);
 }

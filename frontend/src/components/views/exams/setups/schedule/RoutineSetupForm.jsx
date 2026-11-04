@@ -4,7 +4,7 @@ import { Button, Tooltip } from "@material-tailwind/react";
 import { useEffect, useState } from "react";
 import { ArrowLeftIcon, TrashIcon } from "@heroicons/react/24/outline";
 import BasicTable from "@/components/tables/BasicTable";
-import Link from "next/link";
+import Link from "@/components/PortalLink";
 import { examScheduleSchema } from "@/schemas/exam";
 import { deleteExamSchedule, fetchExamSchedule, saveExamSchedule } from "@/services/functions/exams/examSchedule";
 import { useAppContext } from "@/contexts/AppContext";
