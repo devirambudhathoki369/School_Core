@@ -20,50 +20,49 @@ export const UI_THEME_CONSOLE = 'console';
 
 // Five palettes on one layout. The keys are the ones schools already have
 // stored, so a new look never moves a school's setting, only what each key
-// paints: `classic` is Marigold, `vivid` is Himalaya, `daylight` is Rara,
-// `evergreen` is Terai. Each is a dark frame and one bright highlight; the
-// `swatches` are, in order, the frame, the highlight, the page and the button
-// colour.
+// paints: `classic` is Ocean, `vivid` Violet, `daylight` Teal, `evergreen`
+// Emerald, `laliguras` Berry. The `swatches` are, in order, the menu, the
+// brand, the page and the accent.
 export const UI_THEMES = [
     {
         value: UI_THEME_CLASSIC,
-        name: 'Marigold',
-        blurb: 'A chalkboard-green frame and one marigold for what you have chosen. The SchoolCore look, and where every school starts.',
-        swatches: ['#0E2B23', '#FFC233', '#F3F6F4', '#17614D'],
-        rail: '#0E2B23',
-        railInk: '#E4EEE9',
+        name: 'Ocean',
+        blurb: 'A white menu with a blue-green brand and amber for the small marks. Clear and calm all day. Every school starts here.',
+        swatches: ['#FFFFFF', '#037177', '#F5F7F7', '#CD8000'],
+        rail: '#FFFFFF',
+        railInk: '#495051',
     },
     {
         value: 'vivid',
-        name: 'Himalaya',
-        blurb: 'A midnight-indigo frame with a saffron highlight. Deep, calm and unmistakable.',
-        swatches: ['#171B45', '#FF9F45', '#F4F4FA', '#3B44B0'],
-        rail: '#171B45',
-        railInk: '#E5E7F7',
+        name: 'Violet',
+        blurb: 'A deep violet menu, violet buttons and mint for the small marks. Modern and confident.',
+        swatches: ['#221A51', '#7C5CDE', '#F6F7F8', '#22AC81'],
+        rail: '#221A51',
+        railInk: '#EDEDF0',
     },
     {
         value: 'daylight',
-        name: 'Rara',
-        blurb: 'A lake-blue frame with a spring-green highlight. Fresh, clear and bright.',
-        swatches: ['#04334A', '#4CF0A0', '#F1F6F9', '#0A5F80'],
-        rail: '#04334A',
-        railInk: '#DCEEF5',
+        name: 'Teal',
+        blurb: 'A deep teal menu, teal buttons and coral for the small marks. Steady and professional.',
+        swatches: ['#002D25', '#037368', '#F5F7F7', '#E76558'],
+        rail: '#002D25',
+        railInk: '#EBEEEF',
     },
     {
         value: 'evergreen',
-        name: 'Terai',
-        blurb: 'A deep paddy-green frame with a new-rice lime highlight. Earthy and alive.',
-        swatches: ['#1D3510', '#C9F25A', '#F4F7EF', '#3E6B1C'],
-        rail: '#1D3510',
-        railInk: '#E7F1DD',
+        name: 'Emerald',
+        blurb: 'A white menu, emerald buttons and a school-crest gold for the small marks. Fresh and bright.',
+        swatches: ['#FFFFFF', '#047744', '#F6F7F6', '#BF8800'],
+        rail: '#FFFFFF',
+        railInk: '#4A504D',
     },
     {
         value: 'laliguras',
-        name: 'Laliguras',
-        blurb: 'An aubergine frame with a rhododendron-pink highlight. Warm and confident.',
-        swatches: ['#2A1630', '#FF7096', '#F8F4F6', '#9C2457'],
-        rail: '#2A1630',
-        railInk: '#F2E6EF',
+        name: 'Berry',
+        blurb: 'A deep berry menu, berry buttons and teal for the small marks. Bold and warm.',
+        swatches: ['#410F2C', '#C04380', '#F8F6F7', '#1CA9A3'],
+        rail: '#410F2C',
+        railInk: '#F0EDEE',
     },
 ];
 

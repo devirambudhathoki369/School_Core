@@ -4869,17 +4869,15 @@ button.app-att-day { cursor: pointer; }
 
    PALETTES. One block per `data-ui-theme` key; the keys are the ones schools
    already have stored, so no school's setting moves — only what it paints:
-       classic   → Marigold   chalkboard green frame, marigold highlight (default)
-       vivid     → Himalaya   midnight indigo frame, saffron highlight
-       daylight  → Rara       petrol-blue frame, spring-green highlight
-       evergreen → Terai      deep paddy frame, lime highlight
-       laliguras → Laliguras  aubergine frame, petal-pink highlight
+       classic   → Ocean      white menu, blue-green brand, amber marks (default)
+       vivid     → Violet     deep violet menu, violet brand, mint marks
+       daylight  → Teal       deep teal menu, teal brand, coral marks
+       evergreen → Emerald    white menu, emerald brand, gold marks
+       laliguras → Berry      deep berry menu, berry brand, teal marks
        console   → Console    deep violet; the superadmin's alone
-   Every palette is FLAT: no gradient anywhere. Each is a dark frame (the
-   menu and the shell around the page) and one bright highlight, `--t-hi`,
-   that only ever means "chosen" or "the step you came to do". Buttons and
-   links take `--t-brand-solid`, a mid tone of the frame's hue, so white
-   lettering on them stays at 6:1 or better.
+   Used 60 · 30 · 10: neutral pages carry most of the screen, the menu sets
+   the mood, and the brand appears only where it means something -- the
+   button, the page you are on, what you have chosen. Flat throughout.
    Every pair was measured, not eyeballed: brand under white text, menu text
    on its rail, the selected item, links and tints all at 5:1 or better, and
    the two chart colours of each palette at 3:1 on white and apart in
@@ -4891,264 +4889,280 @@ button.app-att-day { cursor: pointer; }
    staying teal on an indigo, crimson or green screen.
    =========================================================================== */
 
-/* Marigold -- the default. A chalkboard-green frame and one marigold: the
-   menu item you are on, a chosen class, a chosen month. */
+/* Ocean -- the default. A white menu, a blue-green brand for the button,
+   the page you are on and what you have chosen, and amber, sparingly, for the
+   small marks (a dot, a date, a badge). Flat: no gradient anywhere. */
 :root, [data-ui-theme="classic"] {
-    --brand-50: 239 244 243;
-    --brand-100: 225 234 232;
-    --brand-200: 195 214 209;
-    --brand-300: 151 184 175;
-    --brand-400: 93 144 130;
-    --brand-500: 23 97 77;
-    --brand-600: 21 84 66;
-    --brand-700: 18 70 56;
-    --brand-800: 17 58 47;
-    --brand-900: 15 48 39;
-    --t-frame: #0E2B23;
-    --t-hi: #FFC233;
-    --t-hi-ink: #0E2B23;
-    --t-hi-tint: #FFF2D2;
-    --t-hi-edge: #D4A730;
-    --t-rail: #0E2B23;
-    --t-rail-head: #0E2B23;
-    --t-rail-ink: #E4EEE9;
-    --t-rail-dim: #97B3A8;
-    --t-rail-line: rgb(255 255 255 / .08);
-    --t-rail-hover: rgb(255 255 255 / .07);
-    --t-rail-strong: #FFFFFF;
-    --t-rail-mark: #FFC233;
-    --t-rail-mark-ink: #0E2B23;
-    --t-accent: #FFC233;
-    --t-active-bg: #FFC233;
-    --t-active-ink: #0E2B23;
-    --t-group-bg: rgb(255 255 255 / .05);
-    --t-canvas: #F3F6F4;
-    --t-brand: #17614D;
-    --t-brand-solid: #17614D;
-    --t-brand-hover: #145140;
-    --t-brand-ink: #155442;
-    --t-brand-tint: #ECF2F1;
-    --t-brand-tint-strong: #DFE9E6;
-    --t-brand-line: #BED3CD;
-    --t-ring: rgb(23 97 77 / .24);
-    --t-k1: #17614D;
-    --t-k2: #A86A00;
+    --brand-50: 235 250 254;
+    --brand-100: 212 245 252;
+    --brand-200: 178 235 246;
+    --brand-300: 131 219 233;
+    --brand-400: 73 195 210;
+    --brand-500: 12 167 180;
+    --brand-600: 0 137 146;
+    --brand-700: 3 113 119;
+    --brand-800: 1 90 93;
+    --brand-900: 3 69 70;
+    --t-frame: #FFFFFF;
+    --t-hi: #037177;
+    --t-hi-ink: #FFFFFF;
+    --t-hi-tint: #EBFAFE;
+    --t-hi-edge: #015A5D;
+    --t-mark: #CD8000;
+    --t-mark-tint: #FEEAD2;
+    --t-mark-ink: #8E5400;
+    --t-rail: #FFFFFF;
+    --t-rail-head: #FFFFFF;
+    --t-rail-ink: #495051;
+    --t-rail-dim: #5C6567;
+    --t-rail-line: #DBE1E2;
+    --t-rail-hover: #EBEEEF;
+    --t-rail-strong: #222627;
+    --t-rail-mark: #037177;
+    --t-rail-mark-ink: #FFFFFF;
+    --t-accent: #037177;
+    --t-active-bg: #EBFAFE;
+    --t-active-ink: #037177;
+    --t-group-bg: transparent;
+    --t-canvas: #F5F7F7;
+    --t-brand: #037177;
+    --t-brand-solid: #037177;
+    --t-brand-hover: #015A5D;
+    --t-brand-ink: #037177;
+    --t-brand-tint: #EBFAFE;
+    --t-brand-tint-strong: #D4F5FC;
+    --t-brand-line: #B2EBF6;
+    --t-ring: rgb(3 113 119 / .24);
+    --t-k1: #037177;
+    --t-k2: #A96704;
     --t-k3: #2a78d6;
     --t-k4: #7C3AED;
     --t-clock: #FFFFFF;
-    --t-clock-line: #E3E6EB;
-    --t-clock-ink: #374151;
-    --t-thead-bg: #F3F7F6;
-    --t-thead-ink: #3B4450;
+    --t-clock-line: #DBE1E2;
+    --t-clock-ink: #495051;
+    --t-thead-bg: #F5F7F7;
+    --t-thead-ink: #495051;
     --t-aura-1: transparent;
     --t-aura-2: transparent;
 }
 
-/* Himalaya -- the night before the climb. Midnight indigo, saffron highlight. */
+/* Violet -- a deep violet menu, violet brand, mint for the small marks. */
 [data-ui-theme="vivid"] {
-    --brand-50: 241 242 249;
-    --brand-100: 230 231 245;
-    --brand-200: 204 206 234;
-    --brand-300: 167 171 219;
-    --brand-400: 118 124 200;
-    --brand-500: 59 68 176;
-    --brand-600: 50 58 149;
-    --brand-700: 41 48 122;
-    --brand-800: 33 38 99;
-    --brand-900: 27 31 80;
-    --t-frame: #171B45;
-    --t-hi: #FF9F45;
-    --t-hi-ink: #171B45;
-    --t-hi-tint: #FFEAD6;
-    --t-hi-edge: #D58745;
-    --t-rail: #171B45;
-    --t-rail-head: #171B45;
-    --t-rail-ink: #E5E7F7;
-    --t-rail-dim: #A3A8D6;
+    --brand-50: 248 245 254;
+    --brand-100: 240 234 254;
+    --brand-200: 227 217 254;
+    --brand-300: 206 191 255;
+    --brand-400: 180 157 255;
+    --brand-500: 153 120 252;
+    --brand-600: 124 92 222;
+    --brand-700: 100 74 190;
+    --brand-800: 77 57 155;
+    --brand-900: 57 44 121;
+    --t-frame: #221A51;
+    --t-hi: #7C5CDE;
+    --t-hi-ink: #FFFFFF;
+    --t-hi-tint: #F8F5FE;
+    --t-hi-edge: #644ABE;
+    --t-mark: #22AC81;
+    --t-mark-tint: #D5F7EA;
+    --t-mark-ink: #007652;
+    --t-rail: #221A51;
+    --t-rail-head: #221A51;
+    --t-rail-ink: #EDEDF0;
+    --t-rail-dim: #B49DFF;
     --t-rail-line: rgb(255 255 255 / .08);
     --t-rail-hover: rgb(255 255 255 / .07);
     --t-rail-strong: #FFFFFF;
-    --t-rail-mark: #FF9F45;
-    --t-rail-mark-ink: #171B45;
-    --t-accent: #FF9F45;
-    --t-active-bg: #FF9F45;
-    --t-active-ink: #171B45;
-    --t-group-bg: rgb(255 255 255 / .05);
-    --t-canvas: #F4F4FA;
-    --t-brand: #3B44B0;
-    --t-brand-solid: #3B44B0;
-    --t-brand-hover: #303890;
-    --t-brand-ink: #323A95;
-    --t-brand-tint: #EFF0F9;
-    --t-brand-tint-strong: #E4E5F4;
-    --t-brand-line: #C8CBE9;
-    --t-ring: rgb(59 68 176 / .24);
-    --t-k1: #3B44B0;
-    --t-k2: #B4530A;
+    --t-rail-mark: #8BDFBF;
+    --t-rail-mark-ink: #221A51;
+    --t-accent: #8BDFBF;
+    --t-active-bg: #392C79;
+    --t-active-ink: #FFFFFF;
+    --t-group-bg: transparent;
+    --t-canvas: #F6F7F8;
+    --t-brand: #7C5CDE;
+    --t-brand-solid: #7C5CDE;
+    --t-brand-hover: #644ABE;
+    --t-brand-ink: #644ABE;
+    --t-brand-tint: #F8F5FE;
+    --t-brand-tint-strong: #F0EAFE;
+    --t-brand-line: #E3D9FE;
+    --t-ring: rgb(124 92 222 / .24);
+    --t-k1: #7C5CDE;
+    --t-k2: #007652;
     --t-k3: #2a78d6;
     --t-k4: #7C3AED;
     --t-clock: #FFFFFF;
-    --t-clock-line: #E3E6EB;
-    --t-clock-ink: #374151;
-    --t-thead-bg: #F5F6FB;
-    --t-thead-ink: #3B4450;
+    --t-clock-line: #DFDFE3;
+    --t-clock-ink: #4E4E54;
+    --t-thead-bg: #F6F7F8;
+    --t-thead-ink: #4E4E54;
     --t-aura-1: transparent;
     --t-aura-2: transparent;
 }
 
-/* Rara -- the lake. Petrol blue frame, spring-green highlight. */
+/* Teal -- a deep teal menu, teal brand, coral for the small marks. */
 [data-ui-theme="daylight"] {
-    --brand-50: 238 244 246;
-    --brand-100: 223 234 238;
-    --brand-200: 191 213 222;
-    --brand-300: 145 183 198;
-    --brand-400: 84 143 166;
-    --brand-500: 10 95 128;
-    --brand-600: 8 84 114;
-    --brand-700: 7 73 101;
-    --brand-800: 6 63 89;
-    --brand-900: 5 55 79;
-    --t-frame: #04334A;
-    --t-hi: #4CF0A0;
-    --t-hi-ink: #04334A;
-    --t-hi-tint: #D8FCEA;
-    --t-hi-edge: #3FCE91;
-    --t-rail: #04334A;
-    --t-rail-head: #04334A;
-    --t-rail-ink: #DCEEF5;
-    --t-rail-dim: #8FBACB;
+    --brand-50: 235 251 250;
+    --brand-100: 211 246 244;
+    --brand-200: 178 237 233;
+    --brand-300: 132 221 214;
+    --brand-400: 76 198 188;
+    --brand-500: 5 170 158;
+    --brand-600: 9 140 128;
+    --brand-700: 3 115 104;
+    --brand-800: 2 92 81;
+    --brand-900: 0 71 61;
+    --t-frame: #002D25;
+    --t-hi: #037368;
+    --t-hi-ink: #FFFFFF;
+    --t-hi-tint: #EBFBFA;
+    --t-hi-edge: #025C51;
+    --t-mark: #E76558;
+    --t-mark-tint: #FFE8E3;
+    --t-mark-ink: #A93533;
+    --t-rail: #002D25;
+    --t-rail-head: #002D25;
+    --t-rail-ink: #EBEEEF;
+    --t-rail-dim: #4CC6BC;
     --t-rail-line: rgb(255 255 255 / .08);
     --t-rail-hover: rgb(255 255 255 / .07);
     --t-rail-strong: #FFFFFF;
-    --t-rail-mark: #4CF0A0;
-    --t-rail-mark-ink: #04334A;
-    --t-accent: #4CF0A0;
-    --t-active-bg: #4CF0A0;
-    --t-active-ink: #04334A;
-    --t-group-bg: rgb(255 255 255 / .05);
-    --t-canvas: #F1F6F9;
-    --t-brand: #0A5F80;
-    --t-brand-solid: #0A5F80;
-    --t-brand-hover: #085270;
-    --t-brand-ink: #085472;
-    --t-brand-tint: #EBF2F5;
-    --t-brand-tint-strong: #DDE9ED;
-    --t-brand-line: #BAD2DB;
-    --t-ring: rgb(10 95 128 / .24);
-    --t-k1: #0A5F80;
-    --t-k2: #0E8A57;
+    --t-rail-mark: #FEB6A9;
+    --t-rail-mark-ink: #002D25;
+    --t-accent: #FEB6A9;
+    --t-active-bg: #00473D;
+    --t-active-ink: #FFFFFF;
+    --t-group-bg: transparent;
+    --t-canvas: #F5F7F7;
+    --t-brand: #037368;
+    --t-brand-solid: #037368;
+    --t-brand-hover: #025C51;
+    --t-brand-ink: #037368;
+    --t-brand-tint: #EBFBFA;
+    --t-brand-tint-strong: #D3F6F4;
+    --t-brand-line: #B2EDE9;
+    --t-ring: rgb(3 115 104 / .24);
+    --t-k1: #037368;
+    --t-k2: #C84740;
     --t-k3: #2a78d6;
     --t-k4: #7C3AED;
     --t-clock: #FFFFFF;
-    --t-clock-line: #E3E6EB;
-    --t-clock-ink: #374151;
-    --t-thead-bg: #F3F7F9;
-    --t-thead-ink: #3B4450;
+    --t-clock-line: #DBE1E1;
+    --t-clock-ink: #495050;
+    --t-thead-bg: #F5F7F7;
+    --t-thead-ink: #495050;
     --t-aura-1: transparent;
     --t-aura-2: transparent;
 }
 
-/* Terai -- paddy at dusk. Deep field green, new-rice lime highlight. */
+/* Emerald -- a white menu, emerald brand, a school-crest gold for the small marks. */
 [data-ui-theme="evergreen"] {
-    --brand-50: 241 245 239;
-    --brand-100: 230 236 225;
-    --brand-200: 205 217 196;
-    --brand-300: 168 188 153;
-    --brand-400: 120 151 96;
-    --brand-500: 62 107 28;
-    --brand-600: 54 94 25;
-    --brand-700: 46 80 22;
-    --brand-800: 38 68 19;
-    --brand-900: 32 58 17;
-    --t-frame: #1D3510;
-    --t-hi: #C9F25A;
-    --t-hi-ink: #1D3510;
-    --t-hi-tint: #F3FCDB;
-    --t-hi-edge: #AAD04D;
-    --t-rail: #1D3510;
-    --t-rail-head: #1D3510;
-    --t-rail-ink: #E7F1DD;
-    --t-rail-dim: #A8C08F;
-    --t-rail-line: rgb(255 255 255 / .08);
-    --t-rail-hover: rgb(255 255 255 / .07);
-    --t-rail-strong: #FFFFFF;
-    --t-rail-mark: #C9F25A;
-    --t-rail-mark-ink: #1D3510;
-    --t-accent: #C9F25A;
-    --t-active-bg: #C9F25A;
-    --t-active-ink: #1D3510;
-    --t-group-bg: rgb(255 255 255 / .05);
-    --t-canvas: #F4F7EF;
-    --t-brand: #3E6B1C;
-    --t-brand-solid: #3E6B1C;
-    --t-brand-hover: #345B18;
-    --t-brand-ink: #365E19;
-    --t-brand-tint: #F0F3ED;
-    --t-brand-tint-strong: #E4EADF;
-    --t-brand-line: #C9D6BF;
-    --t-ring: rgb(62 107 28 / .24);
-    --t-k1: #3E6B1C;
-    --t-k2: #8A6A00;
+    --brand-50: 236 251 243;
+    --brand-100: 214 247 230;
+    --brand-200: 183 239 209;
+    --brand-300: 141 223 181;
+    --brand-400: 94 200 146;
+    --brand-500: 47 173 114;
+    --brand-600: 6 144 87;
+    --brand-700: 4 119 68;
+    --brand-800: 1 95 51;
+    --brand-900: 1 73 36;
+    --t-frame: #FFFFFF;
+    --t-hi: #047744;
+    --t-hi-ink: #FFFFFF;
+    --t-hi-tint: #ECFBF3;
+    --t-hi-edge: #015F33;
+    --t-mark: #BF8800;
+    --t-mark-tint: #FCECCC;
+    --t-mark-ink: #845A01;
+    --t-rail: #FFFFFF;
+    --t-rail-head: #FFFFFF;
+    --t-rail-ink: #4A504D;
+    --t-rail-dim: #5E6561;
+    --t-rail-line: #DCE1DE;
+    --t-rail-hover: #ECEEED;
+    --t-rail-strong: #232624;
+    --t-rail-mark: #047744;
+    --t-rail-mark-ink: #FFFFFF;
+    --t-accent: #047744;
+    --t-active-bg: #ECFBF3;
+    --t-active-ink: #047744;
+    --t-group-bg: transparent;
+    --t-canvas: #F6F7F6;
+    --t-brand: #047744;
+    --t-brand-solid: #047744;
+    --t-brand-hover: #015F33;
+    --t-brand-ink: #047744;
+    --t-brand-tint: #ECFBF3;
+    --t-brand-tint-strong: #D6F7E6;
+    --t-brand-line: #B7EFD1;
+    --t-ring: rgb(4 119 68 / .24);
+    --t-k1: #047744;
+    --t-k2: #845A01;
     --t-k3: #2a78d6;
     --t-k4: #7C3AED;
     --t-clock: #FFFFFF;
-    --t-clock-line: #E3E6EB;
-    --t-clock-ink: #374151;
-    --t-thead-bg: #F5F8F4;
-    --t-thead-ink: #3B4450;
+    --t-clock-line: #DCE1DE;
+    --t-clock-ink: #4A504D;
+    --t-thead-bg: #F6F7F6;
+    --t-thead-ink: #4A504D;
     --t-aura-1: transparent;
     --t-aura-2: transparent;
 }
 
-/* Laliguras -- the rhododendron. Aubergine frame, petal-pink highlight;
-   charts keep a leaf green (below) so a full class never reads as an alarm. */
+/* Berry -- a deep berry menu, berry brand; charts and small marks take teal
+   (below), so a full class never reads in the colour of an alarm. */
 [data-ui-theme="laliguras"] {
-    --brand-50: 248 240 243;
-    --brand-100: 242 227 233;
-    --brand-200: 229 198 211;
-    --brand-300: 210 156 179;
-    --brand-400: 186 102 137;
-    --brand-500: 156 36 87;
-    --brand-600: 128 32 77;
-    --brand-700: 99 29 68;
-    --brand-800: 74 26 59;
-    --brand-900: 53 23 52;
-    --t-frame: #2A1630;
-    --t-hi: #FF7096;
-    --t-hi-ink: #2A1630;
-    --t-hi-tint: #FFE0E8;
-    --t-hi-edge: #D96084;
-    --t-rail: #2A1630;
-    --t-rail-head: #2A1630;
-    --t-rail-ink: #F2E6EF;
-    --t-rail-dim: #BBA2B6;
+    --brand-50: 254 244 246;
+    --brand-100: 254 231 237;
+    --brand-200: 255 210 223;
+    --brand-300: 254 176 203;
+    --brand-400: 250 131 178;
+    --brand-500: 224 96 153;
+    --brand-600: 192 67 128;
+    --brand-700: 161 50 107;
+    --brand-800: 130 37 87;
+    --brand-900: 100 28 68;
+    --t-frame: #410F2C;
+    --t-hi: #C04380;
+    --t-hi-ink: #FFFFFF;
+    --t-hi-tint: #FEF4F6;
+    --t-hi-edge: #A1326B;
+    --t-mark: #1CA9A3;
+    --t-mark-tint: #D6F5F5;
+    --t-mark-ink: #00736C;
+    --t-rail: #410F2C;
+    --t-rail-head: #410F2C;
+    --t-rail-ink: #F0EDEE;
+    --t-rail-dim: #FA83B2;
     --t-rail-line: rgb(255 255 255 / .08);
     --t-rail-hover: rgb(255 255 255 / .07);
     --t-rail-strong: #FFFFFF;
-    --t-rail-mark: #FF7096;
-    --t-rail-mark-ink: #2A1630;
-    --t-accent: #FF7096;
-    --t-active-bg: #FF7096;
-    --t-active-ink: #2A1630;
-    --t-group-bg: rgb(255 255 255 / .05);
-    --t-canvas: #F8F4F6;
-    --t-brand: #9C2457;
-    --t-brand-solid: #9C2457;
-    --t-brand-hover: #7A204B;
-    --t-brand-ink: #80204D;
-    --t-brand-tint: #F7EDF2;
-    --t-brand-tint-strong: #F1E0E7;
-    --t-brand-line: #E3C2D0;
-    --t-ring: rgb(156 36 87 / .24);
-    --t-k1: #9C2457;
-    --t-k2: #0F766E;
+    --t-rail-mark: #8BDBD8;
+    --t-rail-mark-ink: #410F2C;
+    --t-accent: #8BDBD8;
+    --t-active-bg: #641C44;
+    --t-active-ink: #FFFFFF;
+    --t-group-bg: transparent;
+    --t-canvas: #F8F6F7;
+    --t-brand: #C04380;
+    --t-brand-solid: #C04380;
+    --t-brand-hover: #A1326B;
+    --t-brand-ink: #A1326B;
+    --t-brand-tint: #FEF4F6;
+    --t-brand-tint-strong: #FEE7ED;
+    --t-brand-line: #FFD2DF;
+    --t-ring: rgb(192 67 128 / .24);
+    --t-k1: #C04380;
+    --t-k2: #00736C;
     --t-k3: #2a78d6;
     --t-k4: #7C3AED;
     --t-clock: #FFFFFF;
-    --t-clock-line: #E3E6EB;
-    --t-clock-ink: #374151;
-    --t-thead-bg: #FAF4F7;
-    --t-thead-ink: #3B4450;
+    --t-clock-line: #E3DEE0;
+    --t-clock-ink: #534C4F;
+    --t-thead-bg: #F8F6F7;
+    --t-thead-ink: #534C4F;
     --t-aura-1: transparent;
     --t-aura-2: transparent;
 }
@@ -5688,8 +5702,8 @@ button.app-att-day { cursor: pointer; }
    buttons keep the crimson. 5.31:1 on white and over the chroma floor (the
    first leaf, #0F766E, read grey); the night step is in NIGHT below. */
 :root[data-ui-theme="laliguras"] {
-    --viz-accent: #0B7A5C;
-    --viz-accent-track: #DCEFE7;
+    --viz-accent: #0A8B84;
+    --viz-accent-track: #D6F5F5;
 }
 /* A part of a segmented bar answers the pointer: the hovered mark lifts. */
 .app-dash-seg { transition: filter var(--m-fast) var(--ease-out); }
@@ -5831,186 +5845,201 @@ button.app-att-day { cursor: pointer; }
     --st-bad-bg: #3D1A1A; --st-bad-ink: #FCA5A5; --st-bad-line: #6B2A2A; --st-bad-bg-hover: #4A2020;
 }
 :root[data-ui-mode="dark"][data-ui-theme="classic"] {
-    --brand-50: 15 33 34;
-    --brand-100: 16 39 38;
-    --brand-200: 17 49 45;
-    --brand-300: 18 61 53;
-    --brand-400: 20 77 64;
-    --brand-500: 23 97 77;
-    --brand-600: 81 136 122;
-    --brand-700: 127 168 157;
-    --brand-800: 174 200 193;
-    --brand-900: 209 223 219;
-    --t-brand-ink: #8BB0A6;
-    --t-brand-tint: #162A2C;
-    --t-brand-tint-strong: #163130;
-    --t-brand-line: #163E38;
-    --t-ring: rgb(23 97 77 / .38);
-    --viz-accent: #5D9082;
-    --viz-accent-track: #16292B;
-    --t-frame: #0A1B18;
-    --t-hi: #FFC233;
-    --t-hi-ink: #0E2B23;
-    --t-hi-tint: #403926;
-    --t-hi-edge: #FFC233;
-    --t-rail: #0A1B18;
-    --t-rail-head: #0A1B18;
-    --t-rail-ink: #E4EEE9;
-    --t-rail-dim: #97B3A8;
+    --brand-50: 11 36 42;
+    --brand-100: 10 44 50;
+    --brand-200: 9 55 61;
+    --brand-300: 8 70 76;
+    --brand-400: 6 89 95;
+    --brand-500: 3 113 119;
+    --brand-600: 66 148 153;
+    --brand-700: 116 177 180;
+    --brand-800: 167 205 207;
+    --brand-900: 205 227 228;
+    --t-brand-ink: #74B1B4;
+    --t-brand-tint: #122E35;
+    --t-brand-tint-strong: #10373E;
+    --t-brand-line: #0C464D;
+    --t-ring: rgb(3 113 119 / .38);
+    --viz-accent: #4F9CA0;
+    --viz-accent-track: #122C34;
+    --t-frame: #031819;
+    --t-hi: #037177;
+    --t-hi-ink: #FFFFFF;
+    --t-hi-tint: #122E35;
+    --t-hi-edge: #74B1B4;
+    --t-mark: #E69E44;
+    --t-mark-tint: #3E311B;
+    --t-mark-ink: #F8BE7A;
+    --t-rail: #031819;
+    --t-rail-head: #031819;
+    --t-rail-ink: #DBE1E2;
+    --t-rail-dim: #A8B1B3;
     --t-rail-line: rgb(255 255 255 / .07);
     --t-rail-hover: rgb(255 255 255 / .05);
     --t-rail-strong: #FFFFFF;
-    --t-rail-mark: #FFC233;
-    --t-rail-mark-ink: #0E2B23;
-    --t-accent: #FFC233;
-    --t-active-bg: #FFC233;
-    --t-active-ink: #0E2B23;
+    --t-rail-mark: #83DBE9;
+    --t-rail-mark-ink: #031819;
+    --t-accent: #83DBE9;
+    --t-active-bg: #0D4249;
+    --t-active-ink: #FFFFFF;
 }
 :root[data-ui-mode="dark"][data-ui-theme="vivid"] {
-    --brand-50: 22 27 54;
-    --brand-100: 26 31 66;
-    --brand-200: 31 37 84;
-    --brand-300: 38 45 107;
-    --brand-400: 48 55 138;
-    --brand-500: 59 68 176;
-    --brand-600: 108 115 196;
-    --brand-700: 147 152 212;
-    --brand-800: 186 190 227;
-    --brand-900: 216 218 239;
-    --t-brand-ink: #9DA2D8;
-    --t-brand-tint: #1E2442;
-    --t-brand-tint-strong: #222850;
-    --t-brand-line: #28306A;
-    --t-ring: rgb(59 68 176 / .38);
-    --viz-accent: #767CC8;
-    --viz-accent-track: #1D233F;
-    --t-frame: #0F122A;
-    --t-hi: #FF9F45;
-    --t-hi-ink: #171B45;
-    --t-hi-tint: #403329;
-    --t-hi-edge: #FF9F45;
-    --t-rail: #0F122A;
-    --t-rail-head: #0F122A;
-    --t-rail-ink: #E5E7F7;
-    --t-rail-dim: #A3A8D6;
+    --brand-50: 35 32 63;
+    --brand-100: 44 38 79;
+    --brand-200: 57 47 103;
+    --brand-300: 74 58 132;
+    --brand-400: 96 73 172;
+    --brand-500: 124 92 222;
+    --brand-600: 157 133 230;
+    --brand-700: 183 165 237;
+    --brand-800: 209 198 243;
+    --brand-900: 229 222 248;
+    --t-brand-ink: #B7A5ED;
+    --t-brand-tint: #2C294C;
+    --t-brand-tint-strong: #37305F;
+    --t-brand-line: #493C80;
+    --t-ring: rgb(124 92 222 / .38);
+    --viz-accent: #A38DE8;
+    --viz-accent-track: #2A2848;
+    --t-frame: #12102A;
+    --t-hi: #7C5CDE;
+    --t-hi-ink: #FFFFFF;
+    --t-hi-tint: #2C294C;
+    --t-hi-edge: #B7A5ED;
+    --t-mark: #59C7A0;
+    --t-mark-tint: #193B38;
+    --t-mark-ink: #8BDFBF;
+    --t-rail: #12102A;
+    --t-rail-head: #12102A;
+    --t-rail-ink: #DFDFE3;
+    --t-rail-dim: #AEAFB6;
     --t-rail-line: rgb(255 255 255 / .07);
     --t-rail-hover: rgb(255 255 255 / .05);
     --t-rail-strong: #FFFFFF;
-    --t-rail-mark: #FF9F45;
-    --t-rail-mark-ink: #171B45;
-    --t-accent: #FF9F45;
-    --t-active-bg: #FF9F45;
-    --t-active-ink: #171B45;
+    --t-rail-mark: #CEBFFF;
+    --t-rail-mark-ink: #12102A;
+    --t-accent: #CEBFFF;
+    --t-active-bg: #443877;
+    --t-active-ink: #FFFFFF;
 }
 /* Phewa and Terai at night: the menu goes deep but keeps its hue -- a bright
    azure or green rail beside a #0D1117 page would glare. Menu text 12:1+. */
 :root[data-ui-mode="dark"][data-ui-theme="daylight"] {
-    --brand-50: 12 33 44;
-    --brand-100: 12 39 52;
-    --brand-200: 12 48 65;
-    --brand-300: 11 60 81;
-    --brand-400: 11 76 102;
-    --brand-500: 10 95 128;
-    --brand-600: 71 135 160;
-    --brand-700: 120 167 185;
-    --brand-800: 169 199 211;
-    --brand-900: 206 223 230;
-    --t-brand-ink: #84AFC0;
-    --t-brand-tint: #132A37;
-    --t-brand-tint-strong: #123141;
-    --t-brand-line: #103D52;
-    --t-ring: rgb(10 95 128 / .38);
-    --viz-accent: #548FA6;
-    --viz-accent-track: #142936;
-    --t-frame: #04202D;
-    --t-hi: #4CF0A0;
-    --t-hi-ink: #04334A;
-    --t-hi-tint: #20413A;
-    --t-hi-edge: #4CF0A0;
-    --t-rail: #04202D;
-    --t-rail-head: #04202D;
-    --t-rail-ink: #DCEEF5;
-    --t-rail-dim: #8FBACB;
+    --brand-50: 11 37 39;
+    --brand-100: 10 44 46;
+    --brand-200: 9 56 55;
+    --brand-300: 8 71 68;
+    --brand-400: 6 90 84;
+    --brand-500: 3 115 104;
+    --brand-600: 66 150 142;
+    --brand-700: 116 178 172;
+    --brand-800: 167 206 202;
+    --brand-900: 205 227 225;
+    --t-brand-ink: #74B2AC;
+    --t-brand-tint: #122E32;
+    --t-brand-tint-strong: #103739;
+    --t-brand-line: #0C4746;
+    --t-ring: rgb(3 115 104 / .38);
+    --viz-accent: #4F9D95;
+    --viz-accent-track: #122D31;
+    --t-frame: #031916;
+    --t-hi: #037368;
+    --t-hi-ink: #FFFFFF;
+    --t-hi-tint: #122E32;
+    --t-hi-edge: #74B2AC;
+    --t-mark: #FF8878;
+    --t-mark-tint: #442B2F;
+    --t-mark-ink: #FEB6A9;
+    --t-rail: #031916;
+    --t-rail-head: #031916;
+    --t-rail-ink: #DBE1E1;
+    --t-rail-dim: #A8B2B2;
     --t-rail-line: rgb(255 255 255 / .07);
     --t-rail-hover: rgb(255 255 255 / .05);
     --t-rail-strong: #FFFFFF;
-    --t-rail-mark: #4CF0A0;
-    --t-rail-mark-ink: #04334A;
-    --t-accent: #4CF0A0;
-    --t-active-bg: #4CF0A0;
-    --t-active-ink: #04334A;
+    --t-rail-mark: #84DDD6;
+    --t-rail-mark-ink: #031916;
+    --t-accent: #84DDD6;
+    --t-active-bg: #0D4342;
+    --t-active-ink: #FFFFFF;
 }
 :root[data-ui-mode="dark"][data-ui-theme="evergreen"] {
-    --brand-50: 23 35 24;
-    --brand-100: 27 42 24;
-    --brand-200: 33 53 25;
-    --brand-300: 40 66 26;
-    --brand-400: 50 84 27;
-    --brand-500: 62 107 28;
-    --brand-600: 110 144 85;
-    --brand-700: 149 174 130;
-    --brand-800: 187 203 176;
-    --brand-900: 216 225 210;
-    --t-brand-ink: #9EB58E;
-    --t-brand-tint: #1F2D21;
-    --t-brand-tint-strong: #233521;
-    --t-brand-line: #2A4320;
-    --t-ring: rgb(62 107 28 / .38);
-    --viz-accent: #789760;
-    --viz-accent-track: #1E2B22;
-    --t-frame: #12210D;
-    --t-hi: #C9F25A;
-    --t-hi-ink: #1D3510;
-    --t-hi-tint: #36422D;
-    --t-hi-edge: #C9F25A;
-    --t-rail: #12210D;
-    --t-rail-head: #12210D;
-    --t-rail-ink: #E7F1DD;
-    --t-rail-dim: #A8C08F;
+    --brand-50: 11 37 32;
+    --brand-100: 10 46 36;
+    --brand-200: 9 58 41;
+    --brand-300: 8 73 48;
+    --brand-400: 6 94 57;
+    --brand-500: 4 119 68;
+    --brand-600: 67 153 115;
+    --brand-700: 117 180 152;
+    --brand-800: 167 207 190;
+    --brand-900: 205 228 218;
+    --t-brand-ink: #75B498;
+    --t-brand-tint: #122F2A;
+    --t-brand-tint-strong: #10382E;
+    --t-brand-line: #0D4934;
+    --t-ring: rgb(4 119 68 / .38);
+    --viz-accent: #4FA07C;
+    --viz-accent-track: #122D2A;
+    --t-frame: #03190E;
+    --t-hi: #047744;
+    --t-hi-ink: #FFFFFF;
+    --t-hi-tint: #122F2A;
+    --t-hi-edge: #75B498;
+    --t-mark: #DBA63A;
+    --t-mark-tint: #3B331B;
+    --t-mark-ink: #EDC475;
+    --t-rail: #03190E;
+    --t-rail-head: #03190E;
+    --t-rail-ink: #DCE1DE;
+    --t-rail-dim: #AAB2AD;
     --t-rail-line: rgb(255 255 255 / .07);
     --t-rail-hover: rgb(255 255 255 / .05);
     --t-rail-strong: #FFFFFF;
-    --t-rail-mark: #C9F25A;
-    --t-rail-mark-ink: #1D3510;
-    --t-accent: #C9F25A;
-    --t-active-bg: #C9F25A;
-    --t-active-ink: #1D3510;
+    --t-rail-mark: #8DDFB5;
+    --t-rail-mark-ink: #03190E;
+    --t-accent: #8DDFB5;
+    --t-active-bg: #0E4432;
+    --t-active-ink: #FFFFFF;
 }
 :root[data-ui-mode="dark"][data-ui-theme="laliguras"] {
-    --brand-50: 42 21 36;
-    --brand-100: 53 22 41;
-    --brand-200: 70 25 49;
-    --brand-300: 92 27 58;
-    --brand-400: 120 31 71;
-    --brand-500: 156 36 87;
-    --brand-600: 181 91 129;
-    --brand-700: 201 135 163;
-    --brand-800: 220 178 196;
-    --brand-900: 235 211 221;
-    --t-brand-ink: #CE92AB;
-    --t-brand-tint: #331D2E;
-    --t-brand-tint-strong: #411E34;
-    --t-brand-line: #59203D;
-    --t-ring: rgb(156 36 87 / .38);
-    --viz-accent: #1FA27A;
-    --viz-accent-track: #311D2D;
-    --t-frame: #19101F;
-    --t-hi: #FF7096;
-    --t-hi-ink: #2A1630;
-    --t-hi-tint: #402A38;
-    --t-hi-edge: #FF7096;
-    --t-rail: #19101F;
-    --t-rail-head: #19101F;
-    --t-rail-ink: #F2E6EF;
-    --t-rail-dim: #BBA2B6;
+    --brand-50: 49 27 44;
+    --brand-100: 63 31 52;
+    --brand-200: 85 37 65;
+    --brand-300: 111 44 81;
+    --brand-400: 147 54 102;
+    --brand-500: 192 67 128;
+    --brand-600: 208 114 160;
+    --brand-700: 220 152 185;
+    --brand-800: 233 189 211;
+    --brand-900: 242 217 230;
+    --t-brand-ink: #DC98B9;
+    --t-brand-tint: #3B2437;
+    --t-brand-tint-strong: #4C2841;
+    --t-brand-line: #6B2F52;
+    --t-ring: rgb(192 67 128 / .38);
+    --viz-accent: #1CA9A3;
+    --viz-accent-track: #382336;
+    --t-frame: #200B19;
+    --t-hi: #C04380;
+    --t-hi-ink: #FFFFFF;
+    --t-hi-tint: #3B2437;
+    --t-hi-edge: #DC98B9;
+    --t-mark: #58C4BF;
+    --t-mark-tint: #173A3F;
+    --t-mark-ink: #8BDBD8;
+    --t-rail: #200B19;
+    --t-rail-head: #200B19;
+    --t-rail-ink: #E3DEE0;
+    --t-rail-dim: #B5ADB0;
     --t-rail-line: rgb(255 255 255 / .07);
     --t-rail-hover: rgb(255 255 255 / .05);
     --t-rail-strong: #FFFFFF;
-    --t-rail-mark: #FF7096;
-    --t-rail-mark-ink: #2A1630;
-    --t-accent: #FF7096;
-    --t-active-bg: #FF7096;
-    --t-active-ink: #2A1630;
+    --t-rail-mark: #FEB0CB;
+    --t-rail-mark-ink: #200B19;
+    --t-accent: #FEB0CB;
+    --t-active-bg: #622D4D;
+    --t-active-ink: #FFFFFF;
 }
 :root[data-ui-mode="dark"][data-ui-theme="console"] {
     --brand-50: 39 35 68;
@@ -6409,15 +6438,16 @@ button.app-att-day { cursor: pointer; }
 }
 
 /* ===========================================================================
-   CHALK & MARIGOLD -- the SchoolCore identity (Nov 2026)
+   OCEAN -- the SchoolCore look (Nov 2026)
 
-   One idea, applied everywhere: a dark FRAME (the menu, and the edge around
-   the page) and a light SHEET the work is done on. One bright colour per
-   palette, `--t-hi`, means "chosen" or "the step you came to do" and nothing
-   else: the menu item you are on, a chosen class or month, the Save / Search
-   button. Everything is flat -- there is no gradient in this layer, and the
-   last few elsewhere (loading sheens, the sign-in texture) are switched off
-   here.
+   Colour is used 60 · 30 · 10. Neutral pages and white cards carry most of the
+   screen; the menu sets the mood; the brand colour appears only where it means
+   something: the main button, the page you are on, what you have chosen, one
+   bar in a chart, a link. The accent ("mark", --t-mark) is smaller still: a
+   dot, a date, a badge.
+
+   Nothing here is decoration. No gradient, glow, blur or glass; a chosen item
+   is a soft tint with a brand edge and a tick, never a heavy block.
 
    This block sits last on purpose: it restates rules from the layers above
    with the same selectors, so it wins without raising specificity further.
@@ -6433,81 +6463,65 @@ button.app-att-day { cursor: pointer; }
         font-family: var(--font-display, "Bricolage Grotesque"), var(--font-app, "Hanken Grotesk"), sans-serif;
         letter-spacing: -0.015em;
     }
-    :root :is(.app-kpi-value, .app-dash-greeting, .pub-wall-title) { font-weight: 800; }
+    :root :is(.app-kpi-value, .app-dash-greeting, .pub-wall-title) { font-weight: 700; }
     :root :is(kbd, code, .font-mono, .app-mono) { font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace; }
 }
 
-/* -- the frame and the sheet ---------------------------------------------------
-   The shell is painted in the frame colour, so the rail and the 10px edge
-   around the page are one surface; the page is a sheet with round corners
-   laid on it. On a phone the rail is an overlay and the page keeps the
-   whole screen. */
-@media screen and (min-width: 768px) {
-    [data-ui-theme] .app-shell { background-color: var(--t-frame, var(--t-rail)); }
-    [data-ui-theme] .app-shell .view {
-        margin: 10px 10px 10px 0;
-        height: calc(100dvh - 20px) !important;
-        max-height: calc(100dvh - 20px) !important;
-        border-radius: 22px;
-        background-color: var(--t-canvas);
-    }
-    [data-ui-theme] .app-rail { border-right: 0; }
-}
+/* -- the shell: the page sits on the neutral ground, the header is one card -- */
 [data-ui-theme] .view-header {
     border-color: var(--line);
     box-shadow: none;
 }
 
-/* -- the rail: the page you are on is a solid highlight, nothing else -------- */
+/* -- the rail: the page you are on is a tint (light menu) or a lifted row
+      (dark menu), set by the palette's --t-active-*; no edge bar, no glow -- */
 [data-ui-theme] .app-menu-item-active,
 [data-ui-theme] .app-menu-item-active:hover,
 [data-ui-theme] .app-menu-item-active:focus {
     background-color: var(--t-active-bg) !important;
     box-shadow: none !important;
-    border-radius: 10px;
+    border-radius: 8px;
 }
 [data-ui-theme] .app-menu-item-active,
 [data-ui-theme] .app-menu-item-active :is(span, p, svg) {
     color: var(--t-active-ink) !important;
-    font-weight: 700;
+    font-weight: 600;
 }
-[data-ui-theme] .app-rail-head .app-rail-wordmark-core { color: var(--t-hi) !important; }
 
-/* -- choices are tiles, not pills ------------------------------------------
-   Education level, class, section, month: square tiles with a real edge.
-   The chosen one turns into the frame colour, lettered in the highlight,
-   with a tick -- never a "+" or "−" glyph. */
+/* -- choices (level, class, section, month): square-cornered tiles ----------
+   Resting: white with a real edge. Chosen: the brand's softest tint, a brand
+   edge and brand lettering, with a tick -- and `aria-pressed` says the same to
+   a screen reader. */
 @media screen {
     :root .app-filter-chip {
-        min-height: 2.75rem;
+        min-height: 2.5rem;
         margin: 3px !important;
-        padding: 0 .95rem !important;
+        padding: 0 .9rem !important;
         gap: .4rem !important;
-        border-radius: 10px !important;
-        border: 1.5px solid var(--field-line) !important;
+        border-radius: 8px !important;
+        border: 1px solid var(--field-line) !important;
         background: #FFFFFF !important;
         color: var(--ink-900) !important;
         box-shadow: none !important;
-        font-family: var(--font-display, "Bricolage Grotesque"), var(--font-app), sans-serif;
-        font-size: .9rem !important;
-        font-weight: 700 !important;
-        letter-spacing: -0.01em;
-        /* the names arrive lower case ("montessory", "play group"); the old
-           chips capitalised them and the tiles keep doing so */
+        font-size: .875rem !important;
+        font-weight: 600 !important;
+        /* the names arrive lower case ("montessory", "play group") */
         text-transform: capitalize;
     }
     :root .app-filter-chip svg { display: none; }
     :root .app-filter-chip:not([data-selected="true"]):not([data-warned="true"]):hover:not(:disabled) {
-        background: var(--t-hi-tint) !important;
-        border-color: var(--t-frame) !important;
+        background: var(--t-brand-tint) !important;
+        border-color: var(--t-brand-solid) !important;
         color: var(--ink-900) !important;
     }
     :root .app-filter-chip[data-selected="true"]:not([data-warned="true"]),
     :root .app-filter-chip[data-selected="true"]:not([data-warned="true"]):hover:not(:disabled),
     :root .app-filter-chip[data-selected="true"]:not([data-warned="true"]):active:not(:disabled) {
-        background: var(--t-frame) !important;
-        border-color: var(--t-frame) !important;
-        color: var(--t-hi) !important;
+        background: var(--t-brand-tint) !important;
+        border-color: var(--t-brand-solid) !important;
+        box-shadow: inset 0 0 0 .5px var(--t-brand-solid) !important;
+        color: var(--t-brand-ink) !important;
+        font-weight: 700 !important;
     }
     :root .app-filter-chip[data-selected="true"] svg { display: block; width: .95rem; height: .95rem; color: currentColor !important; }
     /* unusual but allowed (a month already billed): amber, with words in the title */
@@ -6526,65 +6540,81 @@ button.app-att-day { cursor: pointer; }
         background: var(--d-surface) !important;
         color: var(--d-ink) !important;
     }
-    :root[data-ui-mode="dark"] .app-filter-chip:not([data-selected="true"]):not([data-warned="true"]):hover:not(:disabled) {
-        background: var(--t-hi-tint) !important;
-        border-color: var(--t-hi) !important;
-        color: var(--d-ink) !important;
-    }
-    /* on the dark sheet the frame colour would vanish: the chosen tile flips */
-    :root[data-ui-mode="dark"] .app-filter-chip[data-selected="true"]:not([data-warned="true"]),
-    :root[data-ui-mode="dark"] .app-filter-chip[data-selected="true"]:not([data-warned="true"]):hover:not(:disabled) {
-        background: var(--t-hi) !important;
-        border-color: var(--t-hi) !important;
-        color: var(--t-hi-ink) !important;
+    :root[data-ui-mode="dark"] .app-filter-chip[data-selected="true"]:not([data-warned="true"]) {
+        background: var(--t-brand-tint) !important;
+        border-color: var(--t-brand-ink) !important;
+        color: var(--t-brand-ink) !important;
     }
 }
 
-/* -- buttons: flat, and the form's own Save / Search in the highlight --------- */
+/* -- buttons: flat. The colour says which one is the main action. ----------- */
 :root :is(button, a, [role="button"]):is(.bg-teal-400, .bg-teal-500, .bg-teal-600, .bg-teal-700, .bg-blue-500, .bg-blue-600, .bg-cyan-500, .bg-teal-500\/90, .bg-teal-600\/90):not(.app-filter-chip):not(.app-row-action) {
     box-shadow: none !important;
 }
-:root button[type="submit"]:is(.bg-teal-400, .bg-teal-500, .bg-teal-600, .bg-teal-700, .bg-blue-500, .bg-blue-600, .bg-cyan-500):not(.app-filter-chip):not(.app-row-action) {
-    background-color: var(--t-hi) !important;
-    border: 1px solid var(--t-hi-edge) !important;
-    color: var(--t-hi-ink) !important;
-    font-weight: 800 !important;
-}
-:root button[type="submit"]:is(.bg-teal-400, .bg-teal-500, .bg-teal-600, .bg-teal-700, .bg-blue-500, .bg-blue-600, .bg-cyan-500):not(.app-filter-chip):not(.app-row-action):hover:not(:disabled) {
-    background-color: var(--t-hi-edge) !important;
-}
-:root button[type="submit"]:is(.bg-teal-400, .bg-teal-500, .bg-teal-600, .bg-teal-700, .bg-blue-500, .bg-blue-600, .bg-cyan-500):not(.app-filter-chip):not(.app-row-action) :is(svg, span) {
-    color: inherit !important;
-}
-.pub-btn-primary,
-.pub-btn-primary:hover:not(:disabled) {
-    background-color: var(--t-hi);
-    color: var(--t-hi-ink);
-    font-weight: 800;
-    box-shadow: none;
-}
-.pub-btn-primary:hover:not(:disabled) { background-color: var(--t-hi-edge); }
 
-/* -- the pages before sign-in wear the default palette's frame -------------- */
+/* -- the pages before sign-in ------------------------------------------------
+   No school is known yet, so they wear the default palette: the deep ocean for
+   the panel, the brand for the one button. */
 :root {
-    --pub-ground: #0E2B23;
+    --pub-ground: #034546;
     --pub-ink: #FFFFFF;
-    --pub-ink-soft: #E4EEE9;
-    --pub-ink-dim: #97B3A8;
-    --pub-hairline: rgb(255 255 255 / .12);
-    --pub-glass: rgb(255 255 255 / .07);
-    --pub-radius: 16px;
+    --pub-ink-soft: #D4F5FC;
+    --pub-ink-dim: #B2EBF6;
+    --pub-hairline: rgb(255 255 255 / .16);
+    --pub-glass: rgb(255 255 255 / .08);
+    --pub-radius: 12px;
 }
 .pub-card { box-shadow: none; }
+.pub-btn-primary,
+.pub-btn-primary:hover:not(:disabled) {
+    background-color: var(--t-brand-solid);
+    color: #FFFFFF;
+    font-weight: 700;
+    box-shadow: none;
+}
+.pub-btn-primary:hover:not(:disabled) { background-color: var(--t-brand-hover); }
 
-/* -- no gradients: loading placeholders pulse flat instead of sweeping -------- */
+/* what the product covers: a plain run of words, not a row of pills */
+.pub-wall .pub-covers { gap: .35rem 0; }
+.pub-wall .pub-covers > li {
+    border: 0 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    color: var(--pub-ink-soft);
+    font-weight: 600;
+}
+.pub-wall .pub-covers > li:not(:last-child)::after {
+    content: "·";
+    margin: 0 .6rem;
+    color: var(--pub-ink-dim);
+}
+.pub-wall .pub-covers-news {
+    border: 0 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    color: #FFFFFF;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+/* three plain facts at the foot of the panel */
+.pub-facts {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+    padding-top: 1.5rem;
+    margin-bottom: clamp(1.5rem, 5vh, 3rem);
+    border-top: 1px solid var(--pub-hairline);
+}
+.pub-facts dt { font-weight: 700; color: #FFFFFF; font-size: .95rem; }
+.pub-facts dd { margin: .25rem 0 0; color: var(--pub-ink-soft); font-size: .875rem; line-height: 1.45; }
+
+/* -- loading placeholders pulse flat; they never sweep a sheen across ------- */
 @keyframes app-flat-pulse { from { opacity: 1; } to { opacity: .55; } }
-.app-skel {
-    animation: app-flat-pulse 900ms ease-in-out infinite alternate !important;
-}
-.pub-skeleton-line {
-    animation: app-flat-pulse 900ms ease-in-out infinite alternate !important;
-}
+.app-skel { animation: app-flat-pulse 900ms ease-in-out infinite alternate !important; }
+.pub-skeleton-line { animation: app-flat-pulse 900ms ease-in-out infinite alternate !important; }
 @media (prefers-reduced-motion: reduce) {
     .app-skel, .pub-skeleton-line { animation: none !important; }
 }
