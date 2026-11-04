@@ -183,6 +183,11 @@ class Migration(migrations.Migration):
         ("main", "0109_normalized_backfill"),
         ("accounting", "0004_alter_accountingledgerbalance_opening_balance_and_more"),
         ("library", "0005_libraryguestschool"),
+        # DATE_COLUMNS also references these apps. Existing deployments already
+        # had their tables, but a fresh database must create them first.
+        ("hostel", "0001_initial"),
+        ("extra_billing", "0001_initial"),
+        ("canteen", "0002_use_types_and_canteen_billing"),
     ]
 
     operations = [
