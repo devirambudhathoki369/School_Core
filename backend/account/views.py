@@ -1,4 +1,5 @@
 from django.core.cache import cache
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -82,8 +83,8 @@ def clear_auth_cookie(res):
         value="",
         max_age=0,
         httponly=True,
-        secure=True,
-        samesite="None",
+        secure=getattr(settings, "AUTH_COOKIE_SECURE", True),
+        samesite=getattr(settings, "AUTH_COOKIE_SAMESITE", "None"),
     )
     return res
 
@@ -372,8 +373,8 @@ class LoginView(APIView):
                         value=token.key,
                         max_age=timedelta(days=3),
                         httponly=True,
-                        secure=True,
-                        samesite="None",
+                        secure=getattr(settings, "AUTH_COOKIE_SECURE", True),
+                        samesite=getattr(settings, "AUTH_COOKIE_SAMESITE", "None"),
                     )
                 return res
             except Exception:
