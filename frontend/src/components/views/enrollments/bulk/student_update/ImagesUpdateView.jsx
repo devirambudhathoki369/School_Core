@@ -468,7 +468,7 @@ function ImageCell({ image, owner, onOpenPicker, onUnpair, onRemove, onDragOver,
             </button>
 
             {owner &&
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-1.5 pb-1.5 pt-5">
+                <div className="absolute inset-x-0 bottom-0 bg-black/65 px-1.5 pb-1.5 pt-5">
                     <div className="truncate text-center text-[0.7rem] font-bold uppercase text-white">
                         {owner.name}
                     </div>

@@ -66,7 +66,7 @@ function ConfirmationPrompt() {
                         <span>Cancel</span>
                     </Button>
                     <Button
-                        variant="gradient"
+                        variant="filled"
                         color="green"
                         onClick={() => {
                             try {

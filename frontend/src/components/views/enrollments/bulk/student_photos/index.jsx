@@ -674,7 +674,7 @@ function PhotoCard({ item, onTap, onDiscard }) {
             >
                 <TrashIcon className="w-4 h-4" />
             </button>
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/65 to-transparent text-white text-[0.65rem] font-bold uppercase text-center pt-4 pb-1.5 truncate">
+            <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[0.65rem] font-bold uppercase text-center pt-4 pb-1.5 truncate">
                 Tap to match
             </div>
         </div>
