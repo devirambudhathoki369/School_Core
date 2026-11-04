@@ -21,7 +21,9 @@ def seed_missing_accounting_years(apps, schema_editor):
             name=source.name,
             start_date=source.start_date,
             end_date=source.end_date,
-            remarks="Created automatically from the school's Economic Year",
+            # `remarks` is 50 characters at most; the first wording was 52 and
+            # stopped this migration on any school that needed a year seeded.
+            remarks="Copied from the school's economic year",
         )
 
 
