@@ -6,7 +6,7 @@ import FormSaveButton from "@/components/buttons/FormSaveButton";
 import { useAppContext } from "@/contexts/AppContext";
 import { useStaffProfile } from "@/contexts/StaffProfile";
 import { fetchStaffLedgers, saveSalaryPostings } from "@/services/functions/ledgers";
-import { ReceiptPercentIcon, SparklesIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { CalculatorIcon, ReceiptPercentIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "@material-tailwind/react";
 import { useEffect, useState } from "react";
 import StaffPaymentHistory from "../StaffPaymentHistory";
@@ -240,7 +240,7 @@ function StaffLedgerPosting({ onPosted }) {
                         className="flex items-center gap-1.5 normal-case rounded-lg"
                         title="Each payroll title's rate from Finance Info × the months in this period. Everything stays editable."
                         onClick={fillFullSalary}>
-                        <SparklesIcon className="icon" aria-hidden="true" />
+                        <CalculatorIcon className="icon" aria-hidden="true" />
                         Fill this staff&apos;s salary
                     </Button>
                 ] : []}>

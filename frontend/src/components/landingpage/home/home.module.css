@@ -46,29 +46,6 @@
     white-space: nowrap;
 }
 
-:global(.lp) .h1Stroke {
-    position: absolute;
-    left: 0;
-    bottom: -11px;
-    width: 100%;
-    height: 14px;
-    overflow: visible;
-}
-
-/* the stroke is 300 long in its own units; it is drawn once, after the words */
-:global(.lp) .h1Stroke path {
-    fill: none;
-    stroke: var(--sun);
-    stroke-width: 4;
-    stroke-linecap: round;
-    stroke-dasharray: 300;
-    animation: penStroke .9s .45s ease both;
-}
-
-@keyframes penStroke {
-    from { stroke-dashoffset: 300; }
-    to { stroke-dashoffset: 0; }
-}
 
 :global(.lp) .heroLede {
     max-width: 540px;
@@ -676,8 +653,6 @@
         line-height: calc(60px * var(--kd) * var(--kl));
         letter-spacing: -1.8px;
     }
-
-    :global(.lp) .h1Stroke path { stroke-width: 5; }
 
     :global(.lp) .indexRow {
         grid-template-columns: 40px 236px minmax(0, 1fr) 20px;

@@ -20,7 +20,7 @@ import {
     DocumentChartBarIcon, DocumentTextIcon, PencilSquareIcon, TruckIcon, UserGroupIcon,
     Squares2X2Icon, BuildingStorefrontIcon, CalendarDaysIcon, UserCircleIcon,
     MegaphoneIcon, BookOpenIcon, DocumentDuplicateIcon,
-    ArrowUturnLeftIcon, ArrowPathRoundedSquareIcon, SparklesIcon,
+    ArrowUturnLeftIcon, ArrowPathRoundedSquareIcon, MapIcon,
     ArrowDownTrayIcon, PresentationChartLineIcon, ServerStackIcon, ShieldCheckIcon,
     UserPlusIcon, LifebuoyIcon,
     HomeModernIcon, KeyIcon, ClipboardIcon, WrenchScrewdriverIcon,
@@ -75,7 +75,7 @@ const adminMenu = [
         name: "School setup", view: "manage",
         prefix: <SquaresPlusIcon className="icon" />,
         submenu: [
-            { id: null, name: "Setup guide", prefix: <SparklesIcon className="icon" />, view: 'setup-guide' },
+            { id: null, name: "Setup guide", prefix: <MapIcon className="icon" />, view: 'setup-guide' },
             { id: PERMISSIONS.MANAGE.ACADEMIC_YEARS, name: "Academic year", prefix: <CalendarIcon className="icon" />, view: 'academic-year' },
             { id: PERMISSIONS.MANAGE.SECTIONS, name: "Sections", prefix: <AcademicCapIcon className="icon" />, view: 'sections' },
             { id: PERMISSIONS.MANAGE.CLASS_PERIODS, name: "Classes & periods", prefix: <AcademicCapIcon className="icon" />, view: 'classes' },
@@ -487,7 +487,7 @@ const superAdminMenu = [
         prefix: <Cog6ToothIcon className="icon" />, submenu: [
             { name: "Undo Academic Year Close", prefix: <ArrowUturnLeftIcon className="icon" />, view: 'undo-academic-year-close' },
             { name: "Undo Accounting Economic Year Close", prefix: <ArrowPathRoundedSquareIcon className="icon" />, view: 'undo-accounting-economic-year-close' },
-            { name: "Clean Student Ledger posting", prefix: <SparklesIcon className="icon" />, view: 'clean-student-ledger-posting' },
+            { name: "Clean Student Ledger posting", prefix: <WrenchScrewdriverIcon className="icon" />, view: 'clean-student-ledger-posting' },
         ]
     },
     { section: "Account", name: "My Password", view: 'my-password', prefix: <KeyIcon className="icon" /> },

@@ -7,7 +7,7 @@ import StudentPaymentHistory from "@/components/views/payments/student/StudentPa
 import { useAppContext } from "@/contexts/AppContext";
 import StudentPaymentProvider from "@/contexts/StudentPayment";
 import { useStudentProfile } from "@/contexts/StudentProfile";
-import { ReceiptPercentIcon, SparklesIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { CalculatorIcon, ReceiptPercentIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "@material-tailwind/react";
 import { useEffect } from "react";
 
@@ -164,7 +164,7 @@ function LedgerInfoTab({ tab }) {
                             title="Uses each title's rate and the months it is payable in, adds this student's transportation, and takes off their discount. Everything stays editable."
                             disabled={fillingLedger}
                             onClick={() => fillClassFeesForMonths(selectedMonths)}>
-                            <SparklesIcon className="icon" aria-hidden="true" />
+                            <CalculatorIcon className="icon" aria-hidden="true" />
                             {fillingLedger ? 'Filling…' : <>Fill this class&apos;s fees</>}
                         </Button>
                     ] : []}>

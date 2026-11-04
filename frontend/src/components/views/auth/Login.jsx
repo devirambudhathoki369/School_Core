@@ -5,7 +5,7 @@ import loginSchema from "@/schemas/validations/login";
 import { login } from "@/services/functions/auth/login";
 import OurLogo from "@/components/OurLogo";
 import {
-    CheckCircleIcon, SparklesIcon, CheckBadgeIcon,
+    CheckCircleIcon, CheckBadgeIcon,
     ExclamationTriangleIcon, ExclamationCircleIcon, LockClosedIcon,
     BuildingLibraryIcon, UserGroupIcon, AcademicCapIcon, ShieldCheckIcon,
     CalendarDaysIcon, ChatBubbleLeftRightIcon, ShoppingBagIcon,
@@ -441,7 +441,7 @@ function Login({ role }) {
                                     <li className="!border-0 !p-0">
                                         <button type="button" className="pub-covers-news" aria-expanded={tab === 'whatsnew'}
                                             onClick={() => setTab(tab === 'whatsnew' ? 'features' : 'whatsnew')}>
-                                            <SparklesIcon aria-hidden="true" /> What&rsquo;s new
+                                            What&rsquo;s new
                                         </button>
                                     </li>}
                             </ul>

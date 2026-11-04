@@ -210,9 +210,6 @@ function Support() {
                             <div className="flex shrink-0 items-center gap-2 self-start rounded-full bg-white/15 px-3 py-1.5
                                             ring-1 ring-inset ring-white/25 sm:self-auto">
                                 <span className="relative flex h-2.5 w-2.5">
-                                    {open && (
-                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75" />
-                                    )}
                                     <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${open ? "bg-emerald-400" : "bg-amber-300"}`} />
                                 </span>
                                 <span className="whitespace-nowrap text-xs font-semibold text-white">

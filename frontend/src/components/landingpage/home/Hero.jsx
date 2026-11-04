@@ -15,10 +15,6 @@ export default function HeroSection() {
                         {heroContent.titleStart}{" "}
                         <span className={styles.h1Mark}>
                             {heroContent.titleMark}
-                            {/* drawn under the words like a pen stroke */}
-                            <svg viewBox="0 0 300 16" preserveAspectRatio="none" className={styles.h1Stroke} aria-hidden="true">
-                                <path d="M3 11C52 4 118 3 168 8s88 5 129-3" />
-                            </svg>
                         </span>
                     </h1>
                     <p className={styles.heroLede}>{heroContent.subtitle}</p>

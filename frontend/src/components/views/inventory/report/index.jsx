@@ -87,7 +87,7 @@ function InventoryReport() {
                         <div className="rounded-xl bg-white/70 shadow border border-rose-100 p-4">
                             <h3 className="text-sm font-bold uppercase tracking-wide text-gray-600 mb-2">Low-stock Items</h3>
                             {(!data.low_stock_items || data.low_stock_items.length === 0) ? (
-                                <p className="text-xs text-gray-400">All items above reorder level. 👍</p>
+                                <p className="text-xs text-gray-400">All items are above their reorder level.</p>
                             ) : (
                                 <div className="flex flex-col gap-1.5">
                                     {data.low_stock_items.map((it) => (
@@ -107,7 +107,7 @@ function InventoryReport() {
                                 <span className="text-xs text-gray-500">valued at last purchase price</span>
                             </div>
                             {(!data.wastage_items || data.wastage_items.length === 0) ? (
-                                <p className="text-xs text-gray-400">No wastage in this period. 🎉</p>
+                                <p className="text-xs text-gray-400">No wastage in this period.</p>
                             ) : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">

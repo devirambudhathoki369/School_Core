@@ -34,7 +34,7 @@ export default function ReportActionBar({
     return (
         <div
             className={`hide-from-print sticky top-0 z-20 flex flex-wrap items-center justify-end gap-2 py-2 mb-2
-                bg-white/70 backdrop-blur-sm rounded-md ${className}`}
+                bg-white rounded-md ${className}`}
         >
             {children}
             {hasTools && (

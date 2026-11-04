@@ -284,7 +284,7 @@ function GradesheetStyles() {
     return (
         <form onSubmit={onSave} className="w-full">
             {/* Action bar */}
-            <div className="sticky top-0 z-20 mb-3 flex items-center justify-between gap-3 rounded-xl border border-blue-gray-100 bg-white/95 backdrop-blur px-3 py-2 shadow-sm">
+            <div className="sticky top-0 z-20 mb-3 flex items-center justify-between gap-3 rounded-xl border border-blue-gray-100 bg-white px-3 py-2 shadow-sm">
                 <button type="button" onClick={back}
                     className="flex items-center gap-1 text-sm font-semibold text-blue-gray-600 hover:text-teal-700">
                     <ChevronLeftIcon className="h-5 w-5" /> All schools

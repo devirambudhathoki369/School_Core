@@ -221,7 +221,7 @@ function ClassPromotion() {
                             says what it is about to do and, when something is
                             still missing, what is missing — so nothing has to be
                             guessed from a greyed-out button. */}
-                        <div className="sticky bottom-0 z-10 -mx-1 rounded-xl border border-blue-gray-100 bg-white/95 backdrop-blur px-4 py-3 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
+                        <div className="sticky bottom-0 z-10 -mx-1 rounded-xl border border-blue-gray-100 bg-white px-4 py-3 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                 <p className="text-[0.85rem] text-blue-gray-600">
                                     {!canPromote

@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { PhoneIcon } from "@heroicons/react/24/outline";
 
 /**
  * Name cell for the student payment list: shows the student's name with the
@@ -19,7 +20,7 @@ const StudentNameCell = memo(function ({ data, item, highLighted = false }) {
                 <span className="text-xs text-blue-gray-500">Father: {fatherName}</span>
             ) : null}
             {contact ? (
-                <span className="text-xs text-blue-gray-500">📞 {contact}</span>
+                <span className="inline-flex items-center gap-1 text-xs text-blue-gray-500"><PhoneIcon className="h-3 w-3" aria-hidden="true" />{contact}</span>
             ) : null}
         </div>
     );
