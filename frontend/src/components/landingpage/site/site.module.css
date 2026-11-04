@@ -20,34 +20,34 @@
    ========================================================================== */
 
 .root {
-    /* ---- colour: the SchoolCore frame (chalkboard green), marigold and a cool paper.
-       Flat throughout: no gradient on any surface of the site. ---- */
-    --ink: #0e211c;
-    --ink-2: #3d4d47;
-    --ink-3: #56655f;
-    --paper: #f3f6f4;
-    --paper-2: #e6ede9;
+    /* ---- colour: the Ocean palette. Deep ocean for the dark bands, a cool paper,
+       and amber for the one call to action. Flat: no gradient anywhere. ---- */
+    --ink: #222627;
+    --ink-2: #495051;
+    --ink-3: #5c6567;
+    --paper: #f5f7f7;
+    --paper-2: #ebeeef;
     --card: #ffffff;
-    --line: #dce3de;
-    --line-2: #bcc8c1;
-    --pine: #0e2b23;
-    --pine-2: #164034;
-    --pine-deep: #091d18;
-    --teal: #17614d;
-    --teal-ink: #155442;
-    --mint: #e1eae8;
-    --mint-2: #eff4f3;
-    --mint-line: #c3d6d1;
-    --sun: #ffc233;
-    --sun-hi: #ffd465;
-    --sun-tint: #fff2d2;
-    --sun-ink: #7a5200;
+    --line: #dbe1e2;
+    --line-2: #c4ccce;
+    --pine: #034546;
+    --pine-2: #015a5d;
+    --pine-deep: #002c2c;
+    --teal: #037177;
+    --teal-ink: #015a5d;
+    --mint: #d4f5fc;
+    --mint-2: #ebfafe;
+    --mint-line: #b2ebf6;
+    --sun: #e69e44;
+    --sun-hi: #f8be7a;
+    --sun-tint: #feead2;
+    --sun-ink: #8e5400;
     --brick: #b42318;
-    --on-dark: #f7faf8;
-    --on-dark-2: #e4eee9;
-    --on-dark-3: #97b3a8;
-    --line-dark: #24493e;
-    --shadow: 9, 29, 24;
+    --on-dark: #f7fafa;
+    --on-dark-2: #d4f5fc;
+    --on-dark-3: #b2ebf6;
+    --line-dark: #015a5d;
+    --shadow: 2, 44, 44;
 
     /* what a component reads; a dark band re-points these (see .onDark) */
     --fg: var(--ink);
@@ -164,7 +164,7 @@ div.root * {
     --line: #1c4640;
     --line-2: #2b5a53;
     --pine: #0a332e;
-    --pine-2: #164034;
+    --pine-2: #015a5d;
     --pine-deep: #041512;
     --teal: #2fb5a8;
     --teal-ink: #6fd6c9;
@@ -219,7 +219,7 @@ div.root * {
     padding: 12px 18px;
     border-radius: 10px;
     background: var(--sun);
-    color: #0e211c;
+    color: #222627;
     font-size: 16px;
     line-height: 24px;
     font-weight: 700;
@@ -266,13 +266,13 @@ div.root * {
 
 /* on marigold: ink only */
 :global(.lp) .onSun {
-    --fg: #0e211c;
+    --fg: #222627;
     --fg-2: #2c2410;
     --fg-3: #3d3115;
     --rule: rgba(11, 31, 28, .28);
     --rule-2: rgba(11, 31, 28, .4);
-    --accent: #0e211c;
-    --focus: #0e211c;
+    --accent: #222627;
+    --focus: #222627;
     color: var(--fg);
 }
 
@@ -347,7 +347,7 @@ div.root * {
     border: 0;
     border-radius: 14px;
     background: var(--sun);
-    color: #0e211c;
+    color: #222627;
     font-size: 16px;
     line-height: 24px;
     font-weight: 700;
@@ -411,7 +411,7 @@ div.root * {
 
 :global(.lp) .btnInk .btnDisc {
     background: var(--sun);
-    color: #0e211c;
+    color: #222627;
 }
 
 /* the quiet second action: an outline */
@@ -688,11 +688,11 @@ div.root * {
     right: 0;
     width: 286px;
     padding: 8px;
-    border: 1px solid #cbd4ce;
+    border: 1px solid #c4ccce;
     border-radius: 16px;
     background: #ffffff;
     box-shadow: 0 24px 50px -20px rgba(var(--shadow), .55);
-    --focus: #155442;
+    --focus: #015a5d;
 }
 
 :global(.lp) .signInItem {
@@ -702,11 +702,11 @@ div.root * {
     gap: 12px;
     padding: 11px 12px;
     border-radius: 10px;
-    color: #0e211c;
+    color: #222627;
     text-decoration: none;
 }
 
-:global(.lp) .signInItem:hover { background: #e6ede9; }
+:global(.lp) .signInItem:hover { background: #ebeeef; }
 
 :global(.lp) .signInName {
     display: block;
@@ -726,7 +726,7 @@ div.root * {
     width: 16px;
     height: 16px;
     flex: none;
-    color: #155442;
+    color: #015a5d;
     stroke-width: 2.4;
 }
 

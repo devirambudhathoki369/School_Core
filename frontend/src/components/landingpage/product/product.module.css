@@ -12,21 +12,21 @@
 :global(.lp) .phone {
     --d-ink: #10201d;
     --d-ink-2: #51625d;
-    --d-canvas: #eef2ef;
-    --d-soft: #f7faf8;
-    --d-line: #dce3de;
-    --d-edge: #cbd4ce;
+    --d-canvas: #f0f3f3;
+    --d-soft: #f7fafa;
+    --d-line: #dbe1e2;
+    --d-edge: #c4ccce;
     --d-track: #ebe5d8;
-    --d-teal: #17614d;
-    --d-teal-ink: #155442;
+    --d-teal: #037177;
+    --d-teal-ink: #015a5d;
     --d-teal-tint: #dff1ed;
     --d-brick: #b42318;
-    --d-sun: #ffc233;
+    --d-sun: #e69e44;
     --d-sun-ink: #b45309;
-    --d-sun-tint: #fff2d2;
+    --d-sun-tint: #feead2;
     --d-sage: #7fb8ae;
-    --d-rail: #0e2b23;
-    --d-rail-2: #164034;
+    --d-rail: #034546;
+    --d-rail-2: #015a5d;
     color: var(--d-ink);
     font-family: var(--font-app, "Plus Jakarta Sans"), "Segoe UI", system-ui, sans-serif;
     font-size: 12px;
@@ -78,7 +78,7 @@
 
 :global(.lp) .windowTag {
     padding: 3px 9px;
-    border: 1px dashed #bcc8c1;
+    border: 1px dashed #c4ccce;
     border-radius: 999px;
     color: var(--d-ink-2);
     font-family: var(--f-mono);
@@ -118,7 +118,7 @@
     border: 0;
     border-radius: 10px;
     background: transparent;
-    color: #e4eee9;
+    color: #d4f5fc;
     font-size: 13px;
     line-height: 18px;
     font-weight: 600;
@@ -600,7 +600,7 @@
     min-height: 37px;
     margin-top: 9px;
     padding: 7px 72px 0 0;
-    border-top: 1px dashed #bcc8c1;
+    border-top: 1px dashed #c4ccce;
     color: var(--d-ink-2);
     font-size: 10px;
     line-height: 14px;
@@ -796,8 +796,8 @@
 :global(.lp) .madeFoot {
     margin-top: auto;
     padding-top: 10px;
-    border-top: 1px solid #24493e;
-    color: #e4eee9;
+    border-top: 1px solid #015a5d;
+    color: #d4f5fc;
     font-size: 11px;
     line-height: 16px;
 }
@@ -836,7 +836,7 @@
 
 :global(.lp) .mapRoad {
     fill: none;
-    stroke: #f7faf8;
+    stroke: #f7fafa;
     stroke-width: 5;
 }
 
@@ -900,7 +900,7 @@
 }
 
 :global(.lp) .mapLabel {
-    fill: #3d4d47;
+    fill: #495051;
     font-size: 10px;
     font-weight: 700;
 }
@@ -954,7 +954,7 @@
     max-width: 100%;
     padding: 9px;
     border-radius: 40px;
-    background: #0e211c;
+    background: #222627;
     box-shadow: 0 40px 70px -34px rgba(6, 41, 37, .75);
 }
 
@@ -979,7 +979,7 @@
     width: 72px;
     height: 18px;
     border-radius: 999px;
-    background: #0e211c;
+    background: #222627;
 }
 
 :global(.lp) .phoneSignal {
@@ -1044,8 +1044,8 @@
 }
 
 :global(.lp) .noteIcon[data-tone="sand"] {
-    background: #e6ede9;
-    color: #3d4d47;
+    background: #ebeeef;
+    color: #495051;
 }
 
 :global(.lp) .noteBody {
@@ -1274,8 +1274,8 @@
     flex: none;
     padding: 2px 9px;
     border-radius: 999px;
-    background: #e6ede9;
-    color: #3d4d47;
+    background: #ebeeef;
+    color: #495051;
     font-size: 11px;
     line-height: 16px;
     font-weight: 700;
@@ -1356,7 +1356,7 @@
 :global(.lp) .frameIn {
     padding: 12px;
     border-radius: 14px;
-    background: #eef2ef;
+    background: #f0f3f3;
 }
 
 :global(.lp) .frameNote {
