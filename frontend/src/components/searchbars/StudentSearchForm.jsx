@@ -58,17 +58,22 @@ function StudentSearchForm({ useStatus = false, useAcademicYear = false, classPi
                 e.preventDefault();
                 onSearch(e);
             }}>
-            <div className="mygrid">
-                <FilterSection title={"Student's Info"}>
-                    <div className="w-full grid grid-cols-1 sm:grid-cols-12 gap-x-1">
+            {/* `app-student-search` lays this form out as headed sections, one
+                above the next (globals.css): the heading over its fields rather
+                than in a column of its own, and every name field and the status
+                on ONE line, so the whole form reads top to bottom in four
+                short blocks. Other forms that share these rows keep theirs. */}
+            <div className="mygrid app-student-search">
+                <FilterSection title={"Student"}>
+                    <div className="w-full grid grid-cols-1 sm:grid-cols-12 gap-x-2">
                         {/* An ID pins down one student on its own — no name or class needed. */}
-                        <TextInput grid={3} input={{ name: 'student_id', label: 'Student ID No.', type: 'number' }} value={studentSearch?.student_id} onChange={onChange} />
-                        <TextInput grid={3} input={{ name: 'first_name', label: 'First Name' }} value={studentSearch?.first_name} onChange={onChange} />
-                        <TextInput grid={3} input={{ name: 'middle_name', label: 'Middle Name' }} value={studentSearch?.middle_name} onChange={onChange} />
-                        <TextInput grid={3} input={{ name: 'last_name', label: 'Last Name' }} value={studentSearch?.last_name} onChange={onChange} />
+                        <TextInput grid={useStatus ? 2 : 3} input={{ name: 'student_id', label: 'Student ID no.', type: 'number' }} value={studentSearch?.student_id} onChange={onChange} />
+                        <TextInput grid={3} input={{ name: 'first_name', label: 'First name' }} value={studentSearch?.first_name} onChange={onChange} />
+                        <TextInput grid={useStatus ? 2 : 3} input={{ name: 'middle_name', label: 'Middle name' }} value={studentSearch?.middle_name} onChange={onChange} />
+                        <TextInput grid={3} input={{ name: 'last_name', label: 'Last name' }} value={studentSearch?.last_name} onChange={onChange} />
                         {
                             useStatus &&
-                            <SelectInput grid={3} input={{ name: 'status', label: 'Status', options: STUDENT_STATUS_OPTIONS }}
+                            <SelectInput grid={2} input={{ name: 'status', label: 'Status', options: STUDENT_STATUS_OPTIONS }}
                                 value={studentSearch?.status} onChange={onChange} />
                         }
                     </div>

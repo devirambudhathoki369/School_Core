@@ -6633,3 +6633,34 @@ button.app-att-day { cursor: pointer; }
     .app-tool-btn.app-year-chip.is-ok { background: #FFFFFF !important; border-color: var(--line) !important; color: var(--ink-700) !important; }
     .app-tool-btn.app-year-chip.is-ok :is(span, svg) { color: var(--ink-700) !important; }
 }
+
+/* -- the student search: headed sections, one above the next -----------------
+   No label column and no vertical rule: each block's heading sits over its
+   fields, blocks are split by a hairline, and the level and class tiles get
+   the full width of the panel. Scoped to `.app-student-search`, so the other
+   forms built from the same rows keep their layout. */
+.app-student-search { gap: 0 !important; }
+.app-student-search .app-filter-section {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: .55rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--line-soft);
+}
+.app-student-search > .app-filter-section:first-child,
+.app-student-search > :first-child .app-filter-section { padding-top: .25rem; border-top: 0; }
+.app-student-search .app-filter-divider {
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+}
+.app-student-search .app-filter-label {
+    font-size: .72rem !important;
+    font-weight: 700 !important;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-500) !important;
+}
+.app-student-search .app-filter-section > div:last-child { padding-top: 0 !important; margin-left: -3px; }
+.app-student-search .app-reveal { border: 0; }
