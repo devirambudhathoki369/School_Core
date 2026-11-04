@@ -6492,7 +6492,9 @@ button.app-att-day { cursor: pointer; }
         font-size: .9rem !important;
         font-weight: 700 !important;
         letter-spacing: -0.01em;
-        text-transform: none;
+        /* the names arrive lower case ("montessory", "play group"); the old
+           chips capitalised them and the tiles keep doing so */
+        text-transform: capitalize;
     }
     :root .app-filter-chip svg { display: none; }
     :root .app-filter-chip:not([data-selected="true"]):not([data-warned="true"]):hover:not(:disabled) {
