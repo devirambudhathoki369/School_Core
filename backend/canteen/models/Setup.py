@@ -2,8 +2,10 @@
 
     CanteenSettings     one row per school: who runs it, how buyers may pay,
                         the default limits, the slip
-    CanteenCategory     Snacks, Drinks, Meals ...
-      CanteenItem         one thing on the counter, at its current price
+    CanteenUnit         liter, plate, half ...
+    CanteenItem         a product: its unit, a remark, and its counter price if it
+                        is sold at the counter. A facility's title on the bill is
+                        an item too, one Product Setup does not list.
 
 A price here is the CURRENT price. A sale copies the name and price onto its own
 line when it is rung up, so changing a price tomorrow never changes what a slip
@@ -83,11 +85,34 @@ class CanteenCategory(BaseModel):
         return f"{self.school_id} > {self.name}"
 
 
+class CanteenUnit(BaseModel):
+    """How a product is measured: liter, plate, half. The school's own list."""
+
+    school = ForeignKey("main.SchoolAdmin", on_delete=CASCADE, related_name="canteen_units")
+    name = CustomCharField(min_length=1, max_length=30)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=("school", "name"),
+                condition=Q(is_active=True),
+                name="uniq_active_canteen_unit_per_school",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.school_id} > {self.name}"
+
+
 class CanteenItem(BaseModel):
     school = ForeignKey("main.SchoolAdmin", on_delete=CASCADE, related_name="canteen_items")
+    # No longer asked for (Product Setup has no categories). Kept so nothing an
+    # older item carries is lost, and the counter still groups by it if set.
     category = ForeignKey(
         "canteen.CanteenCategory", on_delete=SET_NULL, related_name="items", **_allow_empty
     )
+    unit = ForeignKey("canteen.CanteenUnit", on_delete=SET_NULL, related_name="items", **_allow_empty)
+    remarks = CustomCharField(min_length=1, max_length=120, **_allow_empty)
     name = CustomCharField(min_length=2, max_length=60)
     price = DecimalField(**MONEY)
     # A short key typed at the counter ("SAM" for samosa) — quicker than a

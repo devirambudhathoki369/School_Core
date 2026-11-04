@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@material-tailwind/react";
-import { BellAlertIcon, PrinterIcon } from "@heroicons/react/24/outline";
+import {
+    ArrowPathRoundedSquareIcon, BanknotesIcon, BellAlertIcon, CakeIcon, CalendarDaysIcon, ClipboardDocumentListIcon,
+    PrinterIcon, QueueListIcon, ReceiptPercentIcon, ShoppingCartIcon,
+} from "@heroicons/react/24/outline";
 import { useReactToPrint } from "react-to-print";
 
 import { confirmAction } from "@/components/ConfirmDialog";
@@ -11,17 +14,19 @@ import { ButtonsSecion, Section } from "@/components/sections";
 import BasicTable from "@/components/tables/BasicTable";
 import { TXN_REFUND } from "@/configs/canteen";
 import { getCanteenReport, getClasses, sendDuesReminder } from "@/services/functions/canteen";
-import { StatusPill, Tile, rs, useCanteenScope, useOnce } from "../common";
+import { CanteenTabs, StatusPill, TabPanel, Tile, rs, useCanteenScope, useOnce } from "../common";
 import CanteenBills from "./CanteenBills";
+import TransactionHistory from "./TransactionHistory";
 
 const REPORTS = [
-    { key: "sales", label: "Sales" },
-    { key: "items", label: "Item-wise" },
-    { key: "cashier", label: "Cashier closing" },
-    { key: "receipts", label: "Top-ups & refunds" },
-    { key: "dues", label: "Dues" },
-    { key: "postings", label: "Monthly postings" },
-    { key: "meals", label: "Meal count" },
+    { key: "transactions", label: "Transaction history", icon: ClipboardDocumentListIcon },
+    { key: "sales", label: "Sales", icon: ShoppingCartIcon },
+    { key: "items", label: "Item-wise", icon: QueueListIcon },
+    { key: "cashier", label: "Cashier closing", icon: BanknotesIcon },
+    { key: "receipts", label: "Top-ups & refunds", icon: ArrowPathRoundedSquareIcon },
+    { key: "dues", label: "Dues", icon: ReceiptPercentIcon },
+    { key: "postings", label: "Monthly postings", icon: CalendarDaysIcon },
+    { key: "meals", label: "Meal count", icon: CakeIcon },
 ];
 
 function Money({ data }) {
@@ -61,7 +66,7 @@ const COLUMNS = {
         ["is_active", "status", null, false, null, State],
     ],
     meals: [
-        ["class_label", "class"], ["plans", "on monthly use types"], ["on_plan", "on a plan"],
+        ["class_label", "class"], ["plans", "on monthly facilities"], ["on_plan", "on a plan"],
         ["served", "served on plan"], ["not_yet", "not yet served"], ["bought", "monthly items bought (cash / due)"],
     ],
     dues: [
@@ -143,7 +148,7 @@ function CanteenReports() {
         setReport(data && Array.isArray(data.rows) ? { ...data, type: nextType } : { rows: [], type: nextType });
         setLoading(false);
     }
-    useEffect(() => { run(); /* eslint-disable-next-line */ }, [school, type]);
+    useEffect(() => { if (type !== "transactions") run(); /* eslint-disable-next-line */ }, [school, type]);
 
     if (!summary) return <Loader />;
 
@@ -163,17 +168,12 @@ function CanteenReports() {
                 </div>
             </div>
 
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Report">
-                {REPORTS.map((r) => (
-                    <button key={r.key} type="button" aria-pressed={type === r.key} onClick={() => setType(r.key)}
-                        className={`rounded-full border px-3 py-1 text-xs font-semibold ${type === r.key
-                            ? "border-[var(--t-brand-solid,#0f766e)] bg-[var(--t-brand-solid,#0f766e)] text-white"
-                            : "border-gray-300 bg-white text-gray-700 hover:border-gray-500"}`}>
-                        {r.label}
-                    </button>
-                ))}
-            </div>
+            <CanteenTabs label="Report" tabs={REPORTS} active={type} onChange={setType} />
 
+            <TabPanel tab={type}>
+            {type === "transactions" && <TransactionHistory />}
+            {type !== "transactions" && (
+            <>
             <Section title={REPORTS.find((r) => r.key === type)?.label}
                 description={type === "dues"
                     ? "Who owes the canteen what, item by item, as of now. Pick a class to narrow it — then print their bills or send an app reminder."
@@ -225,6 +225,10 @@ function CanteenReports() {
                         loading={loading} />
                 </>
             )}
+
+            </>
+            )}
+            </TabPanel>
 
             {/* Off-screen rather than unmounted: react-to-print clones the node. */}
             <div className="hidden">

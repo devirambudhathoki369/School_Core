@@ -26,7 +26,9 @@ from ..constants import (
     PAGE_ACCOUNTS,
     PAGE_COLLECT,
     PAGE_PROFILE,
+    PAGE_REPORTS,
     TXN_CHOICES,
+    TXN_DISCOUNT,
     TXN_REFUND,
     TXN_TOPUP,
     label,
@@ -71,6 +73,7 @@ def txn_json(txn):
         "is_active": txn.is_active,
         "void_reason": (txn.extra_info or {}).get("void_reason"),
         "balance_after": (txn.extra_info or {}).get("balance_after"),
+        "discount": ((txn.extra_info or {}).get("discount") or {}).get("amount"),
         # item-wise: what was charged, or what this receipt paid
         "lines": [
             {"item": key, "name": ((txn.details or {}).get(TITLES) or {}).get(key, "Item"), "amount": amount}
@@ -102,7 +105,7 @@ def account_row(account, settings, today, bal_map, spent_map):
 
 
 class CanteenAccountView(CanteenBaseView):
-    # Money in and out is taken at Card Accounts and at Collect & Receipt alike;
+    # Money in and out is taken at Card Accounts and at Canteen > Payment alike;
     # limits and blocked cards only at Card Accounts.
     pages_for = {
         "GET": (PAGE_ACCOUNTS, PAGE_COLLECT),
@@ -214,7 +217,9 @@ class CanteenAccountView(CanteenBaseView):
         settings = settings_for(school_id)
         # What a payment pays, item by item ({item id: amount}); the rest of the
         # amount is an advance. Refunds name no items.
-        allocations = {}
+        # `discounts` is what the receipt lets off on those items, on top of what
+        # was paid. `months` is the month it pays up to, as the fee receipt asks.
+        allocations, discounts, months = {}, {}, []
         if action == "topup":
             for key, value in (data.get("details") or {}).items():
                 value = self.money(value)
@@ -222,6 +227,15 @@ class CanteenAccountView(CanteenBaseView):
                     return Response({"message": "An amount cannot be below zero."}, status=400)
                 if value > 0:
                     allocations[str(key)] = value
+            for key, value in (data.get("discounts") or {}).items():
+                value = self.money(value)
+                if value < 0:
+                    return Response({"message": "A discount cannot be below zero."}, status=400)
+                if value > 0:
+                    discounts[str(key)] = value
+            month = self.int_or_none(data.get("month"))
+            if month and 1 <= month <= 12:
+                months = [month]
         amount = self.money(data.get("amount")) if data.get("amount") not in (None, "") else sum(
             allocations.values(), self.money(0))
         if amount <= 0:
@@ -267,16 +281,18 @@ class CanteenAccountView(CanteenBaseView):
                             status=400,
                         )
                     dues = {r["item"]: r for r in ledger_statement(school_id, account.id)["items"]}
-                    for key, value in allocations.items():
+                    for key in {*allocations, *discounts}:
                         owed = dues.get(key, {}).get("raw_due", self.money(0))
+                        value = allocations.get(key, self.money(0)) + discounts.get(key, self.money(0))
                         if value > owed:
                             name = dues.get(key, {}).get("name", "that item")
                             return Response(
                                 {"message": f"{name}: Rs. {value:,.2f} entered, but only Rs. {owed:,.2f} is due."},
                                 status=400,
                             )
-                    names = {k: dues[k]["name"] for k in allocations}
-                    after = before + signed
+                    names = {k: dues[k]["name"] for k in {*allocations, *discounts}}
+                    discount_total = sum(discounts.values(), self.money(0))
+                    after = before + signed + discount_total
                     number = next_receipt_no(school_id, economic_year_id)
                     txn = CanteenTransaction.objects.create(
                         school_id=school_id,
@@ -289,9 +305,27 @@ class CanteenAccountView(CanteenBaseView):
                         mode=mode,
                         remarks=self.text(data.get("remarks"), 120),
                         details=details_blob(allocations, names) if allocations else {},
+                        months=months,
                         entered_by=entered_by,
-                        extra_info={"balance_after": str(after)},
+                        extra_info={
+                            "balance_after": str(after),
+                            **({"discount": {"amount": str(discount_total)}} if discounts else {}),
+                        },
                     )
+                    if discounts:
+                        CanteenTransaction.objects.create(
+                            school_id=school_id,
+                            economic_year_id=economic_year_id,
+                            account=account,
+                            kind=TXN_DISCOUNT,
+                            amount=discount_total,
+                            date=txn.date,
+                            mode=mode,
+                            details=details_blob(discounts, names),
+                            months=months,
+                            entered_by=entered_by,
+                            extra_info={"receipt": txn.id, "receipt_no": number},
+                        )
                     tell_family(settings, account, kind, amount, after)
                 break
             except IntegrityError:
@@ -378,11 +412,17 @@ class CanteenAccountView(CanteenBaseView):
             account = CanteenAccount.objects.select_for_update().get(id=txn.account_id)
             # A receipt voided by mistake-correction: whatever it paid is due
             # again, which is the truth once the money is not there. The void
-            # keeps who did it and why.
-            after = balance(account.id) - txn.amount
+            # keeps who did it and why. A discount it gave goes with it.
             txn.is_active = False
             txn.extra_info = {**(txn.extra_info or {}), "void_reason": reason}
             txn.save(update_fields=["is_active", "extra_info", "updated_at"])
+            for given in CanteenTransaction.objects.filter(
+                account=account, kind=TXN_DISCOUNT, is_active=True, extra_info__receipt=txn.id
+            ):
+                given.is_active = False
+                given.extra_info = {**(given.extra_info or {}), "void_reason": reason}
+                given.save(update_fields=["is_active", "extra_info", "updated_at"])
+            after = balance(account.id)
         return Response(
             {
                 "message": (
@@ -396,7 +436,8 @@ class CanteenAccountView(CanteenBaseView):
 class CanteenReceiptView(CanteenBaseView):
     """One office receipt (a top-up or a refund), for the printed copy."""
 
-    pages_for = {"GET": (PAGE_ACCOUNTS, PAGE_COLLECT, PAGE_PROFILE)}
+    # Reprinted from Card Accounts, Payment, a profile and the transaction history.
+    pages_for = {"GET": (PAGE_ACCOUNTS, PAGE_COLLECT, PAGE_PROFILE, PAGE_REPORTS)}
 
     def get(self, request):
         denied = self.gate(request)

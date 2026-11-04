@@ -30,7 +30,7 @@ export default function CanteenSlip({ sale, width = 80, footer }) {
     const style = width === 0 ? { width: "76mm" } : { width: `${mm}mm` };
     const balance = sale.balance_after !== undefined && sale.balance_after !== null
         ? Number(sale.balance_after) : null;
-    // A meal on a monthly use type: nothing was charged at the counter.
+    // A meal on a monthly facility: nothing was charged at the counter.
     const plan = sale.payment === PAY_PLAN;
     return (
         <div style={style} className="canteen-slip text-black bg-white p-1 font-mono">

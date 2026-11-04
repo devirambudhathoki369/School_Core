@@ -29,7 +29,7 @@ BUYER_CHOICES = (
 # ---------------------------------------------------------- how a sale is paid
 # CASH is money over the counter. ACCOUNT is the buyer's canteen account — a
 # prepaid balance their family topped up, or, where the school allows it, credit
-# up to a limit, collected later at Collect & Receipt.
+# up to a limit, collected later at Canteen > Payment.
 PAY_CASH = 1
 PAY_ACCOUNT = 2
 # PLAN is a meal already paid for by a monthly use type (tiffin monthly, day
@@ -73,11 +73,15 @@ TXN_TOPUP = 1
 TXN_PURCHASE = 2
 TXN_REFUND = 3
 TXN_POSTING = 6
+# DISCOUNT  +  given on a receipt, item by item (methods/ledger.py). Its own row so
+#             the money counted at day's end is only ever the cash a TOPUP took.
+TXN_DISCOUNT = 7
 TXN_CHOICES = (
     (TXN_TOPUP, "Payment"),
     (TXN_PURCHASE, "Counter purchase"),
     (TXN_REFUND, "Refund"),
     (TXN_POSTING, "Monthly posting"),
+    (TXN_DISCOUNT, "Discount"),
 )
 CHARGE_KINDS = (TXN_PURCHASE, TXN_POSTING)
 
@@ -127,14 +131,16 @@ PAGE_MONTHLY_POSTING = 2708
 PAGE_COLLECT = 2709
 PAGE_USERS = 2710
 PAGE_PROFILE = 2711
+PAGE_USER_SETUP = 2712
 PAGE_CHOICES = (
     (PAGE_COUNTER, "Counter"),
-    (PAGE_ITEMS, "Items & Rates"),
-    (PAGE_USE_TYPES, "Use Types"),
+    (PAGE_ITEMS, "Product Setup"),
+    (PAGE_USE_TYPES, "Facility Setup"),
+    (PAGE_USER_SETUP, "User Setup"),
     (PAGE_MONTHLY_POSTING, "Monthly Posting"),
-    (PAGE_COLLECT, "Collect & Receipt"),
-    (PAGE_ACCOUNTS, "Card Accounts"),
+    (PAGE_COLLECT, "Payment"),
     (PAGE_PROFILE, "Student Profile"),
+    (PAGE_ACCOUNTS, "Card Accounts"),
     (PAGE_REPORTS, "Canteen Reports"),
     (PAGE_SETUP, "Canteen Setup"),
     (PAGE_USERS, "Canteen Users"),

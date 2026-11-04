@@ -8,7 +8,7 @@
  * `src/methods/menuTree.js`:
  *
  *   1. PRUNING. Every row the rail and the shortcuts grid offer must resolve to
- *      a view — the same map `pages/[role].jsx` renders from. A row that does
+ *      a view — the same map `pages/[role]/[[...view]].jsx` renders from. A row that does
  *      not is a dead end wearing a page's clothes, and it is the whole reason
  *      anyone ever saw "COMING SOON!!!".
  *   2. SEARCH. Matching is against the breadcrumb, so two vague words narrow
@@ -152,27 +152,25 @@ const propOf = (obj, key) => obj.properties
     .find(p => p.type === 'ObjectProperty' && (p.key.name || p.key.value) === key);
 const stringOf = (prop) => prop?.value?.type === 'StringLiteral' ? prop.value.value : undefined;
 
-// every leaf path the menu offers, per menu (admin / superadmin)
+// Evaluate only the data config, with JSX/icons inert. This follows imported
+// constants and generated/spread canteen menus instead of mistaking helper
+// arrays for separately shipped menus. No app components or APIs are loaded.
+const ts = require_('typescript');
+function configExports(file, dependencies = {}) {
+    const exports = {};
+    const js = ts.transpileModule(readFileSync(file, 'utf8'), {
+        compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React },
+    }).outputText;
+    new Function('exports', 'require', 'React', js)(
+        exports, name => dependencies[name] || {}, { createElement: () => null });
+    return exports;
+}
 function menuLeaves(file) {
-    const out = {};
-    for (const node of parse(file).program.body) {
-        if (node.type !== 'VariableDeclaration') continue;
-        for (const d of node.declarations) {
-            if (d.init?.type !== 'ArrayExpression') continue;
-            const leaves = [];
-            (function walk(arr, parent) {
-                for (const el of arr.elements || []) {
-                    if (el?.type !== 'ObjectExpression') continue;
-                    const path = joinView(parent, stringOf(propOf(el, 'view')));
-                    const submenu = propOf(el, 'submenu');
-                    if (submenu?.value?.type === 'ArrayExpression') walk(submenu.value, path);
-                    else if (!propOf(el, 'action')) leaves.push(path);
-                }
-            })(d.init, '');
-            out[d.id.name] = leaves;
-        }
-    }
-    return out;
+    const permissions = configExports(join(HERE, '..', 'configs', 'permissions', 'index.js'));
+    const menus = configExports(file, { './permissions': permissions });
+    return Object.fromEntries(Object.entries(menus).map(([name, rows]) => [
+        name, collectMenuLeaves(rows).map(row => row.view),
+    ]));
 }
 
 // every view key that resolves to a component (an explicit `null` does not)
@@ -193,9 +191,10 @@ function viewKeys(file) {
 }
 
 const cfg = (...parts) => join(HERE, '..', 'configs', ...parts);
-const shared = ['exam.jsx', 'accounting.jsx', 'inventory.jsx', 'library.jsx']
+const shared = ['exam.jsx', 'accounting.jsx', 'inventory.jsx', 'library.jsx', 'hostel.jsx', 'extra_billing.jsx', 'canteen.jsx']
     .flatMap(f => [...viewKeys(cfg('views', f))]);
 const resolvable = {
+    canteenUserMenu: viewKeys(cfg('views', 'canteen.jsx')),
     adminMenu: new Set([...shared, ...viewKeys(cfg('views', 'admin.jsx'))]),
     superAdminMenu: new Set([...shared, ...viewKeys(cfg('views', 'superadmin.jsx'))]),
 };
@@ -205,7 +204,18 @@ for (const [menuName, leaves] of Object.entries(shipped)) {
         leaves.filter(p => !resolvable[menuName]?.has(p)), []);
 }
 check('the shipping menus were actually read',
-    Object.keys(shipped).sort(), ['adminMenu', 'superAdminMenu']);
+    Object.keys(shipped).sort(), ['adminMenu', 'canteenUserMenu', 'superAdminMenu']);
+
+// A feature should have one visible destination. Legacy URLs belong in the
+// compatibility resolver, never as another leaf in the navigation tree.
+const routeSource = readFileSync(join(HERE, '..', 'methods', 'portalRoutes.js'), 'utf8');
+const { canonicalView } = await import('data:text/javascript;charset=utf-8,' + encodeURIComponent(routeSource));
+for (const [name, leaves] of Object.entries(shipped)) {
+    const role = name === 'superAdminMenu' ? 'superadmin' : name === 'canteenUserMenu' ? 'canteen' : 'admin';
+    const canonical = leaves.map(view => canonicalView(view, role));
+    check(`${name}: no replicated feature destinations`,
+        canonical.filter((view, index) => canonical.indexOf(view) !== index), []);
+}
 
 console.log(failures === 0
     ? '\nAll checks passed — the rail only offers pages that open, and search finds them.'

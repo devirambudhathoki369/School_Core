@@ -26,12 +26,12 @@ from main.models.Student import Student, StudentGuardianInfo
 
 from .constants import (
     BUYER_STAFF, BUYER_STUDENT, BUYER_WALKIN, PAGE_ACCOUNTS, PAGE_COLLECT, PAGE_COUNTER, PAGE_ITEMS, PAGE_PROFILE,
-    PAGE_MONTHLY_POSTING, PAGE_REPORTS, PAGE_USE_TYPES, PAGE_USERS, PAGES,
+    PAGE_MONTHLY_POSTING, PAGE_REPORTS, PAGE_USE_TYPES, PAGE_USER_SETUP, PAGE_USERS, PAGES,
     PAY_ACCOUNT, PAY_CASH, PAY_PLAN, TXN_POSTING,
 )
 from .methods.balances import balance
 from .models import (
-    CanteenAccount, CanteenEnrollment, CanteenItem, CanteenSale, CanteenTransaction, CanteenUser,
+    CanteenAccount, CanteenEnrollment, CanteenItem, CanteenPlan, CanteenSale, CanteenTransaction, CanteenUser,
     CanteenUserToken,
 )
 
@@ -619,8 +619,13 @@ class CanteenUserTests(CanteenFixture, TestCase):
             "/canteen/buyers": (PAGE_COUNTER, PAGE_ACCOUNTS, PAGE_COLLECT),
             "/canteen/sales": (PAGE_COUNTER,),
             "/canteen/accounts": (PAGE_ACCOUNTS, PAGE_COLLECT),
-            "/canteen/receipts": (PAGE_ACCOUNTS, PAGE_COLLECT, PAGE_PROFILE),
-            "/canteen/profile": (PAGE_PROFILE,),
+            "/canteen/receipts": (PAGE_ACCOUNTS, PAGE_COLLECT, PAGE_PROFILE, PAGE_REPORTS),
+            "/canteen/profile": (PAGE_PROFILE, PAGE_COLLECT),
+            "/canteen/class-options": (PAGE_COLLECT,),
+            "/canteen/units": (PAGE_ITEMS,),
+            "/canteen/facilities": (PAGE_USE_TYPES, PAGE_USER_SETUP, PAGE_MONTHLY_POSTING),
+            "/canteen/facility-users": (PAGE_USER_SETUP,),
+            "/canteen/manual-posting": (PAGE_MONTHLY_POSTING,),
             "/canteen/plans": (PAGE_USE_TYPES, PAGE_MONTHLY_POSTING),
             "/canteen/enrollments": (PAGE_USE_TYPES,),
             "/canteen/monthly-posting": (PAGE_MONTHLY_POSTING,),
@@ -833,3 +838,432 @@ class CanteenProfileTests(BillingFixture, TestCase):
 
     def test_a_walk_in_has_no_profile(self):
         self.assertEqual(self.profile(buyer_type=BUYER_WALKIN).status_code, 400)
+
+
+class ProductSetupTests(BillingFixture, TestCase):
+    def test_units_are_the_schools_own_and_cannot_vanish_under_a_product(self):
+        res = self.call("post", "/canteen/units", {"name": "Plate"})
+        self.assertEqual(res.status_code, 200, res.content)
+        unit = res.json()["id"]
+        self.assertEqual(self.call("post", "/canteen/units", {"name": "plate"}).status_code, 409)
+        self.assertEqual(self.call("post", "/canteen/units", {"name": ""}).status_code, 400)
+        made = self.call("post", "/canteen/items", {"name": "Momo", "price": "120", "unit": unit, "remarks": "steamed"})
+        self.assertEqual(made.status_code, 200, made.content)
+        listed = self.call("get", "/canteen/units").json()
+        self.assertEqual([(u["name"], u["products"]) for u in listed], [("Plate", 1)])
+        refused = self.call("delete", "/canteen/units", id=unit)
+        self.assertEqual(refused.status_code, 400)
+        self.assertIn("use 'Plate'", refused.json()["message"])
+        self.call("delete", "/canteen/items", id=made.json()["id"])
+        self.assertEqual(self.call("delete", "/canteen/units", id=unit).status_code, 200)
+
+    def test_a_product_without_a_price_stays_off_the_counter(self):
+        made = self.call("post", "/canteen/items", {"name": "Water jar", "price": "", "sold_at_counter": False}).json()
+        row = next(i for i in self.call("get", "/canteen/items", products=1).json() if i["id"] == made["id"])
+        self.assertFalse(row["sold_at_counter"])
+        self.assertNotIn(made["id"], [i["id"] for i in self.call("get", "/canteen/items", available=1).json()])
+
+    def test_saving_a_product_keeps_what_the_form_no_longer_asks_for(self):
+        CanteenItem.objects.filter(id=self.samosa.id).update(code="SAM", food_type=1, is_available=False)
+        res = self.call("put", "/canteen/items", {"id": self.samosa.id, "name": "Samosa", "price": "30", "remarks": "hot"})
+        self.assertEqual(res.status_code, 200, res.content)
+        self.samosa.refresh_from_db()
+        self.assertEqual(
+            (self.samosa.code, self.samosa.food_type, self.samosa.is_available, self.samosa.remarks, self.samosa.price),
+            ("SAM", 1, False, "hot", Decimal("30.00")),
+        )
+
+    def test_a_facilitys_title_is_not_listed_as_a_product(self):
+        self.save_facility("Swimming")
+        names = [i["name"] for i in self.call("get", "/canteen/items", products=1).json()]
+        self.assertNotIn("Swimming", names)
+        self.assertIn("Samosa", names)
+
+    def save_facility(self, name, amount="800", key="g10", **extra):
+        return self.call("post", "/canteen/facilities", {
+            "name": name, "classes": [{"key": key, "label": "Seven", "amount": amount}], **extra,
+        })
+
+
+class FacilityTests(BillingFixture, TestCase):
+    def facility(self, name="Swimming", amount="800", key="g10", label="Seven"):
+        res = self.call("post", "/canteen/facilities", {"name": name, "classes": [{"key": key, "label": label, "amount": amount}]})
+        self.assertEqual(res.status_code, 200, res.content)
+        return res.json()["id"]
+
+    def tick(self, plan, students=None, start="2083-04-01"):
+        rows = [{"id": self.student.id}] if students is None else students
+        res = self.call("post", "/canteen/facility-users", {"plan": plan, "students": rows, "start_date": start})
+        self.assertEqual(res.status_code, 200, res.content)
+        return res.json()
+
+    def row(self, plan):
+        return self.call("get", "/canteen/facility-users", plan=plan).json()["students"]
+
+    def test_a_facility_needs_classes_with_amounts(self):
+        bad = self.call("post", "/canteen/facilities", {"name": "Swimming", "classes": []})
+        self.assertEqual(bad.status_code, 400)
+        bad = self.call("post", "/canteen/facilities", {"name": "Swimming", "classes": [{"key": "g10", "label": "Seven", "amount": 0}]})
+        self.assertEqual(bad.status_code, 400)
+        plan = self.facility()
+        self.assertEqual(self.call("post", "/canteen/facilities", {"name": "swimming", "classes": [{"key": "g10", "amount": 5}]}).status_code, 409)
+        row = next(f for f in self.call("get", "/canteen/facilities").json() if f["id"] == plan)
+        self.assertEqual([(c["key"], Decimal(str(c["amount"])), c["students"]) for c in row["classes"]], [("g10", Decimal("800"), 1)])
+
+    def test_renaming_follows_onto_the_bill_title(self):
+        plan = self.facility()
+        res = self.call("put", "/canteen/facilities", {"id": plan, "name": "Pool", "classes": [{"key": "g10", "label": "Seven", "amount": 900}]})
+        self.assertEqual(res.status_code, 200, res.content)
+        self.assertEqual(CanteenPlan.objects.get(id=plan).item.name, "Pool")
+
+    def test_user_setup_lists_only_the_facilitys_classes_and_ticks_are_saved(self):
+        plan = self.facility()
+        self.assertEqual([(s["id"], s["ticked"]) for s in self.row(plan)], [(self.student.id, False)])
+        self.assertEqual(self.tick(plan)["added"], 1)
+        self.assertEqual([(s["id"], s["ticked"]) for s in self.row(plan)], [(self.student.id, True)])
+        other = self.facility(name="Dance", key="g4", label="One")
+        self.assertEqual(self.row(other), [])
+        result = self.tick(other)
+        self.assertEqual((result["added"], result["skipped"]), (0, 1))
+
+    def test_a_class_with_ticked_students_cannot_leave_the_facility(self):
+        plan = self.facility()
+        self.tick(plan)
+        res = self.call("put", "/canteen/facilities", {"id": plan, "name": "Swimming", "classes": [{"key": "g4", "label": "One", "amount": 500}]})
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("Untick", res.json()["message"])
+        self.assertEqual(self.call("delete", "/canteen/facilities", id=plan).status_code, 400)
+        self.tick(plan, students=[])
+        self.assertEqual(self.call("delete", "/canteen/facilities", id=plan).status_code, 200)
+        self.assertEqual([f for f in self.call("get", "/canteen/facilities").json() if f["id"] == plan], [])
+
+    def test_unticked_and_ticked_again_is_never_charged_twice(self):
+        plan = self.facility()
+        self.tick(plan)
+        self.assertEqual(len(self.post_months([7], plans=[plan])["posted"]), 1)
+        self.assertEqual(self.tick(plan, students=[])["stopped"], 1)
+        self.assertEqual(self.tick(plan)["added"], 1)
+        again = self.post_months([7], plans=[plan])
+        self.assertEqual(again["posted"], [])
+        self.assertEqual(balance(self.account().id), Decimal("-800.00"))
+        # and the preview shows them once, as already posted
+        rows = self.call("get", "/canteen/monthly-posting", bs_year=2083, months="7", plans=plan).json()["rows"]
+        self.assertEqual([r["state"] for r in rows], ["posted"])
+
+    def test_posting_is_by_month_and_class(self):
+        plan = self.facility()
+        self.tick(plan)
+        elsewhere = self.call("get", "/canteen/monthly-posting", bs_year=2083, months="7", class_key="g4").json()
+        self.assertEqual(elsewhere["rows"], [])
+        done = self.post_months([7], class_key="g10")
+        self.assertEqual(Decimal(str(done["total"])), Decimal("800"))
+        self.assertEqual(StudentLedger.objects.count(), 0)
+
+
+class ManualPostingTests(BillingFixture, TestCase):
+    def setUp(self):
+        super().setUp()
+        res = self.call("post", "/canteen/facilities", {"name": "Swimming", "classes": [{"key": "g10", "label": "Seven", "amount": 800}]})
+        self.plan = res.json()["id"]
+
+    def manual(self, lines, months=(7,), client=None, **extra):
+        return self.call("post", "/canteen/manual-posting", {
+            "buyer_type": BUYER_STUDENT, "buyer": self.student.id, "bs_year": 2083, "months": list(months),
+            "date": "2083-07-15", "lines": lines, **extra,
+        }, client=client)
+
+    def test_titles_offered_with_the_amount_that_applies(self):
+        data = self.call("get", "/canteen/manual-posting", buyer_type=BUYER_STUDENT, buyer=self.student.id, bs_year=2083).json()
+        swim = next(t for t in data["titles"] if t["key"] == f"f{self.plan}")
+        self.assertEqual((Decimal(str(swim["amount"])), swim["enrolled"], swim["posted_months"]), (Decimal("800"), False, []))
+        samosa = next(t for t in data["titles"] if t["key"] == f"p{self.samosa.id}")
+        self.assertEqual(Decimal(str(samosa["amount"])), Decimal("25"))
+
+    def test_a_facility_month_posts_once_even_for_someone_not_ticked(self):
+        first = self.manual([{"key": f"f{self.plan}", "amount": "700"}])
+        self.assertEqual(first.status_code, 200, first.content)
+        self.assertEqual(balance(self.account().id), Decimal("-700.00"))
+        again = self.manual([{"key": f"f{self.plan}", "amount": "700"}])
+        self.assertEqual(again.status_code, 400)
+        self.assertIn("already posted for Kartik", again.json()["message"])
+        self.assertEqual(balance(self.account().id), Decimal("-700.00"))
+        # The class run treats that month as done for them too.
+        self.call("post", "/canteen/facility-users", {"plan": self.plan, "students": [{"id": self.student.id}], "start_date": "2083-04-01"})
+        self.assertEqual(self.post_months([7], plans=[self.plan])["posted"], [])
+
+    def test_amount_is_per_month_and_a_product_needs_no_month(self):
+        self.manual([{"key": f"f{self.plan}", "amount": "100"}], months=(7, 8))
+        self.assertEqual(balance(self.account().id), Decimal("-200.00"))
+        res = self.manual([{"key": f"p{self.samosa.id}", "amount": "50"}], months=())
+        self.assertEqual(res.status_code, 200, res.content)
+        self.assertEqual(balance(self.account().id), Decimal("-250.00"))
+        self.assertEqual(self.manual([{"key": f"f{self.plan}", "amount": "100"}], months=()).status_code, 400)
+        self.assertEqual(self.manual([{"key": f"p{self.samosa.id}", "amount": "0"}]).status_code, 400)
+        self.assertEqual(self.manual([{"key": "f999999", "amount": "10"}]).status_code, 400)
+        self.assertEqual(self.manual([]).status_code, 400)
+
+    def test_withdrawn_posts_again_and_shows_on_the_profile(self):
+        txn = self.manual([{"key": f"f{self.plan}", "amount": "700"}]).json()["txn"]
+        rows = self.call("get", "/canteen/profile", buyer_type=BUYER_STUDENT, buyer=self.student.id).json()["history"]
+        self.assertEqual([(r["what"], r["bs_year"], r["months"]) for r in rows], [("Monthly bill", 2083, ["Kartik"])])
+        self.assertEqual(self.call("delete", "/canteen/monthly-posting", txn=txn).status_code, 200)
+        self.assertEqual(balance(self.account().id), Decimal("0.00"))
+        self.assertEqual(self.manual([{"key": f"f{self.plan}", "amount": "700"}]).status_code, 200)
+
+    def test_only_holders_of_monthly_posting_may_post(self):
+        self.call("post", "/canteen/users", {
+            "username": "viewer0001", "password": "Viewer lunch garden 123", "full_name": "A Viewer", "permissions": [PAGE_PROFILE],
+        })
+        signed = APIClient().post("/auth/canteen/signin", {"username": "viewer0001", "password": "Viewer lunch garden 123"}, format="json")
+        viewer = APIClient()
+        viewer.credentials(HTTP_AUTHORIZATION=f"IGNITE {signed.json()['user']['token']}")
+        self.assertEqual(self.manual([{"key": f"p{self.samosa.id}", "amount": "10"}], client=viewer).status_code, 403)
+
+    def test_another_schools_student_cannot_be_posted(self):
+        res = self.call("post", "/canteen/manual-posting", {
+            "buyer_type": BUYER_STUDENT, "buyer": 999999, "bs_year": 2083, "months": [7],
+            "lines": [{"key": f"p{self.samosa.id}", "amount": "10"}],
+        })
+        self.assertEqual(res.status_code, 404)
+
+
+class PaymentDiscountTests(BillingFixture, TestCase):
+    def billed(self):
+        self.rates(self.tiffin, g10="1500")
+        self.enroll("Tiffin monthly")
+        self.post_months([7])
+
+    def pay(self, cash, discount=None, month=7, advance="0"):
+        amount = Decimal(str(cash)) + Decimal(str(advance))
+        return self.call("post", "/canteen/accounts", {
+            "action": "topup", "account": self.account().id, "amount": str(amount),
+            "details": {str(self.tiffin.id): str(cash)},
+            "discounts": {str(self.tiffin.id): str(discount)} if discount else {},
+            "month": month, "date": "2083-07-20",
+        })
+
+    def summary(self):
+        return self.call("get", "/canteen/profile", buyer_type=BUYER_STUDENT, buyer=self.student.id).json()
+
+    def test_a_discount_settles_the_item_but_is_not_cash(self):
+        self.billed()
+        res = self.pay("1300", "200")
+        self.assertEqual(res.status_code, 200, res.content)
+        self.assertEqual(Decimal(str(res.json()["amount"])), Decimal("1300"))
+        self.assertEqual(Decimal(str(res.json()["discount"])), Decimal("200"))
+        self.assertEqual(res.json()["months"], ["Kartik"])
+        data = self.summary()
+        s = {k: Decimal(str(data["summary"][k])) for k in ("billed", "paid", "discount", "due", "advance", "balance")}
+        self.assertEqual(s, {"billed": Decimal("1500"), "paid": Decimal("1300"), "discount": Decimal("200"),
+                             "due": Decimal("0"), "advance": Decimal("0"), "balance": Decimal("0")})
+        self.assertEqual(s["billed"] - s["paid"] - s["discount"], s["due"] - s["advance"])
+        # Day's cash counts what was taken, not what was let off.
+        report = self.call("get", "/canteen/reports", type="receipts", **{"from": "2083-07-20", "to": "2083-07-20"}).json()
+        self.assertEqual(Decimal(str(report["topups"])), Decimal("1300"))
+
+    def test_paying_plus_discount_cannot_pass_what_is_due(self):
+        self.billed()
+        res = self.pay("1400", "200")
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("only Rs. 1,500.00 is due", res.json()["message"])
+        self.assertEqual(balance(self.account().id), Decimal("-1500.00"))
+
+    def test_voiding_a_receipt_brings_its_discount_back_too(self):
+        self.billed()
+        paid = self.pay("1300", "200").json()
+        res = self.call("delete", "/canteen/accounts", txn=paid["id"], remarks="wrong")
+        self.assertEqual(res.status_code, 200, res.content)
+        self.assertIn("-1,500.00", res.json()["message"])
+        self.assertEqual(balance(self.account().id), Decimal("-1500.00"))
+        s = self.summary()["summary"]
+        self.assertEqual((Decimal(str(s["discount"])), Decimal(str(s["due"]))), (Decimal("0"), Decimal("1500")))
+
+    def test_a_discounted_posting_cannot_be_withdrawn_until_the_receipt_is_voided(self):
+        self.billed()
+        txn = CanteenTransaction.objects.get(kind=TXN_POSTING)
+        paid = self.pay("1300", "200").json()
+        refused = self.call("delete", "/canteen/monthly-posting", txn=txn.id)
+        self.assertEqual(refused.status_code, 400)
+        self.assertIn(f"C-{paid['receipt_no']}", refused.json()["message"])
+        self.call("delete", "/canteen/accounts", txn=paid["id"])
+        self.assertEqual(self.call("delete", "/canteen/monthly-posting", txn=txn.id).status_code, 200)
+
+    def test_the_payment_page_holder_can_read_a_ledger(self):
+        self.billed()
+        self.call("post", "/canteen/users", {
+            "username": "cashier001", "password": "Cashier lunch garden 123", "full_name": "A Cashier", "permissions": [PAGE_COLLECT],
+        })
+        signed = APIClient().post("/auth/canteen/signin", {"username": "cashier001", "password": "Cashier lunch garden 123"}, format="json")
+        cashier = APIClient()
+        cashier.credentials(HTTP_AUTHORIZATION=f"IGNITE {signed.json()['user']['token']}")
+        res = self.call("get", "/canteen/profile", client=cashier, buyer_type=BUYER_STUDENT, buyer=self.student.id)
+        self.assertEqual(res.status_code, 200, res.content)
+        by_class = self.call("get", "/canteen/profile", client=cashier, class_key="g10").json()["people"]
+        self.assertEqual([p["id"] for p in by_class], [self.student.id])
+        self.assertEqual(self.call("get", "/canteen/profile", client=cashier, class_key="g4").json()["people"], [])
+
+
+class ImpossibleDateTests(BillingFixture, TestCase):
+    def test_a_date_that_does_not_exist_is_a_plain_refusal(self):
+        res = self.call("get", "/canteen/reports", type="transactions", **{"from": "2083-08-01", "to": "2083-08-30"})
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.json()["message"], "2083-08-30 is not a real date on the Nepali calendar.")
+        paid = self.call("post", "/canteen/accounts", {
+            "action": "topup", "buyer_type": BUYER_STUDENT, "buyer": self.student.id, "amount": "100", "date": "2083-08-30",
+        })
+        self.assertEqual(paid.status_code, 400)
+        self.assertEqual(CanteenTransaction.objects.count(), 0)
+
+
+class TransactionReportTests(BillingFixture, TestCase):
+    def report(self, **params):
+        return self.call("get", "/canteen/reports", type="transactions",
+                         **{"from": "2083-07-01", "to": "2083-07-30", **params}).json()
+
+    def setUp(self):
+        super().setUp()
+        self.rates(self.tiffin, g10="1500")
+        self.enroll("Tiffin monthly")
+        self.post_months([7])
+        self.paid = self.call("post", "/canteen/accounts", {
+            "action": "topup", "account": self.account().id, "amount": "1800",
+            "details": {str(self.tiffin.id): "1300"}, "discounts": {str(self.tiffin.id): "200"},
+            "mode": 2, "date": "2083-07-20",
+        }).json()
+
+    def test_payments_by_default_with_lines_that_add_up(self):
+        rows = self.report()["rows"]
+        self.assertEqual(len(rows), 1)
+        row = rows[0]
+        self.assertEqual((row["kind"], row["reference"], row["mode_name"], row["name"] != ""), (1, f"C-{self.paid['receipt_no']}", "bank", True))
+        self.assertEqual([(l["name"], Decimal(str(l["amount"]))) for l in row["lines"]],
+                         [("Tiffin", Decimal("1300")), ("Advance", Decimal("500"))])
+        self.assertEqual(Decimal(str(row["discount"])), Decimal("200"))
+
+    def test_the_filters(self):
+        self.assertEqual(len(self.report(kind="bill")["rows"]), 1)
+        self.assertEqual(len(self.report(kind="discount")["rows"]), 1)
+        self.assertEqual(len(self.report(kind="all")["rows"]), 3)
+        self.assertEqual(self.report(mode=1)["rows"], [])
+        self.assertEqual(len(self.report(mode=2)["rows"]), 1)
+        self.assertEqual(len(self.report(class_key="g10")["rows"]), 1)
+        self.assertEqual(self.report(class_key="g4")["rows"], [])
+        self.assertEqual(self.report(entered_by="nobody")["rows"], [])
+        self.assertEqual(self.report(**{"from": "2083-08-01", "to": "2083-08-29"})["rows"], [])
+        self.assertEqual(self.report(is_active="false")["rows"], [])
+        self.call("delete", "/canteen/accounts", txn=self.paid["id"], remarks="wrong")
+        self.assertEqual(self.report()["rows"], [])
+        self.assertEqual(self.report(is_active="false")["rows"][0]["void_reason"], "wrong")
+
+
+class PaymentSearchTests(BillingFixture, TestCase):
+    """Payment's search form: the school's own fields, on canteen data."""
+
+    def search(self, client=None, **body):
+        return self.call("post", "/canteen/student-search", body, client=client)
+
+    def found(self, **body):
+        res = self.search(**body)
+        self.assertEqual(res.status_code, 200, res.content)
+        return [p["id"] for p in res.json() if p["buyer_type"] == BUYER_STUDENT]
+
+    def test_needs_an_id_a_name_or_a_level_like_the_school_form(self):
+        res = self.search()
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.json()["message"], "Student ID, Name or Education Level is required!")
+        self.assertEqual(self.search(middle_name="x").status_code, 400)
+
+    def test_names_start_with_what_is_typed(self):
+        name = self.student.first_name
+        self.assertEqual(self.found(first_name=name[:2]), [self.student.id])
+        self.assertEqual(self.found(first_name=name[1:] + "zz"), [])
+
+    def test_by_id_and_by_card(self):
+        Student.objects.filter(id=self.student.id).update(rfid_card="0012345678")
+        self.assertEqual(self.found(student_id=str(self.student.id)), [self.student.id])
+        self.assertEqual(self.found(student_id="0012345678"), [self.student.id])
+        self.assertEqual(self.found(student_id="99999"), [])
+        self.assertEqual(self.found(student_id="123456789012345678"), [])
+
+    def test_by_class(self):
+        info = ClassInfo.objects.get(id=self.ten.id)
+        self.assertEqual(self.found(education_level=info.education_level, grade=info.grade), [self.student.id])
+        self.assertEqual(self.found(education_level=info.education_level, grade=info.grade + 1), [])
+        # A blank field is not a filter.
+        self.assertEqual(self.found(education_level=info.education_level, grade=info.grade, section=""), [self.student.id])
+
+    def test_status_is_running_unless_asked(self):
+        name = self.student.first_name
+        Student.objects.filter(id=self.student.id).update(status=3)
+        self.assertEqual(self.found(first_name=name), [])
+        row = self.search(first_name=name, status=3).json()[0]
+        self.assertEqual((row["id"], row["left"]), (self.student.id, True))
+        self.assertEqual(self.search(first_name=name, status=9).status_code, 400)
+
+    def test_rows_read_like_the_school_list(self):
+        self.rates(self.tiffin, g10="1500")
+        self.enroll("Tiffin monthly")
+        self.post_months([7])
+        row = self.search(first_name=self.student.first_name).json()[0]
+        self.assertEqual(row["classname"], "Seven")
+        self.assertEqual(Decimal(str(row["balance"])), Decimal("-1500"))
+        for key in ("father_name", "guardian_contact", "image", "buyer_type", "account"):
+            self.assertIn(key, row)
+
+    def test_staff_are_found_by_name_only(self):
+        staff = Staff.objects.get(account=self.sankalpa)
+        rows = self.search(first_name=staff.first_name).json()
+        self.assertIn((BUYER_STAFF, staff.id), [(p["buyer_type"], p["id"]) for p in rows])
+        info = ClassInfo.objects.get(id=self.ten.id)
+        by_class = self.search(education_level=info.education_level).json()
+        self.assertEqual([p for p in by_class if p["buyer_type"] == BUYER_STAFF], [])
+
+    def test_another_school_cannot_reach_it_and_finds_nothing_of_ours(self):
+        other_admin = AdminAccount.objects.create(username="other-admin")
+        other = SchoolAdmin.objects.create(
+            name="Other", address="x", estd_date="2080-01-01", renew_date="2084-01-01",
+            pan_no="9", email="o@example.com", account=other_admin, economic_year=self.fy,
+        )
+        grant_canteen(other, True)
+        stranger = APIClient()
+        stranger.credentials(HTTP_AUTHORIZATION=f"IGNITE {AdminAuthToken.objects.create(user=other_admin).key}")
+        self.assertIn(self.search(client=stranger, first_name="a").status_code, (401, 403))
+        own = stranger.post("/canteen/student-search", {"school": other.id, "first_name": self.student.first_name}, format="json")
+        self.assertEqual(own.status_code, 200, own.content)
+        self.assertEqual(own.json(), [])
+
+    def test_class_options_answer_what_the_picker_reads(self):
+        data = self.call("get", "/canteen/class-options").json()
+        self.assertEqual(set(data), {"classes", "sections", "courses", "hidden"})
+        for row in data["courses"]:
+            self.assertEqual(set(row), {"id", "education_level", "course", "faculty"})
+
+    def test_a_canteen_user_needs_the_payment_page(self):
+        self.call("post", "/canteen/users", {
+            "username": "cashier002", "password": "Cashier lunch garden 123", "full_name": "A Cashier", "permissions": [PAGE_COUNTER],
+        })
+        signed = APIClient().post("/auth/canteen/signin", {"username": "cashier002", "password": "Cashier lunch garden 123"}, format="json")
+        cashier = APIClient()
+        cashier.credentials(HTTP_AUTHORIZATION=f"IGNITE {signed.json()['user']['token']}")
+        self.assertEqual(self.search(client=cashier, first_name="a").status_code, 403)
+        self.assertEqual(self.call("get", "/canteen/class-options", client=cashier).status_code, 403)
+        CanteenUser.objects.filter(username="cashier002").update(permissions=[PAGE_COLLECT])
+        self.assertEqual(self.search(client=cashier, first_name="a").status_code, 200)
+        self.assertEqual(self.call("get", "/canteen/class-options", client=cashier).status_code, 200)
+
+    def test_the_family_number_is_for_card_accounts_holders(self):
+        StudentGuardianInfo.objects.filter(student=self.student).update(guardian_contact="9800000001")
+        name = self.student.first_name
+        mine = [p for p in self.search(first_name=name).json() if p["id"] == self.student.id][0]
+        self.assertEqual((mine["guardian_contact"], mine["contact"]), ("9800000001", "9800000001"))
+        self.call("post", "/canteen/users", {
+            "username": "cashier003", "password": "Cashier lunch garden 123", "full_name": "A Cashier", "permissions": [PAGE_COLLECT],
+        })
+        signed = APIClient().post("/auth/canteen/signin", {"username": "cashier003", "password": "Cashier lunch garden 123"}, format="json")
+        cashier = APIClient()
+        cashier.credentials(HTTP_AUTHORIZATION=f"IGNITE {signed.json()['user']['token']}")
+        theirs = [p for p in self.search(client=cashier, first_name=name).json() if p["id"] == self.student.id][0]
+        self.assertEqual((theirs["guardian_contact"], theirs["contact"]), (None, None))
+        CanteenUser.objects.filter(username="cashier003").update(permissions=[PAGE_COLLECT, PAGE_ACCOUNTS])
+        theirs = [p for p in self.search(client=cashier, first_name=name).json() if p["id"] == self.student.id][0]
+        self.assertEqual(theirs["guardian_contact"], "9800000001")

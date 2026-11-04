@@ -8,6 +8,8 @@
   GET /canteen/reports ?school=&type=postings&from=&to=           monthly posting, student by student
   GET /canteen/reports ?school=&type=dues[&class_key=]            who owes the canteen what, item by item
   GET /canteen/reports ?school=&type=meals&date=                  the kitchen's count: on plan, served, bought
+  GET /canteen/reports ?school=&type=transactions&from=&to=[&kind=][&mode=][&class_key=][&entered_by=][&is_active=]
+                                                                  the transaction history
   POST /canteen/dues-reminder {class_key?, accounts?}             app message to families who owe
 
 Nepali dates are stored as zero-padded YYYY-MM-DD strings, so a string range IS
@@ -31,6 +33,8 @@ from ..constants import (
     PAY_ACCOUNT,
     PAY_CASH,
     PAY_PLAN,
+    CHARGE_KINDS,
+    TXN_DISCOUNT,
     TXN_POSTING,
     TXN_REFUND,
     TXN_TOPUP,
@@ -73,6 +77,7 @@ class CanteenReportView(CanteenBaseView):
             "postings": self.postings,
             "dues": self.dues,
             "meals": self.meals,
+            "transactions": self.transactions,
         }.get((request.query_params.get("type") or "summary").lower())
         if not handler:
             return self.RESPONSE__INVALID_REQUEST
@@ -446,6 +451,77 @@ class CanteenReportView(CanteenBaseView):
             "topups": sum((r["amount"] for r in active if r["kind"] == TXN_TOPUP), ZERO),
             "refunds": -sum((r["amount"] for r in active if r["kind"] == TXN_REFUND), ZERO),
         })
+
+
+    # ----------------------------------------------------------- transactions
+    def transactions(self, request, school_id):
+        """Every movement on the canteen's accounts between two days: the fee
+        side's Transactions history, for the canteen's own ledger. Payments alone
+        unless another type is asked for, voided rows only when asked for."""
+        params = request.query_params
+        start, end = self._range(request)
+        kinds = {
+            "payment": (TXN_TOPUP,),
+            "refund": (TXN_REFUND,),
+            "discount": (TXN_DISCOUNT,),
+            "bill": CHARGE_KINDS,
+            "all": (TXN_TOPUP, TXN_REFUND, TXN_DISCOUNT, *CHARGE_KINDS),
+        }.get((params.get("kind") or "payment").lower())
+        if not kinds:
+            return self.RESPONSE__INVALID_REQUEST
+        qs = CanteenTransaction.objects.filter(
+            school_id=school_id, kind__in=kinds, date__gte=start, date__lte=end,
+            is_active=self.bool_of(params.get("is_active"), True),
+        )
+        mode = self.int_or_none(params.get("mode"))
+        if mode:
+            qs = qs.filter(mode=mode, kind__in=(TXN_TOPUP, TXN_REFUND))
+        everyone = sorted(set(qs.exclude(entered_by=None).values_list("entered_by", flat=True)))
+        who = (params.get("entered_by") or "").strip()
+        if who:
+            qs = qs.filter(entered_by=who)
+        most = 5000
+        txns = list(qs.select_related("account").order_by("date", "id")[:most + 1])
+        truncated = len(txns) > most
+        txns = txns[:most]
+        people = {
+            r["id"]: r for r in Student.objects.filter(id__in={t.account.student_id for t in txns if t.account.student_id})
+            .values("id", "first_name", "middle_name", "last_name", "roll_no", *CLASS_VALUES, *KEY_VALUES)
+        }
+        wanted = (params.get("class_key") or "").strip()
+        owners, rows = {}, []
+        for txn in txns:
+            account = txn.account
+            if account.student_id:
+                s = people.get(account.student_id, {})
+                if wanted and class_key(s) != wanted:
+                    continue
+                name, detail, roll = person_name(s), class_label(s), s.get("roll_no")
+            else:
+                if wanted:
+                    continue
+                if account.id not in owners:
+                    owners[account.id] = account_owner(account)
+                _, _, name, detail = owners[account.id]
+                roll = None
+            row = txn_json(txn)
+            # Unnamed money on a payment is an advance, so the lines add up to it.
+            named = sum((line["amount"] for line in row["lines"]), ZERO)
+            if txn.kind == TXN_TOPUP and txn.amount - named:
+                row["lines"].append({"item": "advance", "name": "Advance", "amount": txn.amount - named})
+            if txn.kind == TXN_REFUND:
+                row["lines"] = [{"item": "refund", "name": "Refund", "amount": txn.amount}]
+            rows.append({
+                **row,
+                "student": account.student_id,
+                "account": account.id,
+                "name": name,
+                "detail": detail,
+                "roll_no": roll,
+                "reference": f"C-{txn.receipt_no or (txn.extra_info or {}).get('receipt_no')}"
+                if (txn.receipt_no or (txn.extra_info or {}).get("receipt_no")) else "",
+            })
+        return Response({"from": start, "to": end, "rows": rows, "entered_by": everyone, "truncated": truncated})
 
 
 class CanteenDuesReminderView(CanteenBaseView):

@@ -6,7 +6,7 @@
  * as-is). Nothing here checks the flag first: a client-side check that has to
  * be remembered at twenty call sites is one that will be forgotten at one.
  */
-import { __fetch, __save, __update } from ".";
+import { __fetch, __save, __search, __update } from ".";
 import server from "../server";
 
 const API = {
@@ -22,9 +22,16 @@ const API = {
     monthlyPosting: "/canteen/monthly-posting",
     classRates: "/canteen/class-rates",
     classes: "/canteen/classes",
+    profile: "/canteen/profile",
     reports: "/canteen/reports",
     access: "/canteen/manage/access",
     users: "/canteen/users",
+    units: "/canteen/units",
+    facilities: "/canteen/facilities",
+    facilityUsers: "/canteen/facility-users",
+    manualPosting: "/canteen/manual-posting",
+    studentSearch: "/canteen/student-search",
+    classOptions: "/canteen/class-options",
     myPassword: "/canteen/my-password",
 };
 
@@ -39,6 +46,16 @@ async function removeOne(path, params) {
         return [res?.status || 200, res.data?.message, res.data];
     } catch (e) {
         return [e?.response?.status || 400, e?.response?.data?.message || e?.response?.data?.detail || e.message, null];
+    }
+}
+
+// A save whose refusal has to be read out, sent as typed.
+async function putRaw(path, data) {
+    try {
+        const res = await server.put(path, data);
+        return [res?.status || 200, res.data?.message, res.data];
+    } catch (e) {
+        return [e?.response?.status || 400, e?.response?.data?.message || e?.response?.data?.detail || e.message, e?.response?.data || null];
     }
 }
 
@@ -76,11 +93,24 @@ export async function saveCategory(data) {
 export async function deleteCategory(school, id) {
     return removeOne(API.categories, { school, id });
 }
+export async function getUnits(school) {
+    return asList(await __fetch(API.units, { school }));
+}
+export async function saveUnit(data) {
+    return data?.id ? putRaw(API.units, data) : postRaw(API.units, data);
+}
+export async function deleteUnit(school, id) {
+    return removeOne(API.units, { school, id });
+}
+// What Product Setup lists: a facility's own title on the bill is not a product.
+export async function getProducts(school) {
+    return asList(await __fetch(API.items, { school, products: 1 }));
+}
 export async function getItems(school, available = false) {
     return asList(await __fetch(API.items, { school, available: available ? 1 : undefined }));
 }
 export async function saveItem(data) {
-    return data?.id ? __update(API.items, data, false) : __save(API.items, data, false);
+    return data?.id ? putRaw(API.items, data) : postRaw(API.items, data);
 }
 export async function setItemAvailable(school, id, is_available) {
     return __update(API.items, { school, id, is_available }, false);
@@ -127,6 +157,68 @@ export async function voidOfficeReceipt(school, txn, remarks) {
 }
 export async function getOfficeReceipt(school, id) {
     return __fetch(API.receipts, { school, id });
+}
+
+/* --------------------------------------------------------------- payment search */
+export async function searchCanteenStudents(filters) {
+    const [status, message, data] = await __search(API.studentSearch, filters);
+    if (!Array.isArray(data)) return [status, message, []];
+    // As the school's student list reads them: `balance` is what is owed.
+    return [status, message, data.map((p) => ({ ...p, balance: -Number(p.balance || 0) }))];
+}
+// One read answers all three of the class picker's questions.
+let classOptions = { school: null, at: 0, answer: null };
+function readClassOptions(school) {
+    if (classOptions.school !== school || Date.now() - classOptions.at > 60000) {
+        classOptions = { school, at: Date.now(), answer: __fetch(API.classOptions, { school }) };
+    }
+    return classOptions.answer;
+}
+export const canteenClassSource = {
+    hiddenLevels: async (school) => asList((await readClassOptions(school))?.hidden),
+    sections: async (school) => {
+        const data = await readClassOptions(school);
+        return { classes: asList(data?.classes), sections: data?.sections || {} };
+    },
+    courses: async (school) => asList((await readClassOptions(school))?.courses).map((c) => ({
+        name: c.course, value: c.id, education_level: c.education_level, faculty: c.faculty,
+    })),
+};
+
+/* ------------------------------------------------------------------ profile */
+// One person's canteen page. `undefined` from the search means it failed, which
+// is not the same as finding nobody.
+export async function findPeople(school, { q, card, class_key } = {}) {
+    const data = await __fetch(API.profile, { school, q: q || undefined, card: card || undefined, class_key: class_key || undefined });
+    return Array.isArray(data?.people) ? data.people : undefined;
+}
+export async function getCanteenProfile(school, buyer_type, buyer) {
+    return __fetch(API.profile, { school, buyer_type, buyer });
+}
+
+/* --------------------------------------------------------------- facilities */
+export async function getFacilities(school) {
+    return asList(await __fetch(API.facilities, { school }));
+}
+export async function saveFacility(data) {
+    return data?.id ? putRaw(API.facilities, data) : postRaw(API.facilities, data);
+}
+export async function deleteFacility(school, id) {
+    return removeOne(API.facilities, { school, id });
+}
+export async function getFacilityUsers(school, plan) {
+    return __fetch(API.facilityUsers, { school, plan });
+}
+export async function saveFacilityUsers(data) {
+    return postRaw(API.facilityUsers, data);
+}
+
+/* ----------------------------------------------------------- manual posting */
+export async function getManualPosting(school, buyer_type, buyer, bs_year) {
+    return __fetch(API.manualPosting, { school, buyer_type, buyer, bs_year });
+}
+export async function runManualPosting(data) {
+    return postRaw(API.manualPosting, data);
 }
 
 /* ---------------------------------------------------------------- use types */
@@ -178,8 +270,8 @@ export async function getMonthlyPosting(school, params) {
 export async function runMonthlyPosting(data) {
     return postRaw(API.monthlyPosting, data);
 }
-export async function withdrawMonthlyPosting(school, txn) {
-    return removeOne(API.monthlyPosting, { school, txn });
+export async function withdrawMonthlyPosting(school, txn, remarks) {
+    return removeOne(API.monthlyPosting, { school, txn, remarks: remarks || undefined });
 }
 
 /* ------------------------------------------------------------------ records */

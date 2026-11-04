@@ -14,10 +14,8 @@ const USERNAME = /^[\w.@+-]{6,25}$/;
 /** The portal's password rule (the server checks the same). */
 export function passwordProblem(password) {
     if (!password) return "Enter a password.";
-    if (password.length < 6 || password.length > 20) return "A password holds 6 to 20 characters.";
-    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password)) return "Use upper and lower case letters.";
-    if (!/[0-9]/.test(password)) return "Use at least one number.";
-    if (!/[@$!%*#?&]/.test(password)) return "Use one of @ $ ! % * # ? &.";
+    if ([...password].length < 15 || [...password].length > 128) return "Use 15 to 128 characters. Try a unique phrase with several words.";
+    if (/^[0-9]+$/.test(password)) return "Use more than just numbers.";
     return null;
 }
 
@@ -136,7 +134,7 @@ function UserFormDialog({ open, user, school, grantable, onClose, onSaved }) {
                                 <PasswordInput input={{ name: "confirm", label: "Password again", required: true, autoComplete: "new-password" }}
                                     value={form.confirm} onChange={onChange} error={errors.confirm} />
                                 <p className="app-field-info sm:col-span-12">
-                                    6 to 20 characters, with upper and lower case letters, a number and one of @ $ ! % * # ? &amp;.
+                                    Use 15 to 128 characters. Choose a unique passphrase with several words.
                                 </p>
                             </>
                         )}

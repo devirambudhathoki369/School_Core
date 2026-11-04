@@ -1,8 +1,8 @@
 """How students use the canteen, and the monthly posting that comes of it.
 
-    CanteenPlan          a use type the school defines: "Day care" (monthly),
-                         "Tiffin monthly" (monthly), "Tiffin cash or due" (per use)
-      CanteenEnrollment    one student on one use type — a REGULAR USER
+    CanteenPlan          a FACILITY the school defines: "Day care", "Tiffin monthly"
+                         (older schools may also hold a per-use "cash or due" type)
+      CanteenEnrollment    one student ticked on one facility — a REGULAR USER
     CanteenPosting       one run of Monthly Posting: these months, these types
       CanteenPlanCharge    one month of one enrolment, as posted
 
@@ -15,7 +15,7 @@ the school's fee bills.
 
 A PER-USE ("cash or due") type is paid when taken: cash at the counter, or due
 on the student's canteen account up to the type's due limit, collected later at
-Canteen > Collect & Receipt.
+Canteen > Payment.
 """
 
 from django.db.models import (
@@ -120,7 +120,12 @@ class CanteenPlanCharge(BaseModel):
     posting makes the month postable again, never twice."""
 
     school = ForeignKey("main.SchoolAdmin", on_delete=CASCADE, related_name="canteen_plan_charges")
-    enrollment = ForeignKey("canteen.CanteenEnrollment", on_delete=CASCADE, related_name="charges")
+    # Blank for a month posted by hand to a student who is not ticked on the
+    # facility. A month is "posted" per student + plan + month, whichever row
+    # posted it, so stopping and re-ticking a student cannot charge them twice.
+    enrollment = ForeignKey(
+        "canteen.CanteenEnrollment", on_delete=CASCADE, related_name="charges", **_allow_empty
+    )
     plan = ForeignKey("canteen.CanteenPlan", on_delete=CASCADE, related_name="charges")
     item = ForeignKey("canteen.CanteenItem", on_delete=CASCADE, related_name="plan_charges")
     student = ForeignKey("main.Student", on_delete=CASCADE, related_name="canteen_plan_charges")

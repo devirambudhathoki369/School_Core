@@ -10,14 +10,16 @@
   GET   /canteen/monthly-posting  ?bs_year=&months=7,8[&plans=][&class_key=]   preview
   POST  /canteen/monthly-posting  {bs_year, months, plans?, class_key?, students?, date?}
   DELETE /canteen/monthly-posting ?txn=                  withdraw one student's posting
+  GET   /canteen/manual-posting   ?buyer_type=&buyer=&bs_year=    what can be posted to one person
+  POST  /canteen/manual-posting   {buyer_type, buyer, bs_year, months, date, remarks, lines: [{key, amount}]}
 
 MONTHLY POSTING works like the fee ledger posting, inside the canteen: pick the
 months (and the class, and the use types); every regular user is charged their
-type's ITEM at their CLASS's rate (Items & Prices > class rates) for each month,
-onto their canteen account, item by item. A month already posted for an
-enrolment is skipped — posted means the canteen ledger entry is still active, so
+type's ITEM at their CLASS's amount (Facility Setup) for each month, onto their
+canteen account, item by item. A month already posted to that student for that
+facility is skipped — posted means the canteen ledger entry is still active, so
 a withdrawn posting can be posted again, never twice. A student's own rate (a
-concession) replaces the class rate for them alone.
+concession) replaces the class amount for them alone.
 """
 
 from collections import defaultdict
@@ -31,6 +33,7 @@ from main.methods.nepaliDatetime import ndt_today
 from main.models.Student import Student
 
 from ..constants import (
+    BUYER_STAFF,
     BUYER_STUDENT,
     MONTH_NAMES,
     PAGE_MONTHLY_POSTING,
@@ -38,15 +41,24 @@ from ..constants import (
     PLAN_KIND_CHOICES,
     PLAN_MONTHLY,
     PLAN_PER_USE,
+    TXN_DISCOUNT,
     TXN_POSTING,
     TXN_TOPUP,
     label,
 )
-from ..methods.buyers import CLASS_VALUES, class_label, find_students, get_or_open_account, person_name
+from ..methods.buyers import (
+    CLASS_VALUES,
+    accounts_by_buyer,
+    class_label,
+    find_students,
+    get_or_open_account,
+    person_name,
+)
 from ..methods.classes import KEY_VALUES, class_key, key_label
 from ..methods.ledger import detail_rows, details_blob
 from ..methods.money import exact
 from ..methods.plans import month_key
+from ..methods.profile import person_of
 from ..methods.settings import settings_for
 from ..models import (
     CanteenAccount,
@@ -59,6 +71,7 @@ from ..models import (
     CanteenTransaction,
 )
 from .BaseViews import CanteenBaseView
+from .SetupViews import product_items
 
 # The usual three. The two monthly ones post an item of the same name, created
 # (billed monthly, not sold over the counter) if the school has none.
@@ -75,6 +88,25 @@ NEPALI_MONTHS = {
 
 class _Skip(Exception):
     """This student cannot be posted; carries the reason the office reads."""
+
+
+def tell_posted(school_id, student_ids, months):
+    """An app message to the families, once the posting has committed."""
+    which = f"{', '.join(NEPALI_MONTHS[m] for m in months)} महिनाको " if months else ""
+
+    def send():
+        try:
+            from main.methods.push import notify_students
+
+            notify_students(
+                school_id, student_ids, "क्यान्टिन",
+                f"{which}क्यान्टिन शुल्क तपाईंको क्यान्टिन खातामा थपियो।",
+                "canteen",
+            )
+        except Exception:
+            pass
+
+    transaction.on_commit(send)
 
 
 def plan_json(plan, counts=None):
@@ -451,19 +483,28 @@ class CanteenMonthlyPostingView(CanteenBaseView):
         if key:
             enrollments = [e for e in enrollments if e.student_id in people and class_key(people[e.student_id]) == key]
         rates = class_rates(school_id, {e.plan.item_id for e in enrollments})
+        # Posted is per student + facility + month, whichever row posted it: a
+        # student stopped and re-ticked in one month holds two enrolments that
+        # both cover it, and must still be charged for it once.
         posted = defaultdict(set)
-        for c in posted_charges().filter(enrollment__in=enrollments, bs_year=year, month__in=months).values(
-            "enrollment_id", "month"
-        ):
-            posted[c["enrollment_id"]].add(c["month"])
+        for c in posted_charges().filter(
+            plan__in={e.plan_id for e in enrollments}, student__in={e.student_id for e in enrollments},
+            bs_year=year, month__in=months,
+        ).values("student_id", "plan_id", "month"):
+            posted[(c["student_id"], c["plan_id"])].add(c["month"])
+        # The enrolment still open answers first, so its rate is the one charged.
+        enrollments.sort(key=lambda e: (e.ended_on is not None, -e.id))
+        claimed = defaultdict(set)
         out = []
         for e in enrollments:
             s = people.get(e.student_id, {})
-            in_range = [m for m in months if e.start_date[:7] <= month_key(year, m)
+            who = (e.student_id, e.plan_id)
+            in_range = [m for m in months if m not in claimed[who] and e.start_date[:7] <= month_key(year, m)
                         and (not e.ended_on or e.ended_on[:7] >= month_key(year, m))]
             if not in_range:
                 continue
-            done = sorted(posted[e.id] & set(in_range))
+            claimed[who].update(in_range)
+            done = sorted(posted[who] & set(in_range))
             todo = [m for m in in_range if m not in done]
             ckey = class_key(s) if s else ""
             rate = e.rate if e.rate is not None else rates.get((e.plan.item_id, ckey))
@@ -585,7 +626,7 @@ class CanteenMonthlyPostingView(CanteenBaseView):
             run.save(update_fields=["is_active", "updated_at"])
         total = sum((p["amount"] for p in posted), exact(0))
         if posted and settings_for(school_id).notify_parents:
-            self._tell(school_id, [p["student"] for p in posted], months)
+            tell_posted(school_id, [p["student"] for p in posted], months)
         message = f"{len(posted)} student(s) posted for {label_months} {year} — Rs. {total:,.2f} on canteen accounts."
         if skipped:
             message += f" {len(skipped)} skipped."
@@ -593,20 +634,26 @@ class CanteenMonthlyPostingView(CanteenBaseView):
 
     def _post_one(self, school_id, student_id, rows, year, date, economic_year_id, entered_by, run):
         with transaction.atomic():
-            # Lock the enrolments and look again: two office screens posting at
-            # once queue here, and the second finds the months posted.
+            account = get_or_open_account(school_id, BUYER_STUDENT, student_id)
+            if not account:
+                raise _Skip("is not a running student of this school")
+            # Lock and look again: two office screens posting at once, or a hand
+            # posting beside a class run, queue here and the second finds the
+            # months posted.
+            CanteenAccount.objects.select_for_update().get(id=account.id)
             locked = {e.id: e for e in CanteenEnrollment.objects.select_for_update().filter(
                 id__in=[r["enrollment"] for r in rows], is_active=True)}
             already = defaultdict(set)
-            for c in posted_charges().filter(enrollment_id__in=list(locked), bs_year=year).values("enrollment_id", "month"):
-                already[c["enrollment_id"]].add(c["month"])
+            for c in posted_charges().filter(student_id=student_id, bs_year=year).values("plan_id", "month"):
+                already[c["plan_id"]].add(c["month"])
             charges, amounts, names, months = [], defaultdict(Decimal), {}, set()
             for r in rows:
                 if r["enrollment"] not in locked:
                     continue
                 for m in r["months_todo"]:
-                    if m in already[r["enrollment"]]:
+                    if m in already[r["plan"]]:
                         continue
+                    already[r["plan"]].add(m)
                     amount = exact(r["rate"])
                     charges.append((r, m, amount))
                     amounts[r["item"]] += amount
@@ -614,9 +661,6 @@ class CanteenMonthlyPostingView(CanteenBaseView):
                     months.add(m)
             if not charges:
                 raise _Skip("already posted")
-            account = get_or_open_account(school_id, BUYER_STUDENT, student_id)
-            if not account:
-                raise _Skip("is not a running student of this school")
             total = sum(amounts.values(), exact(0))
             types = ", ".join(dict.fromkeys(r["plan_name"] for r, _, _ in charges))
             txn = CanteenTransaction.objects.create(
@@ -633,22 +677,6 @@ class CanteenMonthlyPostingView(CanteenBaseView):
                 for r, m, amount in charges
             ])
         return {"student": student_id, "amount": total, "txn": txn.id}
-
-    def _tell(self, school_id, student_ids, months):
-        def send():
-            try:
-                from main.methods.push import notify_students
-
-                notify_students(
-                    school_id, student_ids, "क्यान्टिन",
-                    f"{', '.join(NEPALI_MONTHS[m] for m in months)} महिनाको क्यान्टिन शुल्क तपाईंको "
-                    "क्यान्टिन खातामा थपियो।",
-                    "canteen",
-                )
-            except Exception:
-                pass
-
-        transaction.on_commit(send)
 
     def delete(self, request):
         denied = self.gate(request)
@@ -667,11 +695,12 @@ class CanteenMonthlyPostingView(CanteenBaseView):
             # A receipt that paid these items after this posting would be left
             # paying nothing. Void that receipt first, then withdraw.
             for pay in CanteenTransaction.objects.filter(
-                account_id=txn.account_id, kind=TXN_TOPUP, is_active=True, id__gt=txn.id
+                account_id=txn.account_id, kind__in=(TXN_TOPUP, TXN_DISCOUNT), is_active=True, id__gt=txn.id
             ):
                 if items & {k for k, _ in detail_rows(pay.details)}:
+                    number = pay.receipt_no or (pay.extra_info or {}).get("receipt_no")
                     return Response(
-                        {"message": f"Receipt C-{pay.receipt_no} has paid for this posting. "
+                        {"message": f"Receipt C-{number} has paid for this posting. "
                                     "Void that receipt first, then withdraw the posting."},
                         status=400,
                     )
@@ -682,3 +711,166 @@ class CanteenMonthlyPostingView(CanteenBaseView):
             CanteenPlanCharge.objects.filter(txn=txn).update(is_active=False)
         return Response({"message": f"Withdrawn: Rs. {-txn.amount:,.2f} taken off the canteen account. "
                                     "The months can be posted again."})
+
+
+class CanteenManualPostingView(CanteenBaseView):
+    """Posting by hand to one person, from their profile: a month the class run
+    missed, a different amount, or a one-off product.
+
+    A line is `f<plan id>` (a facility, month required, never twice for one month)
+    or `p<item id>` (a product, posted once if no month is picked). The amount is
+    per month. It goes onto the same canteen ledger as a class run, and is
+    withdrawn the same way.
+    """
+
+    pages_for = {"GET": (PAGE_MONTHLY_POSTING,), "POST": (PAGE_MONTHLY_POSTING,)}
+    MOST = Decimal("1000000")
+
+    def _person(self, school_id, source):
+        buyer_type = self.int_or_none(source.get("buyer_type")) or BUYER_STUDENT
+        buyer = self.int_or_none(source.get("buyer"))
+        if buyer_type not in (BUYER_STUDENT, BUYER_STAFF) or not buyer:
+            return None, None, None
+        return buyer_type, buyer, person_of(school_id, buyer_type, buyer)
+
+    def _facilities(self, school_id):
+        return list(
+            CanteenPlan.objects.filter(
+                school_id=school_id, is_active=True, kind=PLAN_MONTHLY, item__isnull=False, item__is_active=True,
+            ).select_related("item").order_by("order", "name")
+        )
+
+    def get(self, request):
+        denied = self.gate(request)
+        if denied:
+            return denied
+        school_id = self.school_id(request)
+        buyer_type, buyer, person = self._person(school_id, request.query_params)
+        if not person:
+            return self.RESPONSE__NOT_FOUND
+        year = self.int_or_none(request.query_params.get("bs_year")) or int(ndt_today()[:4])
+        titles = []
+        if buyer_type == BUYER_STUDENT:
+            plans = self._facilities(school_id)
+            key = class_key(student_rows([buyer]).get(buyer, {}))
+            rates = class_rates(school_id, {p.item_id for p in plans})
+            mine = {
+                e.plan_id: e for e in CanteenEnrollment.objects.filter(
+                    school_id=school_id, student_id=buyer, is_active=True, ended_on__isnull=True
+                )
+            }
+            posted = defaultdict(list)
+            for c in posted_charges().filter(student_id=buyer, bs_year=year).order_by("month").values("plan_id", "month"):
+                posted[c["plan_id"]].append(c["month"])
+            for p in plans:
+                own = mine[p.id].rate if p.id in mine else None
+                titles.append({
+                    "key": f"f{p.id}", "kind": "facility", "name": p.name,
+                    "amount": own if own is not None else rates.get((p.item_id, key), exact(0)),
+                    "enrolled": p.id in mine, "posted_months": posted[p.id],
+                })
+        for item in product_items(school_id).order_by("name"):
+            titles.append({
+                "key": f"p{item.id}", "kind": "product", "name": item.name,
+                "amount": item.price, "enrolled": False, "posted_months": [],
+            })
+        return Response({"bs_year": year, "titles": titles})
+
+    def post(self, request):
+        denied = self.gate(request)
+        if denied:
+            return denied
+        school_id = self.school_id(request)
+        data = request.data
+        buyer_type, buyer, person = self._person(school_id, data)
+        if not person:
+            return self.RESPONSE__NOT_FOUND
+        year = self.int_or_none(data.get("bs_year")) or int(ndt_today()[:4])
+        if year < 2000 or year > 2200:
+            return Response({"message": "Pick the year."}, status=400)
+        raw_months = data.get("months") or []
+        months = sorted({m for m in (self.int_or_none(x) for x in raw_months) if m and 1 <= m <= 12})
+        lines = data.get("lines")
+        if not isinstance(lines, list) or not lines:
+            return Response({"message": "Add at least one title to post."}, status=400)
+        economic_year_id = self.economic_year(request, school_id)
+        if not economic_year_id:
+            return Response({"message": "This school has no economic year set."}, status=400)
+
+        plans = {f"f{p.id}": p for p in self._facilities(school_id)} if buyer_type == BUYER_STUDENT else {}
+        products = {f"p{i.id}": i for i in product_items(school_id)}
+        wanted = {}
+        for line in lines:
+            key = str((line or {}).get("key") or "")
+            amount = self.money((line or {}).get("amount"))
+            if key not in plans and key not in products:
+                return Response({"message": "A title on this posting is no longer on the list."}, status=400)
+            if amount <= 0 or amount >= self.MOST:
+                name = plans[key].name if key in plans else products[key].name
+                return Response({"message": f"{name}: enter an amount."}, status=400)
+            wanted[key] = amount
+        if any(key in plans for key in wanted) and not months:
+            return Response({"message": "Pick the month a facility is posted for."}, status=400)
+
+        times = len(months) or 1
+        entered_by = self.entered_by(request)
+        date = self.bs_date(data.get("date"))
+        with transaction.atomic():
+            by_student, by_staff = accounts_by_buyer(
+                school_id,
+                [buyer] if buyer_type == BUYER_STUDENT else (),
+                [buyer] if buyer_type == BUYER_STAFF else (),
+            )
+            account = by_student.get(buyer) or by_staff.get(buyer) or get_or_open_account(school_id, buyer_type, buyer)
+            if not account:
+                return Response({"message": "This person has left and has no canteen account to post to."}, status=400)
+            CanteenAccount.objects.select_for_update().get(id=account.id)
+            if buyer_type == BUYER_STUDENT:
+                already = defaultdict(set)
+                for c in posted_charges().filter(student_id=buyer, bs_year=year).values("plan_id", "month"):
+                    already[c["plan_id"]].add(c["month"])
+                for key in wanted:
+                    if key in plans:
+                        twice = [MONTH_NAMES[m] for m in months if m in already[plans[key].id]]
+                        if twice:
+                            return Response(
+                                {"message": f"{plans[key].name} is already posted for {', '.join(twice)} {year}."},
+                                status=400,
+                            )
+            amounts, names = {}, {}
+            for key, amount in wanted.items():
+                item = plans[key].item if key in plans else products[key]
+                amounts[item.id] = exact(amounts.get(item.id, exact(0)) + amount * times)
+                names[str(item.id)] = item.name
+            total = sum(amounts.values(), exact(0))
+            month_words = ", ".join(MONTH_NAMES[m] for m in months)
+            remarks = self.text(data.get("remarks"), 120) or (f"Manual — {month_words} {year}" if months else "Manual")
+            run = CanteenPosting.objects.create(
+                school_id=school_id, economic_year_id=economic_year_id, bs_year=year, months=months, date=date,
+                plans=[plans[key].id for key in wanted if key in plans], entered_by=entered_by, remarks="Manual",
+            )
+            txn = CanteenTransaction.objects.create(
+                school_id=school_id, economic_year_id=economic_year_id, account=account, kind=TXN_POSTING,
+                amount=-total, date=date, details=details_blob(amounts, names), months=months,
+                posting=run, entered_by=entered_by, remarks=remarks[:120],
+            )
+            on_it = {}
+            if buyer_type == BUYER_STUDENT:
+                on_it = {
+                    e.plan_id: e for e in CanteenEnrollment.objects.filter(
+                        school_id=school_id, student_id=buyer, is_active=True, ended_on__isnull=True
+                    )
+                }
+            CanteenPlanCharge.objects.bulk_create([
+                CanteenPlanCharge(
+                    school_id=school_id, enrollment=on_it.get(plans[key].id), plan=plans[key], item=plans[key].item,
+                    student_id=buyer, txn=txn, bs_year=year, month=m, amount=wanted[key],
+                )
+                for key in wanted if key in plans for m in months
+            ])
+            if buyer_type == BUYER_STUDENT and settings_for(school_id).notify_parents:
+                tell_posted(school_id, [buyer], months)
+        return Response({
+            "txn": txn.id, "amount": total, "account": account.id,
+            "message": f"Posted Rs. {total:,.2f} to {person['name']}'s canteen account.",
+        })

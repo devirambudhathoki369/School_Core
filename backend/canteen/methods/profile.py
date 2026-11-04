@@ -8,7 +8,7 @@ fee can never show up here and a canteen bill can never show up there.
 Dues come from ledger.statement, the same arithmetic the Dues report, Collect &
 Receipt and the printed bill use, so this page cannot disagree with them:
 
-    billed + refunded - paid = due - advance = -(account balance)
+    billed + refunded - paid - discount = due - advance = -(account balance)
 
 Viewing writes nothing. A person who has never used the canteen gets an empty
 page, and no account is opened for them.
@@ -33,14 +33,16 @@ from ..constants import (
     PAY_CASH,
     PAY_PLAN,
     PLAN_KIND_CHOICES,
+    TXN_DISCOUNT,
     TXN_POSTING,
     TXN_PURCHASE,
     TXN_REFUND,
     TXN_TOPUP,
     label,
 )
-from ..models import CanteenSale
+from ..models import CanteenClassRate, CanteenItem, CanteenSale
 from .balances import balances
+from .classes import KEY_VALUES, class_key, student_class_keys
 from .buyers import (
     CLASS_VALUES,
     STAFF_EMPLOYED,
@@ -62,13 +64,14 @@ from .plans import due_allowance, enrollments_by_student
 ZERO = exact(0)
 
 # Which part of the page a row belongs to.
-BILL, PAYMENT, COUNTER = "bill", "payment", "counter"
+BILL, PAYMENT, DISCOUNT, COUNTER = "bill", "payment", "discount", "counter"
 
 WHAT = {
     TXN_POSTING: "Monthly bill",
     TXN_PURCHASE: "Counter purchase on account",
     TXN_TOPUP: "Payment",
     TXN_REFUND: "Refund",
+    TXN_DISCOUNT: "Discount",
 }
 
 
@@ -77,9 +80,25 @@ def _without_contact(buyers):
     return [{k: v for k, v in b.items() if k != "contact"} for b in buyers]
 
 
-def find_people(school_id, settings, today, q="", card=""):
-    """The search box: a card on the reader, a roll number or part of a name.
-    Finds people who have left too, while they still have a canteen account."""
+def _in_class(school_id, settings, today, wanted, q):
+    """Every running student of one class, narrowed by a name or roll if typed."""
+    rows = Student.objects.filter(class_info__school_id=school_id, is_active=True, status=STUDENT_RUNNING).values(
+        "id", *KEY_VALUES
+    )
+    ids = [r["id"] for r in rows if class_key(r) == wanted]
+    students = find_students(school_id, ids=ids, limit=len(ids) + 1)
+    if q:
+        needle = q.lower()
+        students = [s for s in students if needle in (s["name"] or "").lower() or (s.get("roll_no") or "").lower() == needle]
+    return _without_contact(describe_buyers(school_id, settings, today, students))
+
+
+def find_people(school_id, settings, today, q="", card="", wanted_class=""):
+    """The search box: a card on the reader, a roll number or part of a name, or
+    a whole class. Finds people who have left too, while they still have a canteen
+    account."""
+    if wanted_class:
+        return _in_class(school_id, settings, today, wanted_class, q)
     if card:
         students = find_students(school_id, card=card, limit=2)
         staff = [] if students else find_staff(school_id, card=card, limit=2)
@@ -108,6 +127,39 @@ def find_people(school_id, settings, today, q="", card=""):
             "detail": row.get("designation") or "Staff", "roll_no": None, "left": True,
             "account": account.id if account else None, "balance": held.get(account.id, ZERO) if account else ZERO,
         })
+    return people
+
+
+def search_people(school_id, settings, today, student_q, staff_q=None):
+    """The Payment page's search: students matching `student_q`, and staff matching
+    `staff_q` when the search could mean them, each with their account facts. A
+    student of any status can be found, so `left` says who is not running."""
+    students = list(
+        Student.objects.filter(student_q)
+        .annotate(
+            name=full_name_expr(),
+            guardian_contact=F("guardian_info__guardian_contact"),
+            father_name=F("guardian_info__father_name"),
+        )
+        .order_by("first_name", "last_name", "id")
+        .values("id", "name", "roll_no", "rfid_card", "image", "status", "guardian_contact", "father_name", *CLASS_VALUES)
+    )
+    staff = []
+    if staff_q is not None:
+        staff = list(
+            Staff.objects.filter(staff_q, school_id=school_id, is_active=True, status=STAFF_EMPLOYED)
+            .annotate(name=full_name_expr(), designation=F("role__role"))
+            .order_by("first_name", "last_name", "id")
+            .values("id", "name", "designation", "rfid_card", "image", "primary_contact")
+        )
+    people = describe_buyers(school_id, settings, today, students, staff)
+    extra = {s["id"]: s for s in students}
+    for person in people:
+        row = extra.get(person["id"]) if person["buyer_type"] == BUYER_STUDENT else None
+        person["classname"] = person["detail"]
+        person["guardian_contact"] = person.get("contact")
+        person["father_name"] = row["father_name"] if row else None
+        person["left"] = bool(row) and row["status"] != STUDENT_RUNNING
     return people
 
 
@@ -169,12 +221,33 @@ def _staff(school_id, staff_id):
     }
 
 
+def person_of(school_id, buyer_type, buyer_id):
+    return _student(school_id, buyer_id) if buyer_type == BUYER_STUDENT else _staff(school_id, buyer_id)
+
+
+def _rates(school_id, buyer_id, plans):
+    """{item id: the rate that applies}: a facility's amount for this student, or
+    a product's price. What the Rate column of the payment screen shows."""
+    rates = {str(i): p for i, p in CanteenItem.objects.filter(school_id=school_id, price__gt=0).values_list("id", "price")}
+    keys = student_class_keys(school_id, [buyer_id]).get(buyer_id)
+    if keys:
+        for item_id, amount in CanteenClassRate.objects.filter(
+            school_id=school_id, is_active=True, class_key=keys[0], item_id__in=[p["item"] for p in plans if p["item"]],
+        ).values_list("item_id", "monthly_rate"):
+            rates[str(item_id)] = amount
+    for p in plans:
+        if p["item"] and p["own_rate"] is not None:
+            rates[str(p["item"])] = p["own_rate"]
+    return rates
+
+
 def _time_of(row):
     return npt(row.entered_at).strftime("%I:%M %p") if row.entered_at else None
 
 
 def _txn_row(txn, running, sale):
     charge = txn.kind in CHARGE_KINDS
+    extra = txn.extra_info or {}
     if txn.kind == TXN_PURCHASE and sale:
         lines = [{"name": l.name, "qty": l.qty, "amount": l.amount} for l in sale.lines.all()]
     else:
@@ -187,11 +260,13 @@ def _txn_row(txn, running, sale):
     reference = ""
     if txn.receipt_no:
         reference = f"C-{txn.receipt_no}"
+    elif extra.get("receipt_no"):
+        reference = f"C-{extra['receipt_no']}"
     elif sale:
         reference = f"Sale {sale.sale_no}"
     return {
         "id": f"t{txn.id}",
-        "group": BILL if charge else PAYMENT,
+        "group": BILL if charge else DISCOUNT if txn.kind == TXN_DISCOUNT else PAYMENT,
         "kind": txn.kind,
         "what": WHAT.get(txn.kind, "Transaction"),
         "reference": reference,
@@ -200,7 +275,8 @@ def _txn_row(txn, running, sale):
         "lines": lines,
         "months": [MONTH_NAMES.get(m, m) for m in (txn.months or [])],
         "bs_year": txn.posting.bs_year if txn.posting_id else None,
-        "mode_name": label(MODES, txn.mode) if not charge else None,
+        "mode_name": label(MODES, txn.mode) if txn.kind in (TXN_TOPUP, TXN_REFUND) else None,
+        "discount": (extra.get("discount") or {}).get("amount"),
         # A payment that named no item, or more than it named, keeps the rest
         # on the account.
         "advance": txn.amount - named if txn.kind == TXN_TOPUP else None,
@@ -211,7 +287,7 @@ def _txn_row(txn, running, sale):
         "entered_by": txn.entered_by,
         "remarks": txn.remarks,
         "is_active": txn.is_active,
-        "void_reason": (txn.extra_info or {}).get("void_reason"),
+        "void_reason": extra.get("void_reason"),
         "receipt": txn.id if txn.kind in (TXN_TOPUP, TXN_REFUND) else None,
     }
 
@@ -230,6 +306,7 @@ def _sale_row(sale, running):
         "months": [],
         "bs_year": None,
         "mode_name": None if plan else "cash",
+        "discount": None,
         "advance": None,
         "charged": None,
         "paid": None,
@@ -271,7 +348,7 @@ def _history(account, sales):
 
 def profile_of(school_id, settings, today, buyer_type, buyer_id):
     """The whole page, or None when this person is not this school's."""
-    person = _student(school_id, buyer_id) if buyer_type == BUYER_STUDENT else _staff(school_id, buyer_id)
+    person = person_of(school_id, buyer_type, buyer_id)
     if not person:
         return None
     person["buyer_type_name"] = label(BUYER_CHOICES, buyer_type)
@@ -299,6 +376,7 @@ def profile_of(school_id, settings, today, buyer_type, buyer_id):
     live_txns = [t for t in txns if t.is_active]
     live_sales = [s for s in sales if s.is_active]
     cash_sales = [s for s in live_sales if s.payment == PAY_CASH]
+    rates = _rates(school_id, buyer_id, plans) if buyer_type == BUYER_STUDENT else {}
 
     return {
         **person,
@@ -309,6 +387,7 @@ def profile_of(school_id, settings, today, buyer_type, buyer_id):
             "billed": sum((r["charged"] for r in ledger["items"]), ZERO),
             "paid": sum((t.amount for t in live_txns if t.kind == TXN_TOPUP), ZERO),
             "refunded": -sum((t.amount for t in live_txns if t.kind == TXN_REFUND), ZERO),
+            "discount": sum((t.amount for t in live_txns if t.kind == TXN_DISCOUNT), ZERO),
             "due": ledger["due"],
             "advance": ledger["advance"],
             "balance": ledger["balance"],
@@ -316,15 +395,18 @@ def profile_of(school_id, settings, today, buyer_type, buyer_id):
             "cash_sales": len(cash_sales),
             "plan_meals": sum(1 for s in live_sales if s.payment == PAY_PLAN),
         },
-        # item by item: charged - paid - from_advance = due
+        # item by item: charged - paid - from_advance = due (`paid` includes a discount)
         "items": [
             {
                 "item": r["item"],
                 "name": r["name"],
                 "charged": r["charged"],
                 "paid": r["paid"],
+                "discount": r["discount"],
                 "from_advance": r["raw_due"] - r["due"],
+                "raw_due": r["raw_due"],
                 "due": r["due"],
+                "rate": rates.get(r["item"]),
             }
             for r in ledger["items"]
         ],

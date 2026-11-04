@@ -2,7 +2,8 @@
 
   GET/PUT              /canteen/settings     ?school=
   GET/POST/PUT/DELETE  /canteen/categories   ?school=
-  GET/POST/PUT/DELETE  /canteen/items        ?school=[&available=1][&monthly=1]
+  GET/POST/PUT/DELETE  /canteen/units        ?school=   liter, plate, half
+  GET/POST/PUT/DELETE  /canteen/items        ?school=[&available=1][&monthly=1][&products=1]
   GET/PUT              /canteen/class-rates  ?school=&item=   a monthly item's rate for each class
 
 Removing an item or a category is a soft delete. A sale line keeps the item's
@@ -28,7 +29,7 @@ from ..constants import (
 )
 from ..methods.settings import settings_for
 from ..methods.classes import school_classes
-from ..models import CanteenCategory, CanteenClassRate, CanteenItem
+from ..models import CanteenCategory, CanteenClassRate, CanteenItem, CanteenPlan, CanteenUnit
 from .BaseViews import CanteenBaseView
 
 SETTINGS_FIELDS = (
@@ -85,6 +86,88 @@ class CanteenSettingsView(CanteenBaseView):
             row.slip_footer = self.text(data.get("slip_footer"), 120)
         row.save()
         return Response({**settings_json(row), "message": "Canteen settings saved!"})
+
+
+def product_items(school_id):
+    """The items Product Setup lists: everything except a facility's own title on
+    the bill (`Day care`, kept off the counter), which Facility Setup looks after."""
+    titles = CanteenPlan.objects.filter(school_id=school_id, is_active=True, item__isnull=False).values("item_id")
+    return CanteenItem.objects.filter(school_id=school_id, is_active=True).exclude(
+        sold_at_counter=False, id__in=titles
+    )
+
+
+class CanteenUnitView(CanteenBaseView):
+    pages_for = {method: (PAGE_ITEMS,) for method in ("GET", "POST", "PUT", "DELETE")}
+
+    def get(self, request):
+        denied = self.gate(request)
+        if denied:
+            return denied
+        school_id = self.school_id(request)
+        rows = list(CanteenUnit.objects.filter(school_id=school_id, is_active=True).order_by("name").values("id", "name"))
+        used = {
+            r["unit_id"]: r["n"]
+            for r in CanteenItem.objects.filter(school_id=school_id, is_active=True, unit__isnull=False)
+            .values("unit_id").annotate(n=Count("id"))
+        }
+        for row in rows:
+            row["products"] = used.get(row["id"], 0)
+        return Response(rows)
+
+    def post(self, request):
+        denied = self.gate(request)
+        if denied:
+            return denied
+        return self._save(request, None)
+
+    def put(self, request):
+        denied = self.gate(request)
+        if denied:
+            return denied
+        row_id = self.int_or_none(request.data.get("id"))
+        if not row_id:
+            return self.RESPONSE__INVALID_REQUEST
+        return self._save(request, row_id)
+
+    def _save(self, request, row_id):
+        school_id = self.school_id(request)
+        name = (request.data.get("name") or "").strip()
+        if len(name) < 1 or len(name) > 30:
+            return Response({"message": "A unit name is 1 to 30 characters."}, status=400)
+        twin = CanteenUnit.objects.filter(school_id=school_id, is_active=True, name__iexact=name)
+        if row_id:
+            twin = twin.exclude(id=row_id)
+        if twin.exists():
+            return Response({"message": f"There is already a unit called '{name}'."}, status=409)
+        if row_id:
+            row = CanteenUnit.objects.filter(id=row_id, school_id=school_id, is_active=True).first()
+            if not row:
+                return self.RESPONSE__NOT_FOUND
+            row.name = name
+            row.save()
+            return Response({"id": row.id, "message": "Unit updated!"})
+        row = CanteenUnit.objects.create(school_id=school_id, name=name)
+        return Response({"id": row.id, "message": "Unit added!"})
+
+    def delete(self, request):
+        denied = self.gate(request)
+        if denied:
+            return denied
+        school_id = self.school_id(request)
+        row = CanteenUnit.objects.filter(
+            id=self.int_or_none(request.query_params.get("id")), school_id=school_id, is_active=True
+        ).first()
+        if not row:
+            return self.RESPONSE__NOT_FOUND
+        in_use = CanteenItem.objects.filter(unit=row, is_active=True).count()
+        if in_use:
+            return Response(
+                {"message": f"{in_use} product(s) use '{row.name}'. Change their unit first."}, status=400
+            )
+        row.is_active = False
+        row.save(update_fields=["is_active", "updated_at"])
+        return Response({"message": "Unit removed!"})
 
 
 class CanteenCategoryView(CanteenBaseView):
@@ -178,7 +261,11 @@ class CanteenItemView(CanteenBaseView):
         if denied:
             return denied
         school_id = self.school_id(request)
-        qs = CanteenItem.objects.filter(school_id=school_id, is_active=True)
+        qs = (
+            product_items(school_id)
+            if self.bool_of(request.query_params.get("products"))
+            else CanteenItem.objects.filter(school_id=school_id, is_active=True)
+        )
         if self.bool_of(request.query_params.get("available")):
             # the counter: on today, and sold over the counter at all
             qs = qs.filter(is_available=True, sold_at_counter=True)
@@ -188,6 +275,7 @@ class CanteenItemView(CanteenBaseView):
             qs.order_by("category__order", "category__name", "order", "name").values(
                 "id", "name", "price", "code", "food_type", "is_available", "order",
                 "category", "category__name", "sold_at_counter", "monthly",
+                "unit", "unit__name", "remarks",
             )
         )
         rated = {
@@ -198,6 +286,7 @@ class CanteenItemView(CanteenBaseView):
         }
         for row in rows:
             row["category_name"] = row.pop("category__name") or "Other"
+            row["unit_name"] = row.pop("unit__name")
             row["classes_rated"] = rated.get(row["id"], 0)
             row["food_type_name"] = label(FOOD_CHOICES, row["food_type"], "") if row["food_type"] else ""
         return Response(rows)
@@ -244,8 +333,6 @@ class CanteenItemView(CanteenBaseView):
         # Absent from the request = keep what the item has.
         sold_at_counter = self.bool_of(data.get("sold_at_counter"), existing.sold_at_counter if existing else True)
         monthly = self.bool_of(data.get("monthly"), existing.monthly if existing else False)
-        if not sold_at_counter and not monthly:
-            return Response({"message": "An item is sold at the counter, billed monthly, or both."}, status=400)
         price = self.money(data.get("price"))
         if sold_at_counter and price <= 0:
             return Response({"message": "Enter the item's counter price."}, status=400)
@@ -253,26 +340,38 @@ class CanteenItemView(CanteenBaseView):
             return Response({"message": "A price cannot be below zero."}, status=400)
         if price >= 100000:
             return Response({"message": "That price is too large for a canteen item."}, status=400)
-        category_id = self.int_or_none(data.get("category"))
+        # Whatever the form did not send stays as the item has it: Product Setup
+        # asks for less than an older item may already carry.
+        category_id = self.int_or_none(data.get("category")) if "category" in data else (
+            existing.category_id if existing else None
+        )
         if category_id and not CanteenCategory.objects.filter(
             id=category_id, school_id=school_id, is_active=True
         ).exists():
             return Response({"message": "Pick a category from the list."}, status=400)
-        food_type = self.int_or_none(data.get("food_type")) or 0
+        unit_id = self.int_or_none(data.get("unit")) if "unit" in data else (existing.unit_id if existing else None)
+        if unit_id and not CanteenUnit.objects.filter(id=unit_id, school_id=school_id, is_active=True).exists():
+            return Response({"message": "Pick a unit from the list."}, status=400)
+        food_type = (
+            self.int_or_none(data.get("food_type")) or 0 if "food_type" in data else (existing.food_type if existing else 0)
+        )
         if food_type not in dict(FOOD_CHOICES):
             food_type = 0
-        code = self.text(data.get("code"), 12)
+        code = self.text(data.get("code"), 12) if "code" in data else (existing.code if existing else None)
         values = {
             "name": name,
             "price": price,
             "category_id": category_id,
+            "unit_id": unit_id,
+            "remarks": self.text(data.get("remarks"), 120) if "remarks" in data else (existing.remarks if existing else None),
             "code": code.upper() if code else None,
             "food_type": food_type,
-            "is_available": self.bool_of(data.get("is_available"), True),
+            "is_available": self.bool_of(data.get("is_available"), existing.is_available if existing else True),
             "sold_at_counter": sold_at_counter,
             "monthly": monthly,
-            "order": self.int_or_none(data.get("order")) or 0,
+            "order": self.int_or_none(data.get("order")) if "order" in data else (existing.order if existing else 0),
         }
+        values["order"] = values["order"] or 0
         twin = CanteenItem.objects.filter(school_id=school_id, is_active=True, name__iexact=name)
         code_twin = (
             CanteenItem.objects.filter(school_id=school_id, is_active=True, code__iexact=code)

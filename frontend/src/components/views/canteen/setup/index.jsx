@@ -61,7 +61,7 @@ function CanteenSetup() {
         <form onSubmit={onSave} className="flex flex-col gap-y-2">
             <Section title="How buyers pay"
                 description={"Cash at the counter, the buyer's canteen account, or both. Walk-in customers always pay cash.\n"
-                    + "Monthly postings and dues are collected in Collect & Receipt either way."}>
+                    + "Monthly postings and dues are collected in Canteen > Payment either way."}>
                 <Checkbox name="allow_cash" text="Cash at the counter" checked={form.allow_cash}
                     onClick={() => set("allow_cash", !form.allow_cash)} />
                 <Checkbox name="allow_account" text="Canteen account (card)" checked={form.allow_account}
@@ -73,7 +73,7 @@ function CanteenSetup() {
                     + "Credit 0 = prepaid only: nothing can be bought that has not been paid in. Daily limit 0 = no limit."}>
                 <TextInput input={{ name: "credit_limit", label: "Credit allowed (Rs.)", type: "number" }} value={form.credit_limit}
                     onChange={({ value }) => set("credit_limit", value)}
-                    info="How far below zero an account may go. The due is collected in Collect & Receipt." />
+                    info="How far below zero an account may go. The due is collected in Canteen > Payment." />
                 <TextInput input={{ name: "daily_limit", label: "Daily spending limit (Rs.)", type: "number" }} value={form.daily_limit}
                     onChange={({ value }) => set("daily_limit", value)} />
                 <TextInput input={{ name: "low_balance", label: "\"Running low\" below (Rs.)", type: "number" }} value={form.low_balance}

@@ -46,7 +46,7 @@ function CanteenMyPassword() {
     return (
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-y-2">
             <Section title="Change my password"
-                description={"6 to 20 characters, with upper and lower case letters, a number and one of @ $ ! % * # ? &.\n"
+                description={"Use 15 to 128 characters. Choose a unique passphrase with several words.\n"
                     + "Your other devices will need to sign in again."}>
                 <PasswordInput input={{ name: "current_password", label: "Current password", required: true, autoComplete: "current-password" }}
                     value={form.current_password} onChange={onChange} error={errors.current_password} />

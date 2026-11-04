@@ -5,11 +5,11 @@ import { confirmAction } from "@/components/ConfirmDialog";
 import { SelectInput, TextInput } from "@/components/inputs";
 import Loader from "@/components/Loader";
 import { ButtonsSecion, Section } from "@/components/sections";
-import { MONTHS, PLAN_MONTHLY } from "@/configs/canteen";
+import { MONTHS } from "@/configs/canteen";
 import {
-    getClasses, getMonthlyPosting, getPlans, runMonthlyPosting, withdrawMonthlyPosting,
+    getClasses, getFacilities, getMonthlyPosting, runMonthlyPosting, withdrawMonthlyPosting,
 } from "@/services/functions/canteen";
-import { SetupNeeded, StatusPill, Tile, rs, sumMoney, useCanteenScope, useOnce } from "../common";
+import { Note, SetupNeeded, StatusPill, Tile, rs, sumMoney, useCanteenScope, useOnce } from "../common";
 
 const STATE = {
     post: { text: "To post", tone: "blue" },
@@ -29,20 +29,20 @@ function Chip({ on, onClick, children }) {
 }
 
 /**
- * MONTHLY POSTING — the canteen's ledger posting for regular users.
+ * MONTHLY POSTING — the canteen's ledger posting.
  *
- * Pick the months (several at once, like the fee ledger posting), the class or
- * every class, and the use types. Each regular user is charged their type's
- * item at their CLASS's rate (Items & Rates > Class rates) — or their own rate
- * — for every month picked, onto their canteen account, item by item. It is
- * collected in Collect & Receipt. A month already posted is never posted twice;
- * a posting withdrawn can be posted again.
+ * Pick the month (several at once, like the fee ledger posting) and the class.
+ * Every student ticked in User Setup is charged their facility at their class's
+ * amount (Facility Setup), or their own amount, for each month, onto their canteen
+ * account. It shows in their Student Profile and is paid at Canteen > Payment. A
+ * month already posted is never posted twice; a posting withdrawn can be posted
+ * again.
  */
 function CanteenMonthlyPosting() {
     const { school, today, updateNotification } = useCanteenScope();
     const [plans, setPlans] = useState(null);
     const [classes, setClasses] = useState([]);
-    const [chosenPlans, setChosenPlans] = useState({});
+    const [planId, setPlanId] = useState("");
     const [months, setMonths] = useState({});
     const [year, setYear] = useState("");
     const [classKey, setClassKey] = useState("");
@@ -60,15 +60,11 @@ function CanteenMonthlyPosting() {
     }, [today]);
     useEffect(() => {
         if (!school) return;
-        getPlans(school).then((list) => {
-            const monthly = list.filter((p) => p.kind === PLAN_MONTHLY);
-            setPlans(monthly);
-            setChosenPlans(Object.fromEntries(monthly.map((p) => [p.id, true])));
-        });
+        getFacilities(school).then(setPlans);
         getClasses(school).then(setClasses);
     }, [school]);
 
-    const planIds = useMemo(() => Object.keys(chosenPlans).filter((id) => chosenPlans[id]).map(Number), [chosenPlans]);
+    const planIds = useMemo(() => (planId ? [Number(planId)] : []), [planId]);
     const monthList = useMemo(() => Object.keys(months).filter((m) => months[m]).map(Number).sort((a, b) => a - b), [months]);
 
     async function preview() {
@@ -90,14 +86,28 @@ function CanteenMonthlyPosting() {
     const total = sumMoney(toPost.map((r) => r.amount));
     const monthNames = monthList.map((m) => MONTHS[m - 1]?.name).join(", ");
     const classOptions = [{ value: "", name: "Every class" }, ...classes.map((c) => ({ value: c.key, name: c.label }))];
+    const skipped = rows.filter((r) => r.state === "skip");
+    // Why Post cannot run right now, in words. The button is on screen either way:
+    // hidden, it read as a page with no way to post at all.
+    let postBlockedBy = "";
+    if (monthList.length < 1) postBlockedBy = "Pick at least one month.";
+    else if (loading || !data) postBlockedBy = "Checking who is to be posted…";
+    else if (rows.length < 1) {
+        postBlockedBy = `No student is ticked for ${monthNames} ${year}${classKey ? " in this class" : ""}. `
+            + "Tick them in Canteen > User Setup. A student is posted from the month their ticking starts.";
+    } else if (postable.length < 1) {
+        postBlockedBy = skipped.length > 0
+            ? `${skipped.length} student(s) cannot be posted: ${skipped[0].why}. Set the class and its amount in Canteen > Facility Setup.`
+            : `Everyone here is already posted for ${monthNames} ${year}.`;
+    } else if (toPostStudents.length < 1) postBlockedBy = "Tick at least one student in the list below.";
 
     async function onPost() {
         if (toPostStudents.length < 1) return updateNotification("", "Nobody is ticked to post.");
         if (!await confirmAction({
             tone: "info", confirmText: "Post",
             title: `Post Rs. ${rs(total)} to ${toPostStudents.length} student(s) for ${monthNames} ${year}?`,
-            body: `Each regular user's item is charged at their class rate for ${monthNames}, onto their canteen account, dated ${date}. `
-                + "It is collected in Collect & Receipt. A month already posted is never posted again.",
+            body: `Each student is charged at their class's amount for ${monthNames}, onto their canteen account, dated ${date}. `
+                + "It shows in their Student Profile and is paid at Canteen > Payment. A month already posted is never posted again.",
         })) return;
         await once(async () => {
             const [status, message, res] = await runMonthlyPosting({
@@ -125,15 +135,19 @@ function CanteenMonthlyPosting() {
 
     if (plans === null) return <Loader />;
     if (plans.length < 1) {
-        return <SetupNeeded what="monthly use types" where="Add Day care or Tiffin monthly in Canteen > Use Types, set the item's class rates and put students on it." />;
+        return <SetupNeeded what="facilities" where="Add one in Canteen > Facility Setup, then tick its students in User Setup." />;
     }
 
     return (
         <div className="flex flex-col gap-y-4">
-            <Section title="What to post" description="The months, the class and the use types. The preview shows each regular user's charge before anything is posted.">
+            <Section title="What to post" description="Choose the month and the class. The list below shows each student's charge before anything is posted.">
                 <TextInput input={{ name: "year", label: "Year (BS)", type: "number" }} value={year} onChange={({ value }) => setYear(value)} />
                 <SelectInput input={{ name: "class_key", label: "Class", options: classOptions }} value={classKey}
                     onChange={({ value }) => setClassKey(value)} />
+                <SelectInput input={{
+                    name: "plan", label: "Facility",
+                    options: [{ value: "", name: "Every facility" }, ...plans.map((p) => ({ value: p.id, name: p.name }))],
+                }} value={planId} onChange={({ value }) => setPlanId(value)} />
                 <TextInput input={{ name: "date", label: "Posting date (BS)", mask: "date" }} value={date} onChange={({ value }) => setDate(value)} />
                 <div className="sm:col-span-12 flex flex-col gap-2">
                     <span className="text-xs font-semibold text-gray-600">Months</span>
@@ -142,29 +156,26 @@ function CanteenMonthlyPosting() {
                             <Chip key={m.value} on={!!months[m.value]} onClick={() => setMonths((s) => ({ ...s, [m.value]: !s[m.value] }))}>{m.name}</Chip>
                         ))}
                     </div>
-                    <span className="text-xs font-semibold text-gray-600 mt-1">Use types</span>
-                    <div className="flex flex-wrap gap-1.5" role="group" aria-label="Use types">
-                        {plans.map((p) => (
-                            <Chip key={p.id} on={!!chosenPlans[p.id]} onClick={() => setChosenPlans((s) => ({ ...s, [p.id]: !s[p.id] }))}>
-                                {p.name} · {p.item_name} · {p.enrolled}
-                            </Chip>
-                        ))}
-                    </div>
                 </div>
             </Section>
+            <ButtonsSecion>
+                <Button color="teal" className="normal-case" disabled={busy || !!postBlockedBy} onClick={onPost}>
+                    {busy ? "Posting…" : toPostStudents.length > 0 ? `Post ${toPostStudents.length} student(s) — Rs. ${rs(total)}` : "Post"}
+                </Button>
+            </ButtonsSecion>
+            {postBlockedBy && !loading && data && <Note tone="amber">{postBlockedBy}</Note>}
+            {monthList.length < 1 && <Note tone="amber">{postBlockedBy}</Note>}
 
-            {monthList.length < 1 ? <p className="text-sm text-gray-500">Pick at least one month.</p> : loading || !data ? <Loader /> : (
+            {monthList.length < 1 ? null : loading || !data ? <Loader /> : (
                 <>
                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                         <Tile label={`To post · ${monthNames} ${year}`} value={`Rs. ${rs(total)}`} tone="blue"
                             hint={`${toPostStudents.length} of ${postable.length} student(s) ticked`} />
                         <Tile label="Already posted" value={rows.filter((r) => r.state === "posted").length} tone="green" hint="for every month picked" />
-                        <Tile label="Skipped" value={rows.filter((r) => r.state === "skip").length} tone="amber" hint="no class rate, or not running" />
+                        <Tile label="Skipped" value={rows.filter((r) => r.state === "skip").length} tone="amber" hint="no class amount, or not running" />
                     </div>
 
-                    {rows.length < 1 ? (
-                        <p className="text-sm text-gray-500">No regular user on these use types in {monthNames} {year}{classKey ? " for this class" : ""}.</p>
-                    ) : (
+                    {rows.length > 0 && (
                         <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
                             <table className="w-full text-sm">
                                 <thead className="bg-table-header text-left">
@@ -177,8 +188,8 @@ function CanteenMonthlyPosting() {
                                         </th>
                                         <th className="px-3 py-2">Student</th>
                                         <th className="px-3 py-2">Class</th>
-                                        <th className="px-3 py-2">Use type · item</th>
-                                        <th className="px-3 py-2 text-right">Rate</th>
+                                        <th className="px-3 py-2">Facility</th>
+                                        <th className="px-3 py-2 text-right">Amount a month</th>
                                         <th className="px-3 py-2">Months</th>
                                         <th className="px-3 py-2 text-right">Amount</th>
                                         <th className="px-3 py-2">Status</th>
@@ -199,10 +210,10 @@ function CanteenMonthlyPosting() {
                                                 {r.roll_no && <span className="text-xs text-gray-500"> · Roll {r.roll_no}</span>}
                                             </td>
                                             <td className="px-3 py-1.5">{r.detail}</td>
-                                            <td className="px-3 py-1.5">{r.plan_name} · {r.item_name}</td>
+                                            <td className="px-3 py-1.5">{r.plan_name}</td>
                                             <td className="px-3 py-1.5 text-right tabular-nums">
                                                 {Number(r.rate) > 0 ? rs(r.rate) : "—"}
-                                                {r.own_rate && <span className="block text-[10px] text-blue-700">own rate</span>}
+                                                {r.own_rate && <span className="block text-[10px] text-blue-700">own amount</span>}
                                             </td>
                                             <td className="px-3 py-1.5 text-xs">
                                                 {r.months_todo.map((m) => MONTHS[m - 1]?.name).join(", ")}
@@ -221,14 +232,6 @@ function CanteenMonthlyPosting() {
                             </table>
                         </div>
                     )}
-                    {postable.length > 0 && (
-                        <ButtonsSecion>
-                            <Button color="teal" className="normal-case" disabled={busy || toPostStudents.length < 1} onClick={onPost}>
-                                {busy ? "Posting…" : `Post ${toPostStudents.length} student(s) — Rs. ${rs(total)}`}
-                            </Button>
-                        </ButtonsSecion>
-                    )}
-
                     {(data.posted || []).length > 0 && (
                         <Section title={`Posted for ${monthNames} ${year}`} description="Each student's posting. Withdraw one posted by mistake.">
                             <div className="sm:col-span-12 overflow-x-auto rounded-lg border border-gray-200 bg-white">

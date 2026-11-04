@@ -7,7 +7,7 @@ import { rs } from "../common";
  *
  * Item by item (Tiffin, Day care, counter items taken on due): what was charged,
  * what is paid and what is due, then the advance held and the total to pay.
- * The same figures the Dues report and Collect & Receipt show, because they are
+ * The same figures the Dues report and Canteen > Payment show, because they are
  * the same rows (methods/ledger.py on the server).
  */
 function Bill({ row, user, date, note }) {

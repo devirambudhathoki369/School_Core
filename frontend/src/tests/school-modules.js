@@ -56,7 +56,7 @@ check('a page of no module is every school\'s', moduleAllowed('payment.student',
 check('a profile without the flag at all has no module', moduleAllowed('library.books', {}), false);
 check('the canteen\'s pages follow the canteen', moduleAllowed('canteen.counter', { ...ALL, uses_canteen: false }), false);
 check('a canteen user\'s profile carries only that flag, and opens them',
-    moduleAllowed('canteen.collect', { uses_canteen: true }), true);
+    moduleAllowed('canteen.payment', { uses_canteen: true }), true);
 
 const VIEWS = {
     'dashboard': 1, 'payroll.staff': 2, 'payroll.pay-slips': 3, 'exams.setup': 4,

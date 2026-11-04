@@ -202,15 +202,17 @@ const PERMISSIONS = {
     // office keeps accounts, posting, collection, setup and the records.
     CANTEEN: {
         COUNTER: 2701,      // ring up sales, void today's mistakes
-        ITEMS: 2702,        // categories, items, prices, class-wise monthly rates
+        ITEMS: 2702,        // Product Setup: products and their units
         ACCOUNTS: 2703,     // top-ups, refunds, limits, blocked cards
         // 2704 retired (it posted canteen owing onto the fee bill); never reuse it
         REPORTS: 2705,      // sales, item-wise, cashier closing, receipts, dues, postings
         SETUP: 2706,        // how buyers pay, limits, slip
-        USE_TYPES: 2707,    // day care, tiffin monthly, tiffin cash or due; regular users
+        USE_TYPES: 2707,    // Facility Setup: day care, tiffin monthly; classes and amounts
         MONTHLY_POSTING: 2708, // the months' charges onto regular users' canteen accounts
-        COLLECT: 2709,      // collect canteen dues item-wise, receipts
+        COLLECT: 2709,      // Payment: collect canteen dues item-wise, receipts
         USERS: 2710,        // canteen users: sign-ins that open the canteen only
+        PROFILE: 2711,      // one person's canteen billing, payments, transaction history
+        USER_SETUP: 2712,   // tick the students who use a facility
     },
     HOSTEL: {
         SETUP: 2501,        // hostels, blocks, room types
@@ -248,7 +250,7 @@ const TESTED_PERMISSIONS = [1,
     2201, 2202, 2203, 2204,
     2501, 2502, 2503, 2504, 2505, 2506, 2507, 2508, 2509, 2510,
     2601, 2602, 2603, 2604,
-    2701, 2702, 2703, 2705, 2706, 2707, 2708, 2709,
+    2701, 2702, 2703, 2705, 2706, 2707, 2708, 2709, 2711, 2712,
 ];
 
 /*

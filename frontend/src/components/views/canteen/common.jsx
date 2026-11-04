@@ -108,6 +108,56 @@ export function Note({ children, tone = "blue" }) {
     );
 }
 
+/**
+ * The canteen's tab bar: the student profile's bar (`app-profile-tab`), so it takes
+ * the school's theme colour the same way. Tabs wrap rather than scroll, so none is
+ * ever out of sight. One Tab press enters it, then the arrows move within it.
+ *
+ * `tabs` is [{ key, label, icon, count }]; icon and count are optional. A page
+ * draws each tab's content in a <TabPanel>.
+ */
+export function CanteenTabs({ tabs, active, onChange, label, className = "" }) {
+    function onKeyDown(e) {
+        const i = tabs.findIndex((t) => t.key === active);
+        const steps = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 };
+        if (!(e.key in steps)) return;
+        e.preventDefault();
+        const next = tabs[(steps[e.key] + tabs.length) % tabs.length].key;
+        onChange(next);
+        requestAnimationFrame(() => document.getElementById(`tab-${next}`)?.focus());
+    }
+    return (
+        <nav className={`rounded-xl bg-white shadow-sm border border-blue-gray-100 ${className}`}>
+            <div role="tablist" aria-label={label} onKeyDown={onKeyDown} className="flex flex-wrap gap-1 p-1.5">
+                {tabs.map((t) => {
+                    const on = t.key === active;
+                    const Icon = t.icon;
+                    return (
+                        <button key={t.key} type="button" role="tab" id={`tab-${t.key}`} aria-controls={`panel-${t.key}`}
+                            aria-selected={on} tabIndex={on ? 0 : -1} onClick={() => onChange(t.key)}
+                            className={`app-profile-tab flex items-center gap-2 whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-semibold transition-all duration-150 ${on
+                                ? "app-profile-tab-active bg-teal-600 text-white shadow-sm ring-1 ring-teal-700/20"
+                                : "text-blue-gray-600 hover:bg-teal-50 hover:text-teal-800"}`}>
+                            {Icon && <Icon aria-hidden="true" className={`h-[1.05rem] w-[1.05rem] shrink-0 stroke-[1.7] ${on ? "" : "opacity-70"}`} />}
+                            {t.label}
+                            {t.count !== undefined && (
+                                <span className={`min-w-[1.35rem] rounded-full px-1.5 py-px text-center text-[0.7rem] font-bold tabular-nums ${on
+                                    ? "bg-white/25 text-white" : "bg-blue-gray-50 text-blue-gray-600"}`}>
+                                    {t.count}
+                                </span>
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
+        </nav>
+    );
+}
+
+export function TabPanel({ tab, children, className = "flex flex-col gap-y-4" }) {
+    return <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className={className}>{children}</div>;
+}
+
 /** Wraps `fn` so it runs once at a time: a second press while the first is
  *  still with the server does nothing. Every money button here uses it. */
 export function useOnce() {

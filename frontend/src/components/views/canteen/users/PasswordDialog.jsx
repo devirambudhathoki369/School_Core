@@ -72,7 +72,7 @@ function PasswordDialog({ user, school, onClose, onSaved }) {
                         <PasswordInput input={{ name: "confirm", label: "New password again", required: true, autoComplete: "new-password" }}
                             value={form.confirm} onChange={onChange} error={errors.confirm} />
                         <p className="app-field-info sm:col-span-12">
-                            6 to 20 characters, with upper and lower case letters, a number and one of @ $ ! % * # ? &amp;.
+                            Use 15 to 128 characters. Choose a unique passphrase with several words.
                             They are signed out on every device.
                         </p>
                     </div>

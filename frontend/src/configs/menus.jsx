@@ -37,13 +37,15 @@ TODO: submenu with id: null must be managed in other ways!
 // (`canteenUserMenu` below) is these and nothing else, counter first.
 const canteenPages = [
     { id: PERMISSIONS.CANTEEN.SETUP, name: "Canteen setup", prefix: <Cog6ToothIcon className="icon" />, view: 'setup' },
-    { id: PERMISSIONS.CANTEEN.ITEMS, name: "Items & rates", prefix: <QueueListIcon className="icon" />, view: 'items' },
-    { id: PERMISSIONS.CANTEEN.USE_TYPES, name: "Use types", prefix: <TagIcon className="icon" />, view: 'use-types' },
+    { id: PERMISSIONS.CANTEEN.ITEMS, name: "Product setup", prefix: <QueueListIcon className="icon" />, view: 'product-setup' },
+    { id: PERMISSIONS.CANTEEN.USE_TYPES, name: "Facility setup", prefix: <TagIcon className="icon" />, view: 'facility-setup' },
+    { id: PERMISSIONS.CANTEEN.USER_SETUP, name: "User setup", prefix: <ClipboardDocumentCheckIcon className="icon" />, view: 'user-setup' },
     { id: PERMISSIONS.CANTEEN.USERS, name: "Canteen users", prefix: <UserPlusIcon className="icon" />, view: 'users' },
     { id: PERMISSIONS.CANTEEN.ACCOUNTS, name: "Card accounts", prefix: <WalletIcon className="icon" />, view: 'accounts' },
     { id: PERMISSIONS.CANTEEN.COUNTER, name: "Counter", prefix: <ShoppingCartIcon className="icon" />, view: 'counter' },
     { id: PERMISSIONS.CANTEEN.MONTHLY_POSTING, name: "Monthly posting", prefix: <CalendarDaysIcon className="icon" />, view: 'monthly-posting' },
-    { id: PERMISSIONS.CANTEEN.COLLECT, name: "Collect & receipt", prefix: <BanknotesIcon className="icon" />, view: 'collect' },
+    { id: PERMISSIONS.CANTEEN.COLLECT, name: "Payment", prefix: <BanknotesIcon className="icon" />, view: 'payment' },
+    { id: PERMISSIONS.CANTEEN.PROFILE, name: "Student profile", prefix: <UserCircleIcon className="icon" />, view: 'profile' },
     { id: PERMISSIONS.CANTEEN.REPORTS, name: "Canteen reports", prefix: <DocumentChartBarIcon className="icon" />, view: 'reports' },
 ];
 
@@ -73,6 +75,7 @@ const adminMenu = [
         name: "School setup", view: "manage",
         prefix: <SquaresPlusIcon className="icon" />,
         submenu: [
+            { id: null, name: "Setup guide", prefix: <SparklesIcon className="icon" />, view: 'setup-guide' },
             { id: PERMISSIONS.MANAGE.ACADEMIC_YEARS, name: "Academic year", prefix: <CalendarIcon className="icon" />, view: 'academic-year' },
             { id: PERMISSIONS.MANAGE.SECTIONS, name: "Sections", prefix: <AcademicCapIcon className="icon" />, view: 'sections' },
             { id: PERMISSIONS.MANAGE.CLASS_PERIODS, name: "Classes & periods", prefix: <AcademicCapIcon className="icon" />, view: 'classes' },
@@ -113,7 +116,7 @@ const adminMenu = [
         section: "Daily",
         // Attendance is a daily job, not a part of the mobile app: it lived
         // under "App" (#app.attendance.*, #app.rfid.*). Those addresses still
-        // open -- they are kept as aliases in configs/views/admin.jsx.
+        // open -- they are normalized by methods/portalRoutes.js.
         name: "Attendance", view: "attendance",
         prefix: <ClipboardDocumentCheckIcon className="icon" />,
         submenu: [
@@ -152,12 +155,6 @@ const adminMenu = [
     },
     {
         section: "Daily",
-        id: PERMISSIONS.COMMUNICATION.SMS.SEND_MESSAGES,
-        name: "Absence SMS", view: 'send-sms-absent',
-        prefix: <DevicePhoneMobileIcon className="icon" />,
-    },
-    {
-        section: "Daily",
         // Every school has this row, and the header shortcut that goes with
         // it. A school with no bus yet is told on the page how its buses come
         // to be listed; which buses are a school's is the backend's to say.
@@ -176,7 +173,6 @@ const adminMenu = [
             { id: PERMISSIONS.EXAM.OPTIONAL_SUBJECT_ASSIGNMENT, name: "Optional subjects", prefix: <ClipboardDocumentListIcon className="icon" />, view: "optional-subject-assignment" },
             { id: PERMISSIONS.EXAM.ENTRY_CARDS, name: "Entry cards", prefix: <PencilSquareIcon className="icon" />, view: "entry-cards" },
             { id: PERMISSIONS.EXAM.SEAT_PLAN, name: "Seat plan", prefix: <PencilSquareIcon className="icon" />, view: "seat-plan" },
-            { id: PERMISSIONS.EXAM.SEAT_PLAN, name: "Seat plan (old)", prefix: <PencilSquareIcon className="icon" />, view: "seat-plan-old" },
             { id: PERMISSIONS.EXAM.MARKS_ENTRY_SLIP, name: "Marks entry slip", prefix: <PencilSquareIcon className="icon" />, view: "marks-entry-slip" },
             { id: PERMISSIONS.EXAM.MARKS_ENTRY, name: "Marks entry", prefix: <PencilSquareIcon className="icon" />, view: "marks-entry" },
             { id: PERMISSIONS.EXAM.EXTRA_ACTIVITY_ENTRY, name: "Extra activities entry", prefix: <DocumentTextIcon className="icon" />, view: 'extra-activities-entry' },
@@ -333,7 +329,7 @@ const adminMenu = [
     {
         section: "Facilities",
         // CANTEEN — the school's own counter and its OWN billing: items with
-        // class-wise monthly rates, use types and regular users, monthly
+        // facilities with class-wise amounts, the students ticked on them, monthly
         // posting, item-wise collection and receipts, card accounts. Nothing
         // here touches the student fee bills.
         // Per-school, exactly like Extra Billing: `profileFlag` drops the
@@ -367,7 +363,7 @@ const adminMenu = [
                     { id: PERMISSIONS.COMMUNICATION.SMS.BULK_SMS, name: "Bulk SMS", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'bulk-sms' },
                     { id: PERMISSIONS.COMMUNICATION.SMS.STAFF_SMS, name: "SMS to staff", prefix: <UserGroupIcon className="icon" />, view: 'staff-sms' },
                     { id: PERMISSIONS.COMMUNICATION.SMS.DUES_REMINDER, name: "Dues reminders", prefix: <ReceiptPercentIcon className="icon" />, view: 'dues-reminder' },
-                    { id: PERMISSIONS.COMMUNICATION.SMS.SEND_MESSAGES, name: "Messages", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'send-messages' },
+                    { id: PERMISSIONS.COMMUNICATION.SMS.SEND_MESSAGES, name: "Absence SMS", prefix: <ChatBubbleLeftRightIcon className="icon" />, view: 'send-messages' },
                     { id: PERMISSIONS.COMMUNICATION.SMS.REPORT, name: "SMS report", prefix: <ChartBarIcon className="icon" />, view: 'report' },
                 ]
             },
@@ -527,7 +523,7 @@ const superAdminMenu = [
  * covers them. Filtered by the user's own pages like a member of staff's.
  */
 // Selling is a canteen user's whole job, so their rail opens on the counter.
-const CANTEEN_USER_ORDER = ['counter', 'items', 'use-types', 'monthly-posting', 'collect', 'accounts', 'reports', 'setup', 'users'];
+const CANTEEN_USER_ORDER = ['counter', 'product-setup', 'facility-setup', 'user-setup', 'monthly-posting', 'payment', 'profile', 'accounts', 'reports', 'setup', 'users'];
 const canteenUserMenu = [
     ...CANTEEN_USER_ORDER
         .map((view) => canteenPages.find((page) => page.view === view))

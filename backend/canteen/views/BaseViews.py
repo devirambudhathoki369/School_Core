@@ -25,6 +25,7 @@ work" has to be distinguishable from a broken deployment.
 
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
+from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -87,6 +88,17 @@ class CanteenBaseView(SecuredAPIView):
         # which reads main.views.BaseViews.caller_school_ids).
         if getattr(request, "user_role", None) == UserRoles.ROLE_CANTEEN:
             request._caller_school_ids = {request.user.school_id}
+
+    def handle_exception(self, exc):
+        # A date that does not exist (2083-08-30: Mangsir has 29 days) only fails
+        # when the query or the row reaches the Nepali date field. Anything being
+        # written has rolled back by now; say what is wrong instead of a 500.
+        if isinstance(exc, ValidationError):
+            message = exc.messages[0] if exc.messages else "That was not understood."
+            if "Nepali date" in message:
+                message = f"{message.split(' is not')[0].strip(chr(34))} is not a real date on the Nepali calendar."
+            return Response({"message": message}, status=status.HTTP_400_BAD_REQUEST)
+        return super().handle_exception(exc)
 
     def school_id(self, request):
         """The school this request is about — read from the SAME places the

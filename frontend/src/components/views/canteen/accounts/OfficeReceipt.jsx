@@ -31,6 +31,7 @@ function Copy({ receipt, user, whose }) {
                 <div className="grid grid-cols-2 gap-x-6">
                     <span>Receipt No :- C-{receipt.receipt_no}</span>
                     <span className="text-right">Date :- {receipt.date} {receipt.time || ""}</span>
+                    {(receipt.months || []).length > 0 && <span className="col-span-2">Upto the month :- {receipt.months.join(", ")}</span>}
                     <span className="col-span-2 capitalize">Name :- {receipt.name}{receipt.detail ? ` (${receipt.detail})` : ""}</span>
                 </div>
                 <table className="w-full my-1">
@@ -58,6 +59,12 @@ function Copy({ receipt, user, whose }) {
                                     <tr>
                                         <td className="!p-[0.2rem]">Advance (kept on the canteen account)</td>
                                         <td>{rs(advance)}</td>
+                                    </tr>
+                                )}
+                                {Number(receipt.discount) > 0 && (
+                                    <tr>
+                                        <td className="!p-[0.2rem]">Discount (not paid)</td>
+                                        <td>{rs(receipt.discount)}</td>
                                     </tr>
                                 )}
                                 <tr>

@@ -46,6 +46,7 @@ export const TXN_TOPUP = 1;
 export const TXN_PURCHASE = 2;
 export const TXN_REFUND = 3;
 export const TXN_POSTING = 6;
+export const TXN_DISCOUNT = 7;
 
 // The same four a student receipt offers, with the same numbers.
 export const MODES = [
@@ -78,12 +79,14 @@ export function nameOf(options, value, fallback = "—") {
 // The numbers are PERMISSIONS.CANTEEN's and the backend's PAGE_*.
 export const CANTEEN_PAGES = [
     { value: PERMISSIONS.CANTEEN.COUNTER, name: "Counter", hint: "Ring up sales, void today's mistakes" },
-    { value: PERMISSIONS.CANTEEN.ITEMS, name: "Items & Rates", hint: "Items, prices, class-wise monthly rates" },
-    { value: PERMISSIONS.CANTEEN.USE_TYPES, name: "Use Types", hint: "Day care, tiffin monthly; who is on each" },
-    { value: PERMISSIONS.CANTEEN.MONTHLY_POSTING, name: "Monthly Posting", hint: "Post the months' charges to regular users" },
-    { value: PERMISSIONS.CANTEEN.COLLECT, name: "Collect & Receipt", hint: "Collect dues item-wise, print receipts" },
+    { value: PERMISSIONS.CANTEEN.ITEMS, name: "Product Setup", hint: "Products and their units" },
+    { value: PERMISSIONS.CANTEEN.USE_TYPES, name: "Facility Setup", hint: "Day care, tiffin monthly; classes and amounts" },
+    { value: PERMISSIONS.CANTEEN.USER_SETUP, name: "User Setup", hint: "Tick the students who use a facility" },
+    { value: PERMISSIONS.CANTEEN.MONTHLY_POSTING, name: "Monthly Posting", hint: "Post a month's bills, by class or by hand from a profile" },
+    { value: PERMISSIONS.CANTEEN.COLLECT, name: "Payment", hint: "Take payments item-wise, print receipts" },
+    { value: PERMISSIONS.CANTEEN.PROFILE, name: "Student Profile", hint: "See a student's canteen bills, payments, dues and history" },
     { value: PERMISSIONS.CANTEEN.ACCOUNTS, name: "Card Accounts", hint: "Top-ups, refunds, limits, blocked cards" },
-    { value: PERMISSIONS.CANTEEN.REPORTS, name: "Canteen Reports", hint: "Sales, dues, postings, meal count" },
+    { value: PERMISSIONS.CANTEEN.REPORTS, name: "Canteen Reports", hint: "Sales, dues, postings, transaction history" },
     { value: PERMISSIONS.CANTEEN.SETUP, name: "Canteen Setup", hint: "How buyers pay, limits, the slip" },
     { value: PERMISSIONS.CANTEEN.USERS, name: "Canteen Users", hint: "Add canteen users, with pages they hold" },
 ];

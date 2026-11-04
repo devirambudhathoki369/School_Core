@@ -96,7 +96,7 @@ def find_students(school_id, q=None, card=None, ids=None, limit=20):
     return list(
         qs.annotate(name=full_name_expr(), guardian_contact=F("guardian_info__guardian_contact"))
         .order_by("first_name", "last_name")
-        .values("id", "name", "roll_no", "rfid_card", "guardian_contact", *CLASS_VALUES)[:limit]
+        .values("id", "name", "roll_no", "rfid_card", "image", "guardian_contact", *CLASS_VALUES)[:limit]
     )
 
 
@@ -113,7 +113,7 @@ def find_staff(school_id, q=None, card=None, ids=None, limit=10):
     return list(
         qs.annotate(name=full_name_expr(), designation=F("role__role"))
         .order_by("first_name", "last_name")
-        .values("id", "name", "designation", "rfid_card", "primary_contact")[:limit]
+        .values("id", "name", "designation", "rfid_card", "image", "primary_contact")[:limit]
     )
 
 
@@ -209,6 +209,7 @@ def describe_buyers(school_id, settings, today, students=(), staff=()):
             "detail": class_label(s),
             "roll_no": s.get("roll_no"),
             "contact": s.get("guardian_contact"),
+            "image": s.get("image") or None,
             "has_card": bool(s.get("rfid_card")),
             "plans": [{"plan": p["plan"], "name": p["name"], "kind": p["kind"]} for p in mine],
             "counter_plan": {"plan": covered["plan"], "name": covered["name"]} if covered else None,
@@ -223,6 +224,7 @@ def describe_buyers(school_id, settings, today, students=(), staff=()):
             "detail": s.get("designation") or "Staff",
             "roll_no": None,
             "contact": s.get("primary_contact"),
+            "image": s.get("image") or None,
             "has_card": bool(s.get("rfid_card")),
             "plans": [],
             "counter_plan": None,

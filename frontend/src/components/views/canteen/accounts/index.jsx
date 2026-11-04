@@ -67,7 +67,7 @@ const COLUMNS = [
  * A family tops up here at the office and gets a numbered receipt; the card is
  * then spent at the counter. Where the school allows credit, an account can go
  * below zero down to its limit; monthly postings land here too, and every due
- * is collected item-wise at Canteen > Collect & Receipt.
+ * is collected item-wise at Canteen > Payment.
  *
  * An account opens by itself on its first top-up or account purchase — there
  * is nothing to "create" first.

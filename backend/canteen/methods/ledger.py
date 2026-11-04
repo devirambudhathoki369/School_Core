@@ -4,6 +4,7 @@ Every transaction on a canteen account carries `details` {item id: amount}:
     charges   counter purchases on the account, and monthly postings
     payments  what a receipt paid, item by item; whatever it did not name is an
               ADVANCE (a top-up), held against whatever is charged next
+    discounts what a receipt let off, item by item (`paid` includes it)
 
 For each item:  due = charged − paid.  An advance is then set against the dues,
 oldest item first, so a student who topped up Rs. 500 and was posted Rs. 1,500
@@ -19,7 +20,7 @@ Amounts are Decimals to the paisa throughout (money.exact).
 import logging
 from collections import defaultdict
 
-from ..constants import CHARGE_KINDS, TXN_REFUND, TXN_TOPUP
+from ..constants import CHARGE_KINDS, TXN_DISCOUNT, TXN_REFUND, TXN_TOPUP
 from ..models import CanteenItem, CanteenTransaction
 from .balances import live
 from .money import exact
@@ -49,6 +50,7 @@ def statements(school_id, account_ids):
     ids = [i for i in account_ids if i]
     charged = defaultdict(lambda: defaultdict(lambda: ZERO))
     paid = defaultdict(lambda: defaultdict(lambda: ZERO))
+    discounted = defaultdict(lambda: defaultdict(lambda: ZERO))
     first = defaultdict(dict)
     credit = defaultdict(lambda: ZERO)
     balance = defaultdict(lambda: ZERO)
@@ -77,6 +79,11 @@ def statements(school_id, account_ids):
                 paid[acc][key] += amount
                 allocated += amount
             credit[acc] += t["amount"] - allocated
+        elif t["kind"] == TXN_DISCOUNT:
+            # Settles the item like a payment; only never counted as cash taken.
+            for key, amount in detail_rows(t["details"]):
+                paid[acc][key] += amount
+                discounted[acc][key] += amount
         elif t["kind"] == TXN_REFUND:
             credit[acc] += t["amount"]  # negative: advance handed back
     names = {**snap, **item_names(school_id), OTHER: "Other"}
@@ -90,7 +97,7 @@ def statements(school_id, account_ids):
                 advance += -raw
                 raw = ZERO
             rows.append({"item": key, "name": names.get(key, "Item"), "charged": charged[acc][key],
-                         "paid": paid[acc][key], "raw_due": raw})
+                         "paid": paid[acc][key], "discount": discounted[acc][key], "raw_due": raw})
         for row in rows:          # the advance against the oldest dues first
             used = min(row["raw_due"], max(advance, ZERO))
             row["due"] = row["raw_due"] - used

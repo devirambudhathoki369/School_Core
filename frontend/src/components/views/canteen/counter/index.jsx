@@ -280,7 +280,7 @@ function CanteenCounter() {
     if (!settings || items === null) return <Loader />;
     if (items.length < 1) {
         return <SetupNeeded what="items on the counter"
-            where="Add what the canteen sells in Canteen > Items & Prices (or switch sold-out items back on)." />;
+            where="Add what the canteen sells in Canteen > Product Setup (or switch sold-out items back on)." />;
     }
 
     const activeSales = sales.filter((s) => s.is_active);
@@ -341,10 +341,14 @@ function CanteenCounter() {
                     <div className="rounded-xl border border-gray-200 bg-white p-3">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
                             <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
-                                <CategoryChip label={`All (${items.length})`} on={category === "all"} onClick={() => setCategory("all")} />
-                                {categories.map(([name, n]) => (
-                                    <CategoryChip key={name} label={`${name} (${n})`} on={category === name} onClick={() => setCategory(name)} />
-                                ))}
+                                {categories.length > 1 && (
+                                    <>
+                                        <CategoryChip label={`All (${items.length})`} on={category === "all"} onClick={() => setCategory("all")} />
+                                        {categories.map(([name, n]) => (
+                                            <CategoryChip key={name} label={`${name} (${n})`} on={category === name} onClick={() => setCategory(name)} />
+                                        ))}
+                                    </>
+                                )}
                             </div>
                             <input value={codeText} onChange={(e) => setCodeText(e.target.value)} onKeyDown={onCodeEnter}
                                 aria-label="Item code" placeholder="Code + Enter (2*SAM)"
