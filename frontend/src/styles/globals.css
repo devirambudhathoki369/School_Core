@@ -7204,3 +7204,167 @@ button.app-att-day { cursor: pointer; }
 }
 /* a dashboard greets you instead */
 .app-view-enter:has(.app-dash-greeting) > .app-heading { display: none; }
+
+/* -- fields: 40 tall, 8px corners, a real edge; focus is the brand edge with a
+      soft 4px ring; an error is a red edge and a red line under it ---------- */
+@media screen {
+    :root .app-field-label {
+        font-size: 13px !important;
+        line-height: 20px;
+        font-weight: 600;
+        letter-spacing: 0;
+        color: var(--ink-700) !important;
+        margin-bottom: 6px;
+    }
+    :root .app-field-label + .app-field-shell,
+    :root .app-field-label + div > .app-select,
+    :root .app-field-label + .mt-1 { margin-top: 0 !important; }
+    :root :is(.app-field-shell, .app-select, .app-picker-trigger) {
+        min-height: 40px;
+        border-radius: 8px !important;
+        border: 1px solid var(--field-line) !important;
+        background-color: #FFFFFF !important;
+        box-shadow: 0 1px 2px rgb(16 24 40 / .05) !important;
+    }
+    :root .app-field-shell > input,
+    :root .app-field-shell > div > input {
+        min-height: 38px;
+        padding: 0 12px !important;
+        font-size: 14px !important;
+        line-height: 20px;
+        color: var(--ink-900);
+    }
+    :root .app-field-shell > input::placeholder { font-size: 14px; color: #667085; }
+    :root .app-select {
+        padding: 0 36px 0 12px !important;
+        font-size: 14px !important;
+        line-height: 38px;
+    }
+    :root .app-picker-trigger { font-size: 14px !important; }
+    :root :is(.app-field-shell, .app-select, .app-picker-trigger):hover { border-color: var(--ink-500) !important; }
+    :root .app-field-shell.app-field-focused,
+    :root .app-select:focus,
+    :root .app-picker-trigger:focus-visible,
+    :root .app-picker-trigger[aria-expanded="true"] {
+        border-color: var(--t-brand-solid) !important;
+        box-shadow: 0 0 0 4px var(--t-brand-tint-strong) !important;
+        outline: none;
+    }
+    :root .app-field-shell:has(> input[aria-invalid="true"]),
+    :root .app-picker-trigger[aria-invalid="true"],
+    :root .app-select[aria-invalid="true"] { border-color: #B42318 !important; }
+    :root .app-field-shell:has(> input[aria-invalid="true"]).app-field-focused { box-shadow: 0 0 0 4px #FEE4E2 !important; }
+    :root .app-field-error { margin-top: 6px; font-size: 13px !important; line-height: 18px; font-weight: 500; color: #B42318; }
+    :root .app-field-info { margin-top: 6px; font-size: 13px !important; line-height: 18px; font-weight: 400; color: var(--ink-600); }
+    :root input[type="checkbox"], :root input[type="radio"] { accent-color: var(--t-brand-solid); }
+
+    /* between fields: 16 across, 16 down */
+    :root .mygrid { column-gap: 16px; row-gap: 16px; }
+    :root .app-filter-section .grid { row-gap: 16px; }
+}
+@media screen and (max-width: 767.98px) {
+    /* a finger needs 44 */
+    :root :is(.app-field-shell, .app-select, .app-picker-trigger) { min-height: 44px; }
+    :root .app-field-shell > input { min-height: 42px; }
+    :root .app-select { line-height: 42px; }
+}
+:root[data-ui-mode="dark"] :is(.app-field-shell, .app-select, .app-picker-trigger) {
+    background-color: var(--d-surface) !important;
+    border-color: var(--d-line-strong) !important;
+    box-shadow: none !important;
+}
+
+/* -- buttons: 40 tall, 8px corners, 14px semibold. The brand fill is for the
+      one thing the screen is for; everything else is white with a grey edge -- */
+@media screen {
+    :root :is(.app-actions button, .app-toolbar button:not(.app-table-search button), .app-btn:not(.app-btn-icon)) {
+        min-height: 40px;
+        padding: 0 16px !important;
+        border-radius: 8px !important;
+        font-size: 14px !important;
+        line-height: 20px;
+        font-weight: 600 !important;
+        letter-spacing: 0;
+        text-transform: none;
+        transform: none;
+    }
+    :root :is(.app-actions button, .app-toolbar button, .app-btn) :is(svg) { width: 16px; height: 16px; }
+    /* the main action */
+    :root :is(.app-actions button[type="submit"], .app-actions .bg-teal-500, button.bg-teal-500, .app-btn-primary) {
+        background: var(--t-brand-solid) !important;
+        border: 1px solid var(--t-brand-solid) !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 1px 2px rgb(16 24 40 / .05) !important;
+    }
+    :root :is(.app-actions button[type="submit"], .app-actions .bg-teal-500, button.bg-teal-500, .app-btn-primary):hover:not(:disabled) {
+        background: var(--t-brand-hover) !important;
+        border-color: var(--t-brand-hover) !important;
+    }
+    /* the rest: white, a grey edge, dark text */
+    :root .app-actions button:not([type="submit"]):not(.bg-teal-500):not([class*="bg-red"]):not([class*="bg-rose"]),
+    :root .app-toolbar button:not(.app-table-search button):not(.bg-teal-500),
+    :root .app-btn-secondary {
+        background: #FFFFFF !important;
+        border: 1px solid #D0D5DD !important;
+        color: var(--ink-700) !important;
+        box-shadow: 0 1px 2px rgb(16 24 40 / .05) !important;
+    }
+    :root .app-actions button:not([type="submit"]):not(.bg-teal-500):not([class*="bg-red"]):not([class*="bg-rose"]):hover:not(:disabled),
+    :root .app-toolbar button:not(.app-table-search button):not(.bg-teal-500):hover:not(:disabled),
+    :root .app-btn-secondary:hover:not(:disabled) {
+        background: #F9FAFB !important;
+        border-color: #D0D5DD !important;
+        color: var(--ink-900) !important;
+    }
+    :root :is(.app-actions button, .app-toolbar button, .app-btn) :is(span, svg) { color: inherit !important; }
+    /* something that cannot be undone */
+    :root :is(.app-btn-destructive, .app-actions button[class*="bg-red"], .app-actions button[class*="bg-rose"]) {
+        background: #B42318 !important;
+        border: 1px solid #B42318 !important;
+        color: #FFFFFF !important;
+    }
+    :root :is(.app-btn-destructive, .app-actions button[class*="bg-red"], .app-actions button[class*="bg-rose"]):hover:not(:disabled) { background: #912018 !important; }
+    /* a quiet way out */
+    :root .app-btn-ghost { background: transparent !important; border-color: transparent !important; color: var(--t-brand-ink) !important; }
+    :root .app-btn-ghost:hover:not(:disabled) { background: var(--t-brand-tint) !important; }
+    /* can't be pressed yet: grey, and says so */
+    :root :is(.app-actions button, .app-toolbar button, .app-btn):disabled {
+        opacity: 1 !important;
+        background: #F2F4F7 !important;
+        border-color: #E4E7EC !important;
+        color: #98A2B3 !important;
+        box-shadow: none !important;
+        cursor: not-allowed;
+    }
+    :root :is(.app-actions button, .app-toolbar button, .app-btn):focus-visible {
+        outline: 2px solid var(--t-brand-solid) !important;
+        outline-offset: 2px;
+    }
+}
+@media screen and (max-width: 767.98px) {
+    :root :is(.app-actions button, .app-btn:not(.app-btn-icon)) { min-height: 44px; }
+}
+:root[data-ui-mode="dark"] .app-actions button:not([type="submit"]):not(.bg-teal-500):not([class*="bg-red"]):not([class*="bg-rose"]),
+:root[data-ui-mode="dark"] .app-toolbar button:not(.app-table-search button):not(.bg-teal-500),
+:root[data-ui-mode="dark"] .app-btn-secondary {
+    background: var(--d-surface-2) !important;
+    border-color: var(--d-line-strong) !important;
+    color: var(--d-ink) !important;
+    box-shadow: none !important;
+}
+:root[data-ui-mode="dark"] :is(.app-actions button, .app-toolbar button, .app-btn):disabled {
+    background: var(--d-surface-3) !important;
+    border-color: var(--d-line) !important;
+    color: var(--d-ink-3) !important;
+}
+/* every ordinary Material Tailwind button (they all carry these three classes;
+   round icon buttons don't carry `rounded-lg`) takes the same corner and weight */
+@media screen {
+    :root button.align-middle.select-none.rounded-lg,
+    :root .app-actions button,
+    :root .app-toolbar button,
+    :root .app-tool-btn {
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+    }
+}
