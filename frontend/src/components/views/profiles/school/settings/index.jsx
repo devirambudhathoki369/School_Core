@@ -81,6 +81,9 @@ function SchoolSettingsPage() {
                     </Section>
                     <form onSubmit={handlePasswordChange}>
                         <Section>
+                            <PasswordInput value={newPassword.current_password} onChange={onPwChange} input={{
+                                name: 'current_password', label: 'Current password', autoComplete: 'current-password'
+                            }} />
                             <PasswordInput value={newPassword?.password} error={errors?.password} onChange={onPwChange} onBlur={onBlur} input={{
                                 name: 'password', label: 'New password'
                             }} />
@@ -89,7 +92,7 @@ function SchoolSettingsPage() {
                             }} />
                         </Section>
                         <ButtonsSecion>
-                            <FormSaveButton disabled={!hasTypedSamePasswords() || uploading}
+                            <FormSaveButton disabled={!newPassword.current_password || !hasTypedSamePasswords() || uploading}
                                 custom={[uploading, "Change password", "Updating..."]} />
                         </ButtonsSecion>
                     </form>

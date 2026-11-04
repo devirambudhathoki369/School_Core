@@ -1,3 +1,4 @@
+import { portalPath, portalRole } from "@/methods/portalRoutes";
 import { useTempState } from "@/contexts/TempStateContext";
 import { useEffect, useState } from "react";
 import { ACADEMIC_YEAR_CLOSING_KEY } from "./configs";
@@ -130,7 +131,7 @@ function AcademicYearReviewOrClose() {
         setErrors({});
         // 
         setTimeout(() => {
-            window.location.href = `/admin#${HOMEPAGE}`;
+            window.location.href = portalPath(portalRole(window.location.pathname) || 'admin', HOMEPAGE);
             window.location.reload();
             localStorage.removeItem(fyKeys?.academic_year);
         }, afterCloseExitTime);

@@ -2,12 +2,15 @@ import FormSaveButton from "@/components/buttons/FormSaveButton";
 import { PasswordInput, TextInput } from "@/components/inputs";
 import { ButtonsSecion, Section } from "@/components/sections";
 import { useStaffProfile } from "@/contexts/StaffProfile";
-import { password } from "@/schemas/validations";
+import { useAppContext } from "@/contexts/AppContext";
 
 function StaffAccountTab({ tab }) {
     const { data: { staff }, password: { newPassword, errors, onChange: onPwChange, onBlur,
         hasTypedSamePasswords, handlePasswordChange, createAccount },
         status: { uploading } } = useStaffProfile();
+
+    const { user: { user } } = useAppContext();
+    const ownAccount = user?.role === "staff" && user?.username === staff?.username;
 
     return (
         <>
@@ -18,6 +21,9 @@ function StaffAccountTab({ tab }) {
             </Section>
             <form onSubmit={staff?.username ? handlePasswordChange : createAccount}>
                 <Section>
+                    {ownAccount && <PasswordInput value={newPassword.current_password} onChange={onPwChange} input={{
+                        name: 'current_password', label: 'Current password', autoComplete: 'current-password'
+                    }} />}
                     <PasswordInput value={newPassword?.password} error={errors?.password} onChange={onPwChange} onBlur={onBlur} input={{
                         name: 'password', label: 'New password'
                     }} />

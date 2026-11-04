@@ -32,7 +32,9 @@ function Reveal({ children }) {
     );
 }
 
-function ClassPicker({ data, onChange: onChangeOg, onBlur, classwise = '', handleAcademicYear = true, allowedEducationLevels = education_levels }) {
+// `source` swaps where its lists come from ({ hiddenLevels, sections, courses },
+// each given the school): a canteen user's sign-in cannot read the school's APIs.
+function ClassPicker({ data, onChange: onChangeOg, onBlur, classwise = '', handleAcademicYear = true, allowedEducationLevels = education_levels, source = null }) {
     const { user: { user },
         fiscalYear: { updateAcademicYear } } = useAppContext();
     const [sectionsBackup, setSectionsBackup] = useState();
@@ -44,7 +46,7 @@ function ClassPicker({ data, onChange: onChangeOg, onBlur, classwise = '', handl
 
     useEffect(() => {
         const school = data?.school || user?.profile?.school || user?.profile?.id;
-        if (school) getHiddenEducationLevels(school).then((h) => setHiddenLevels(new Set(h)));
+        if (school) (source?.hiddenLevels || getHiddenEducationLevels)(school).then((h) => setHiddenLevels(new Set(h)));
     }, [data?.school, user?.profile?.school]);
 
     function onChange({ name, value }) {
@@ -74,8 +76,8 @@ function ClassPicker({ data, onChange: onChangeOg, onBlur, classwise = '', handl
         const school = data?.school || user?.profile?.school || user?.profile?.id;
         if (school) {
             (async () => {
-                let data = await fetchSections(school, false, classwise);
-                const data2 = await fetchCourseOptions(school);
+                let data = source ? await source.sections(school) : await fetchSections(school, false, classwise);
+                const data2 = source ? await source.courses(school) : await fetchCourseOptions(school);
                 // 
                 if (classwise) {
                     setSectionsBackup(data);
@@ -99,7 +101,7 @@ function ClassPicker({ data, onChange: onChangeOg, onBlur, classwise = '', handl
     }, [data?.school]);
     return (
         <>
-            <FilterSection title={"Choose education level"}>
+            <FilterSection title={"Select education level"}>
                 {
                     allowedEducationLevels
                         ?.filter(option => !hiddenLevels.has(option?.value))
@@ -111,7 +113,7 @@ function ClassPicker({ data, onChange: onChangeOg, onBlur, classwise = '', handl
             </FilterSection>
             <>
                 {(data?.education_level && [2, 3, 10].includes(data?.education_level)) &&
-                    <Reveal><FilterSection title={"Choose class"}>
+                    <Reveal><FilterSection title={"Select grade"}>
                         {
                             (data?.education_level === 3 ? gradeOptions2 : (gradeOptions || []))
                                 ?.map(option => (
@@ -124,7 +126,7 @@ function ClassPicker({ data, onChange: onChangeOg, onBlur, classwise = '', handl
             </>
             <>
                 {data?.education_level === 3 &&
-                    <Reveal><FilterSection title={"Choose faculty"}>
+                    <Reveal><FilterSection title={"Select faculty group"}>
                         {facultyOptions.map(option => (
                             <FilterItem onClick={onChange} label={option?.name} value={option?.value}
                                 name={'faculty'} selectedOption={data?.faculty} key={option?.value} />
@@ -194,7 +196,7 @@ function ClassPicker({ data, onChange: onChangeOg, onBlur, classwise = '', handl
                 </>
             </>
             {data?.education_level &&
-                <Reveal><FilterSection title={"Choose Section"}>
+                <Reveal><FilterSection title={"Section (optional)"}>
                     <SearchInput input={{ name: 'section', label: 'Section', options: [OPTION_NONE, ...sections] }}
                         value={data?.section} onChange={onChange} onBlur={onBlur} />
                 </FilterSection></Reveal>

@@ -5,7 +5,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import { Button } from "@material-tailwind/react";
 
 function FiscalYearView({ toggleFiscalYearView }) {
-    const { fiscalYear: { fyKeys, years, year, updateAcademicYear, updateAccountingEconomicYear } } = useAppContext();
+    const { fiscalYear: { fyKeys, years, year, updateAcademicYear } } = useAppContext();
     async function onChange({ name, value }) {
         if (await confirmAction({
             title: "Switch to a different fiscal year?",
@@ -15,7 +15,6 @@ function FiscalYearView({ toggleFiscalYearView }) {
         })) {
             localStorage.setItem(fyKeys[name], value);
             if (name === "academic_year") updateAcademicYear(value);
-            else if (name === "accounting_economic_year") updateAccountingEconomicYear(value);
         }
         toggleFiscalYearView();
     }
@@ -37,16 +36,11 @@ function FiscalYearView({ toggleFiscalYearView }) {
                         <span className="font-semibold">Active Economic Year is : </span>
                         <span className="font-semibold text-base text-blue-gray-600 ">{year?.economic_year_name}</span>
                     </div>
-                    <span className="text-center text-green-700 underline my-1">Click on boxes to change fiscal years!</span>
+                    <span className="text-center text-green-700 my-1">The latest open academic year is selected automatically.</span>
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
                         <span className="font-semibold">Active Academic Year is : </span>
                         <SearchInput value={year?.academic_year} onChange={onChange}
                             input={{ name: 'academic_year', label: '', options: years?.academicYears || [] }} />
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-                        <span className="font-semibold">Active Accounting Economic Year is : </span>
-                        <SearchInput value={year?.accounting_economic_year} onChange={onChange}
-                            input={{ name: 'accounting_economic_year', label: '', options: years?.accountingEconomicYears || [] }} />
                     </div>
                     <ButtonsSecion className={"my-1"}>
                         <Button className="px-5 py-2" variant="outlined" onClick={toggleFiscalYearView}>Close</Button>

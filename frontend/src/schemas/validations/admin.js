@@ -1,12 +1,15 @@
 import { boolean, object } from "yup";
-import { CONTACT_SIZE, contact, date_required, email_required, text } from ".";
+import { CONTACT_SIZE, contact, date_required, email_required, select, strong_password, text } from ".";
 import { flattenSchema } from "@/methods/FlattenSchema";
 import { SCHOOL_MODULES } from "@/configs/moduleGates";
 
 const _adminValidationSchema = {
     account: {
         username: text('Username').must().size(6, 25),
-        password: text('Password').must().size(6, 15)
+        // Account creation is governed by the same password policy on the
+        // server. Keeping the old 6–15 character rule here allowed a password
+        // the API could never accept, which surfaced only as "Invalid request!".
+        password: strong_password()
     },
     name: text('Organization name').must().size(10, 50),
     address: text('Address').must().size(2, 50),
@@ -18,6 +21,11 @@ const _adminValidationSchema = {
     renew_date: date_required("Renew date"),
     slogan: text("Slogan").size(5, 100),
     about_us: text("About us"),
+    // The school form validates fields individually with `validateAt`. Keep
+    // every rendered field in this schema: without this path, merely leaving
+    // the picker produced Yup's internal "schema does not contain the path"
+    // error instead of a useful required-field message.
+    economic_year: select("Economic year").must(),
     test_account: boolean().label("Account type").must(),
     uses_sms: boolean().label("Uses sms"),
     uses_mobile_app: boolean().label("Uses mobile app").must(),

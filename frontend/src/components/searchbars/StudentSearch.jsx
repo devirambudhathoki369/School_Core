@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import SearchProvider from "@/contexts/SearchContext";
 import { useAppContext } from "@/contexts/AppContext";
 import { searchStudents } from "@/services/functions/students";
@@ -37,6 +37,12 @@ function StudentSearch({
     // School ids of other schools whose students should also be searched
     // (library: schools this library lends books to). Validated server-side.
     guestSchools = [],
+    // A page searching other data with this same form (Canteen > Payment):
+    // `searchFn(filters)` answers [status, message, rows], `classPickerProps` go
+    // to the class picker, and the list is read afresh on coming back, because
+    // what was done there changes the balances it shows.
+    searchFn = null,
+    classPickerProps = null,
 }) {
     const { user: { user }, fiscalYear: { year }, notification: { updateNotification } } = useAppContext();
     studentSearchFormState['school'] = user?.profile?.school || user?.profile?.id;
@@ -44,6 +50,7 @@ function StudentSearch({
     const [students, setStudents] = useState(null);
     const [studentClasses, setStudentClasses] = useState({});
     const { fetching, statusHandler } = useRequestStatus();
+    const lastSearch = useRef(null);
 
     // Clear-form-only: reset the search-input fields but keep `students`
     // and `studentClasses`, so the table the user was just looking at is
@@ -54,9 +61,17 @@ function StudentSearch({
                 ...studentSearchFormState,
                 school: user?.profile?.school || user?.profile?.id,
             });
+            if (searchFn && lastSearch.current) runSearchFn(lastSearch.current);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [clearFormSignal]);
+    async function runSearchFn(filters) {
+        lastSearch.current = filters;
+        statusHandler.toggleFetching();
+        const [, , data] = await searchFn(cleanClassInfo({ ...filters }));
+        statusHandler.toggleFetching();
+        setStudents(data);
+    }
     //
     function onChange({ name, value }) {
         if (value === studentSearch?.[name]) value = null;
@@ -75,6 +90,7 @@ function StudentSearch({
             updateNotification(400, "Student ID, Name or Education Level is required!");
             return;
         }
+        if (searchFn) return runSearchFn(studentSearch);
         statusHandler.toggleFetching();
         const [, , data] = await searchStudents({
             ...cleanClassInfo(studentSearch),
@@ -107,7 +123,8 @@ function StudentSearch({
                 {/* student-search-form */}
                 <StudentSearchForm
                     useStatus={true}
-                    useAcademicYear={useAcademicYear} />
+                    useAcademicYear={useAcademicYear}
+                    classPickerProps={classPickerProps} />
                 {/* searched-student-table */}
             </SearchProvider>
             {/* search-list */}
@@ -119,7 +136,7 @@ function StudentSearch({
                             <Payment_SearchListView data={students} studentClasses={studentClasses}
                                 allowStudentManagement={allowStudentManagement}
                                 onSelect={onSelect}
-                                permissions={user?.role === "staff" ? user?.profile?.permissions : null}
+                                permissions={user?.role === "staff" && !searchFn ? user?.profile?.permissions : null}
                             // permissions={TESTED_PERMISSIONS} // testing
                             />
                         }

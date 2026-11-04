@@ -88,10 +88,10 @@ function SchoolFormDialog() {
 
                     <DialogBody className="app-dialog-body flex flex-col gap-y-5">
                         <Group title="School">
-                            <TextInput grid={8} value={admin?.name} input={{ name: 'name', label: 'Organization Name' }} {...methods} error={errors?.name} />
-                            <TextInput value={admin?.pan_no} input={{ name: 'pan_no', label: 'PAN No.' }} {...methods} error={errors?.pan_no} />
-                            <TextInput grid={8} value={admin?.address} input={{ name: 'address', label: 'Address' }} {...methods} error={errors?.address} />
-                            <TextInput value={admin?.estd_date} input={{ name: 'estd_date', label: 'ESTD Date. (BS)' }} {...methods} error={errors?.estd_date} />
+                            <TextInput grid={8} value={admin?.name} input={{ name: 'name', label: 'Organization Name', required: true }} {...methods} error={errors?.name} />
+                            <TextInput value={admin?.pan_no} input={{ name: 'pan_no', label: 'PAN No.', required: true }} {...methods} error={errors?.pan_no} />
+                            <TextInput grid={8} value={admin?.address} input={{ name: 'address', label: 'Address', required: true }} {...methods} error={errors?.address} />
+                            <TextInput value={admin?.estd_date} input={{ name: 'estd_date', label: 'ESTD Date. (BS)', required: true }} {...methods} error={errors?.estd_date} />
                             <TextInput grid={12} value={admin?.slogan} input={{ name: 'slogan', label: 'Slogan' }} {...methods} error={errors?.slogan} />
                             <div className="sm:col-span-12">
                                 <label htmlFor={aboutId} className="app-field-label text-sm font-medium leading-6 text-gray-900">
@@ -114,18 +114,18 @@ function SchoolFormDialog() {
                         <Group title="Contact">
                             <TextInput value={admin?.contact} input={{ name: 'contact', label: 'Contact' }} {...methods} error={errors?.contact} />
                             <TextInput value={admin?.telephone} input={{ name: 'telephone', label: 'Telephone' }} {...methods} error={errors?.telephone} />
-                            <TextInput value={admin?.email} input={{ name: 'email', label: 'Email', type: 'email' }} {...methods} error={errors?.email} />
+                            <TextInput value={admin?.email} input={{ name: 'email', label: 'Email', type: 'email', required: true }} {...methods} error={errors?.email} />
                         </Group>
 
                         <Group title="Licence">
-                            <SearchInput input={{ name: 'economic_year', label: "Economic Year", options: economicYears }} value={admin?.economic_year} {...methods} error={errors?.economic_year} />
-                            <TextInput value={admin?.renew_date} input={{ name: 'renew_date', label: 'Renew Date' }} {...methods} error={errors?.renew_date} />
+                            <SearchInput input={{ name: 'economic_year', label: "Economic Year", options: economicYears, required: true }} value={admin?.economic_year} {...methods} error={errors?.economic_year} />
+                            <TextInput value={admin?.renew_date} input={{ name: 'renew_date', label: 'Renew Date', required: true }} {...methods} error={errors?.renew_date} />
                         </Group>
 
                         <Group title="Admin sign-in">
-                            <TextInput value={admin?.username || admin?.account__username} input={{ name: 'username', label: 'Username' }} {...methods} error={errors?.username} />
+                            <TextInput value={admin?.username || admin?.account__username} input={{ name: 'username', label: 'Username', required: true }} {...methods} error={errors?.username} />
                             {!isEdit && (
-                                <PasswordInput value={admin?.password} input={{ name: 'password', label: 'Password' }} {...methods} error={errors?.password} />
+                                <PasswordInput value={admin?.password} input={{ name: 'password', label: 'Password', required: true }} {...methods} error={errors?.password} />
                             )}
                         </Group>
 

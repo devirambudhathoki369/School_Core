@@ -1,445 +1,689 @@
-/**
- * The content behind the Guides page.
- *
- * Kept as data, separate from the component, so a guide can be corrected or
- * added without touching layout — and so the search can run over plain strings
- * rather than JSX. `view` is the in-app hash the sidebar uses (`#payment.student`),
- * which is what lets a guide hand the reader straight to the screen it describes.
+/** Bundled fallback for Guides. Keep in sync with backend/main/data/help_seed.json.
+ * Database-authored guides take precedence when the API succeeds.
  */
-
 export const CATEGORIES = [
-    { key: "start", name: "Getting started" },
-    { key: "students", name: "Students & staff" },
-    { key: "fees", name: "Fees & payments" },
-    { key: "exams", name: "Exams & results" },
-    { key: "attendance", name: "Attendance" },
-    { key: "sms", name: "SMS & app" },
-    { key: "money", name: "Accounting & payroll" },
-    { key: "library", name: "Library" },
-    { key: "yearend", name: "Year end" },
+  {
+    "key": "start",
+    "name": "Getting started"
+  },
+  {
+    "key": "students",
+    "name": "Students & staff"
+  },
+  {
+    "key": "fees",
+    "name": "Fees & payments"
+  },
+  {
+    "key": "exams",
+    "name": "Exams & results"
+  },
+  {
+    "key": "attendance",
+    "name": "Attendance"
+  },
+  {
+    "key": "sms",
+    "name": "SMS & app"
+  },
+  {
+    "key": "money",
+    "name": "Accounting & payroll"
+  },
+  {
+    "key": "library",
+    "name": "Library"
+  },
+  {
+    "key": "yearend",
+    "name": "Year end"
+  }
 ];
 
 const GUIDES = [
-    // ── getting started ──────────────────────────────────────────────────
-    {
-        id: "setup-order",
-        category: "start",
-        title: "Set the school up, in the right order",
-        summary: "Everything else depends on this chain. Doing it out of order is the usual cause of an empty class list or a fee that will not attach.",
-        where: "Manage",
-        view: "manage.academic-year",
-        steps: [
-            "Manage ▸ Academic Year — create the running year first. Nothing can be created without a year to sit in.",
-            "Manage ▸ Sections — add the sections a class is split into (A, B, Science…).",
-            "Manage ▸ Courses/Subjects — add every subject the school teaches.",
-            "Manage ▸ Classes/Periods — create each class for this year, then attach its subjects and teachers.",
-            "Manage ▸ Fees — create the fee heads and their amounts for each class.",
-            "Enrollment ▸ Student — only now enroll students, so each one lands in a class that already has fees and subjects.",
-        ],
-        tips: [
-            "A class belongs to one academic year. When the year changes you create the classes again for the new year — you do not rename last year's.",
-        ],
-    },
-    {
-        id: "users-permissions",
-        category: "start",
-        title: "Give a staff member their own login",
-        summary: "Each person should sign in as themselves — shared logins make the history reports useless.",
-        where: "Manage ▸ Users",
-        view: "manage.users",
-        steps: [
-            "Enroll the person under Enrollment ▸ Staff first, so there is a staff record to attach the login to.",
-            "Open Manage ▸ Users and create an account for them.",
-            "Open their staff profile ▸ Permissions and tick only the pages that person actually needs.",
-            "Hand over the username and password; ask them to change it from Profile after signing in.",
-        ],
-        tips: [
-            "Permissions are per page. Someone who only collects fees needs Payment, not Accounting.",
-        ],
-    },
-    {
-        id: "school-brand",
-        category: "start",
-        title: "Put your logo and signatures on printed documents",
-        summary: "Bills, marksheets and certificates print whatever is uploaded here.",
-        where: "Profile",
-        view: "profile",
-        steps: [
-            "Open Profile.",
-            "In 'Logos and signatures', click the image you want to replace.",
-            "Pick a clear image with a white or transparent background and confirm the upload.",
-            "Print any bill to check it before a whole batch is printed.",
-        ],
-        tips: [
-            "The school's name, PAN and dates are held by CentIT — contact support to have those corrected.",
-        ],
-    },
-
-    // ── students & staff ────────────────────────────────────────────────
-    {
-        id: "enroll-student",
-        category: "students",
-        title: "Enroll a new student",
-        summary: "One student, with guardian details, class and fees attached in a single pass.",
-        where: "Enrollment ▸ Student",
-        view: "enrollment.student",
-        steps: [
-            "Open Enrollment ▸ Student.",
-            "Fill the personal details, then the guardian's name and contact — the guardian contact is the number every SMS goes to.",
-            "Pick the academic year, class and section.",
-            "Attach the fees that apply to this student, and any discount.",
-            "Save. The student now appears in that class everywhere in the system.",
-        ],
-        tips: [
-            "If the guardian contact is wrong or missing, that student silently receives no SMS at all.",
-            "Enrolling many students at once? Use Enrollment ▸ Bulk ▸ Student enrollments instead.",
-        ],
-    },
-    {
-        id: "move-class",
-        category: "students",
-        title: "Move a student to another class or section",
-        summary: "Changing a class carries the student's outstanding dues with them; changing a section can carry their results.",
-        where: "Enrollment ▸ Student (search, then edit)",
-        view: "enrollment.student",
-        steps: [
-            "Search the student and open their profile.",
-            "Change the class or section and save.",
-            "Check the student's ledger afterwards to confirm the balance came across as expected.",
-        ],
-        tips: [
-            "A section change moves the student's recorded results with them automatically — you do not need to re-enter marks.",
-            "Old dues are carried forward on a class change. If a balance looks wrong after a move, tell support the student's name before doing anything else.",
-        ],
-    },
-
-    // ── fees & payments ─────────────────────────────────────────────────
-    {
-        id: "collect-payment",
-        category: "fees",
-        title: "Collect a fee and print the receipt",
-        summary: "The everyday counter job.",
-        where: "Payment ▸ Student",
-        view: "payment.student",
-        steps: [
-            "Open Payment ▸ Student and search the student.",
-            "Check the outstanding rows and the balance shown.",
-            "Enter the amount received against the correct fee titles.",
-            "Choose the payment month, then save — wait for the button to finish before clicking again.",
-            "Print the receipt for the guardian.",
-        ],
-        tips: [
-            "Never double-click Save on a slow connection: the button disables itself while it is working, and a second click is how duplicate receipts get created.",
-            "Put the money against the fee titles it was actually paid for. Dumping a lump into 'Old Dues' makes every later report harder to read.",
-        ],
-    },
-    {
-        id: "ledger-posting",
-        category: "fees",
-        title: "Post monthly fees to a whole class",
-        summary: "Charges the month's fees to every student in a class in one action.",
-        where: "Payment ▸ Ledger posting",
-        view: "payment.ledger-posting",
-        steps: [
-            "Open Payment ▸ Ledger posting.",
-            "Pick the academic year, class and section.",
-            "Pick the month you are charging for — this is required, and it is what every monthly report groups by.",
-            "Select the fee titles to post and check the amounts.",
-            "Post, then spot-check one student's ledger to confirm it landed.",
-        ],
-        tips: [
-            "Posting the same month twice charges twice. Check Reports ▸ Recent postings before re-posting.",
-        ],
-    },
-    {
-        id: "old-dues",
-        category: "fees",
-        title: "Enter dues carried over from before the system",
-        summary: "Opening balances for students who already owed money when you started.",
-        where: "Payment ▸ Old dues posting",
-        view: "payment.old-dues-posting",
-        steps: [
-            "Open Payment ▸ Old dues posting.",
-            "Pick the class, then enter each student's carried-over amount.",
-            "Save, and verify the total against your previous register.",
-        ],
-        tips: [
-            "Old dues are exempt from the month requirement — they belong to no single month by definition.",
-        ],
-    },
-    {
-        id: "reminder-bills",
-        category: "fees",
-        title: "Send home a dues reminder bill",
-        summary: "A printed bill per student showing what is still owed.",
-        where: "Payment ▸ Reminder bills",
-        view: "payment.reminder-bills",
-        steps: [
-            "Open Payment ▸ Reminder bills.",
-            "Pick the class and section.",
-            "Review the list, then print — several bills lay out per sheet.",
-        ],
-        tips: [
-            "Prefer a text message? SMS and Communication ▸ SMS ▸ Send Dues Reminder does the same thing by SMS.",
-        ],
-    },
-    {
-        id: "who-owes",
-        category: "fees",
-        title: "Find out who still owes money",
-        summary: "The report to open before a fee drive.",
-        where: "Reports ▸ Overall Remaining dues",
-        view: "reports.overall-remaining-dues",
-        steps: [
-            "Open Reports ▸ Overall Remaining dues.",
-            "Filter to the class or the whole school.",
-            "Use the Columns button to hide anything you do not need before printing or exporting.",
-        ],
-        tips: [
-            "Every report honours the columns you have left visible when it prints or exports.",
-        ],
-    },
-
-    // ── exams & results ─────────────────────────────────────────────────
-    {
-        id: "exam-setup",
-        category: "exams",
-        title: "Set up an exam",
-        summary: "Do this before anyone tries to enter marks.",
-        where: "Exam and result ▸ Exam",
-        view: "exams.setup",
-        steps: [
-            "Exam and result ▸ Exam — create the exam (First Terminal, Final…) for this academic year.",
-            "Exam and result ▸ Schedule — set the date and time per subject.",
-            "Exam and result ▸ Grading rules — confirm the pass marks and grade bands.",
-            "Exam and result ▸ Entry cards — print admit cards for the students.",
-        ],
-        tips: [
-            "If a subject is missing from marks entry, it is not attached to that class under Manage ▸ Classes/Periods.",
-        ],
-    },
-    {
-        id: "marks-entry",
-        category: "exams",
-        title: "Enter marks and publish results",
-        summary: "From an empty mark sheet to a printable marksheet.",
-        where: "Exam and result ▸ Marks entry",
-        view: "exams.marks-entry",
-        steps: [
-            "Print Exam and result ▸ Marks entry slip and give it to each subject teacher.",
-            "Open Exam and result ▸ Marks entry, pick the exam, class, section and subject.",
-            "Type the marks and save — the page saves per subject, so finish one before moving on.",
-            "Enter extra activities under Exam and result ▸ Extra activities entry, if the school uses them.",
-            "Exam and result ▸ Publish results, then print from Exam and result ▸ Results.",
-        ],
-        tips: [
-            "A subject that was taught but has no marks column shows as blank on the marksheet — check the class's subject list rather than re-entering.",
-        ],
-    },
-
-    // ── attendance ──────────────────────────────────────────────────────
-    {
-        id: "attendance-daily",
-        category: "attendance",
-        title: "Take attendance for the day",
-        summary: "Manually, from the class register.",
-        where: "App ▸ Attendance ▸ Student Attendance entry",
-        view: "attendance.entry",
-        steps: [
-            "Open App ▸ Attendance ▸ Student Attendance entry.",
-            "Pick the class, section and date.",
-            "Mark the absent students; everyone else is counted present.",
-            "Save. Guardians of present and absent students receive an app notification.",
-        ],
-        tips: [
-            "The absent-student SMS is not sent automatically. Send it deliberately from SMS and Communication ▸ SMS ▸ Send Messages.",
-        ],
-    },
-    {
-        id: "rfid",
-        category: "attendance",
-        title: "When the RFID device shows no new attendance",
-        summary: "Almost always the device, not the system.",
-        where: "App ▸ RFID ▸ Attendance Logs",
-        view: "attendance.rfid.attd-logs",
-        steps: [
-            "Open App ▸ RFID ▸ Attendance Logs and look at the date of the last log.",
-            "If it stopped on a particular day, check the device's power and internet at the school.",
-            "Once it is back online, use the Pull logs button to fetch everything it recorded while it was offline.",
-        ],
-        tips: [
-            "Any punch counts as present, and the earliest punch of the day is taken as the check-in time.",
-            "A card only works after the person is registered under App ▸ RFID ▸ Users Setup.",
-        ],
-    },
-
-    // ── SMS & app ───────────────────────────────────────────────────────
-    {
-        id: "sms-setup",
-        category: "sms",
-        title: "Turn SMS on for the school",
-        summary: "One API key, entered once. Nothing sends until it is there.",
-        where: "SMS and Communication ▸ SMS ▸ SMS Settings",
-        view: "communication.sms.settings",
-        steps: [
-            "Open SMS and Communication ▸ SMS ▸ SMS Settings.",
-            "Follow the Help steps on that page to create a token in the SMS portal.",
-            "Paste the Auth Token into 'SMS API Key' and save.",
-            "Write your message wording under SMS ▸ SMS Templates.",
-        ],
-        tips: [
-            "Every send costs one credit per recipient. The credit balance is shown at the top of each SMS page.",
-        ],
-    },
-    {
-        id: "sms-bulk",
-        category: "sms",
-        title: "Send an SMS to a group of guardians",
-        summary: "A holiday notice, a meeting call, a fee reminder.",
-        where: "SMS and Communication ▸ SMS ▸ Send Bulk SMS",
-        view: "communication.sms.bulk-sms",
-        steps: [
-            "Open SMS and Communication ▸ SMS ▸ Send Bulk SMS.",
-            "Filter to the students you mean — by class, by name, or by bus station.",
-            "Search, then check the count against your SMS credits.",
-            "Write the message. Use the place values to drop in each student's own name.",
-            "Send.",
-        ],
-        tips: [
-            "Bulk SMS goes to the guardian's contact number, not the student's.",
-        ],
-    },
-    {
-        id: "sms-staff",
-        category: "sms",
-        title: "Send an SMS to teachers and staff",
-        summary: "Straight to the staff member's own phone, not a guardian's.",
-        where: "SMS and Communication ▸ SMS ▸ Send SMS to Staff",
-        view: "communication.sms.staff-sms",
-        steps: [
-            "Open SMS and Communication ▸ SMS ▸ Send SMS to Staff.",
-            "Filter by name, role or employment status — leave it blank for every employed staff member.",
-            "Search and check the count against your SMS credits.",
-            "Write the message; the place values fill in each person's name and designation.",
-            "Send.",
-        ],
-        tips: [
-            "It sends to the staff member's primary contact. Anyone without one is skipped and reported back to you.",
-        ],
-    },
-    {
-        id: "birthday",
-        category: "sms",
-        title: "Wish students and teachers on their birthday",
-        summary: "Sent automatically each morning, once per person, from your own template.",
-        where: "SMS ▸ SMS Templates, then Profile ▸ settings",
-        view: "communication.sms.templates",
-        steps: [
-            "Open SMS and Communication ▸ SMS ▸ SMS Templates.",
-            "Write the 'Birthday Wish SMS Template' for students and the 'Staff Birthday Wish SMS Template' for teachers and staff.",
-            "Open Profile ▸ SMS and Notification Settings and switch on the birthday wishes you want.",
-            "Save. From the next morning, anyone whose birth date falls on that day is wished automatically.",
-        ],
-        tips: [
-            "A birth date has to be recorded for the wish to fire — staff birth dates live on the staff member's Other info tab.",
-        ],
-    },
-
-    // ── accounting & payroll ────────────────────────────────────────────
-    {
-        id: "salary",
-        category: "money",
-        title: "Pay salaries for the month",
-        summary: "Post the month's salary, then record the payment.",
-        where: "Payroll",
-        view: "payroll.salary-posting",
-        steps: [
-            "Payroll ▸ Salary posting — post the month's salary for the staff you are paying.",
-            "Payroll ▸ Staff ledger — post a title the salary posting missed for one staff member (late joiner, bonus, advance) and see their ledger.",
-            "Payroll ▸ Payment — record what was actually paid to each person.",
-            "Payroll ▸ Pay slips — print the slips.",
-            "Payroll ▸ Salary sheet — the month's summary, including TDS, PF and insurance deductions.",
-        ],
-        tips: [
-            "PF and insurance are fixed monthly deductions taken at payment time. Net pay = gross − TDS − PF − insurance.",
-        ],
-    },
-    {
-        id: "accounting-entry",
-        category: "money",
-        title: "Record an income or an expense",
-        summary: "Double-entry vouchers, with the reports built from them.",
-        where: "Accounting",
-        view: "accounting.income-entry",
-        steps: [
-            "Accounting ▸ Create Ledger — make sure the ledger head you need exists.",
-            "Accounting ▸ Income Entry or Expense Entry — enter the voucher and save.",
-            "Accounting ▸ Income Entries / Expense Entries — find, view or reprint it later.",
-            "Accounting ▸ Reports — Trial Balance, Profit and Loss, Balance Sheet.",
-        ],
-        tips: [
-            "A deleted voucher still appears in the entry lists with a red 'Deleted' badge, for viewing and reprinting only. Reports exclude it.",
-            "You can open a closed fiscal year to read it — past years are viewable, not editable.",
-        ],
-    },
-
-    // ── library ─────────────────────────────────────────────────────────
-    {
-        id: "library-issue",
-        category: "library",
-        title: "Issue and return a book",
-        summary: "Scan or search, issue, and take it back later.",
-        where: "Library ▸ Book Issue/Return",
-        view: "library.book-transaction",
-        steps: [
-            "Library ▸ Library Setup — set the loan period and the fine per day, once.",
-            "Library ▸ Books — add the titles and their copies.",
-            "Library ▸ Book Issue/Return — find the member, find the book, issue it.",
-            "On return, open the same page; any fine is calculated for you.",
-        ],
-        tips: [
-            "The accession number of a copy is its own number in the system — it is unique across every school sharing the library.",
-            "Issuing to a student from another school? Add them under 'Other schools' on the issue page.",
-        ],
-    },
-
-    // ── year end ────────────────────────────────────────────────────────
-    {
-        id: "promotion",
-        category: "yearend",
-        title: "Promote students to the next class",
-        summary: "The move from this academic year into the next one.",
-        where: "Enrollment ▸ Class Promotion",
-        view: "enrollment.class-promotion",
-        steps: [
-            "Create the next academic year under Manage ▸ Academic Year.",
-            "Create next year's classes, subjects and fees before promoting anyone.",
-            "Open Enrollment ▸ Class Promotion, pick the class, and promote the students who passed.",
-            "Check a few students afterwards: correct new class, and their outstanding dues carried across.",
-        ],
-        tips: [
-            "Promote only after next year's classes exist, otherwise there is nowhere for the students to land.",
-            "Students leaving the school should be marked as such rather than promoted.",
-        ],
-    },
-    {
-        id: "year-close",
-        category: "yearend",
-        title: "Close the academic year",
-        summary: "Locks last year's records and rolls balances forward. Not reversible on your own.",
-        where: "Manage ▸ Academic year closing",
-        view: "manage.academic-year-closing",
-        steps: [
-            "Finish every fee collection, marks entry and result publication for the year first.",
-            "Open Manage ▸ Academic year closing and read the impact summary it shows you.",
-            "Check the carried-forward dues on that summary before confirming.",
-            "Confirm the close.",
-        ],
-        tips: [
-            "Closing is a large, hard-to-undo step. If anything on the impact summary looks wrong, stop and call support before confirming.",
-            "A closed year stays readable — results and reports for it can still be opened and printed.",
-        ],
-    },
+  {
+    "id": "setup-order",
+    "category": "start",
+    "title": "Start here: school setup in the right order",
+    "summary": "Complete this checklist before enrolling and billing students.",
+    "where": "Manage",
+    "view": "manage.academic-year",
+    "steps": [
+      "Open Manage ▸ Academic Year and check the running year. This list is read-only; support sets up the first year. Later years are created by Academic Year Closing.",
+      "Add courses or +2 streams under Courses/Subjects ▸ Course Setup. Set the faculty for a +2 stream and program length for a college course.",
+      "Check Academic Year Mapping for each level, grade or course/year/semester. Save the intended mapping and reload. Ask support to correct an existing year mismatch before billing.",
+      "Add section names under Sections. Under Classes/Periods, create the base class first, then its section classes, such as Class Two, Class Two A and Class Two B.",
+      "Add classwise subjects under Courses/Subjects. Enroll teachers, then assign subjects and teachers to periods under Classes/Periods.",
+      "For college intakes, register batches under Batches. Creating a batch alone does not assign students or classes.",
+      "Set fee titles, class amounts and payable months under Fees. Enroll students in the correct class; review their discounts and transport details.",
+      "Enter verified opening dues once, post applicable fees, then check one student ledger before collecting payments."
+    ],
+    "tips": [
+      "Academic year closing updates existing classes; do not recreate every class each year.",
+      "Setting a fee rate does not charge a student. Ledger Posting creates the charge; Student Payment records money received."
+    ]
+  },
+  {
+    "id": "users-permissions",
+    "category": "start",
+    "title": "Give a staff member their own login",
+    "summary": "Each person should sign in as themselves — shared logins make the history reports useless.",
+    "where": "Manage ▸ Users",
+    "view": "manage.users",
+    "steps": [
+      "Enroll the person under Enrollment ▸ Staff first, so there is a staff record to attach the login to.",
+      "Open Manage ▸ Users and create an account for them.",
+      "Open their staff profile ▸ Permissions and tick only the pages that person actually needs.",
+      "Hand over the username and password; ask them to change it from Profile after signing in."
+    ],
+    "tips": [
+      "Permissions are per page. Someone who only collects fees needs Payment, not Accounting."
+    ]
+  },
+  {
+    "id": "school-brand",
+    "category": "start",
+    "title": "Put your logo and signatures on printed documents",
+    "summary": "Bills, marksheets and certificates print whatever is uploaded here.",
+    "where": "Profile",
+    "view": "profile",
+    "steps": [
+      "Open Profile.",
+      "In 'Logos and signatures', click the image you want to replace.",
+      "Pick a clear image with a white or transparent background and confirm the upload.",
+      "Print any bill to check it before a whole batch is printed."
+    ],
+    "tips": [
+      "The school's name, PAN and dates are held by CentIT — contact support to have those corrected."
+    ]
+  },
+  {
+    "id": "enroll-student",
+    "category": "students",
+    "title": "Enroll a new student",
+    "summary": "One student, with guardian details, class and fees attached in a single pass.",
+    "where": "Enrollment ▸ Student",
+    "view": "enrollment.student",
+    "steps": [
+      "Open Enrollment ▸ Student.",
+      "Fill the personal details, then the guardian's name and contact — the guardian contact is the number every SMS goes to.",
+      "Pick the academic year, class and section.",
+      "Review the class fee setup, then enter any approved student discount and transport details that apply.",
+      "Save. The student now appears in that class everywhere in the system."
+    ],
+    "tips": [
+      "If the guardian contact is wrong or missing, that student silently receives no SMS at all.",
+      "Enrolling many students at once? Use Enrollment ▸ Bulk ▸ Student enrollments instead."
+    ]
+  },
+  {
+    "id": "move-class",
+    "category": "students",
+    "title": "Move a student to another class or section",
+    "summary": "Check the year mapping before moving a student.",
+    "where": "Enrollment ▸ Student (search, then edit)",
+    "view": "enrollment.student",
+    "steps": [
+      "Find the student and record the current class, year and outstanding balance.",
+      "Choose the intended destination class or section and check its mapped academic period.",
+      "Save the change and read any year-alignment validation message.",
+      "Check the student’s new class, relevant results and balance after the move."
+    ],
+    "tips": [
+      "A same-year move does not create another carry-forward balance.",
+      "For a move across academic years, verify the carry in both years before entering any manual dues."
+    ]
+  },
+  {
+    "id": "collect-payment",
+    "category": "fees",
+    "title": "Collect a fee and print the receipt",
+    "summary": "Check the student, distribute the payment, then save and verify.",
+    "where": "Payment ▸ Student",
+    "view": "payment.student",
+    "steps": [
+      "Search for the student and check their identity, class and running academic year.",
+      "Review the outstanding titles and select what the guardian is paying.",
+      "Enter Guardian Paying Amount and check its distribution across the selected titles. Apply only approved discounts and check the displayed payable total.",
+      "Select the payment date, payment month and actual mode: cash, bank, cheque or wallet. Add a useful reference in remarks where needed.",
+      "Save once. If the page times out or says already recorded, look in payment history before retrying.",
+      "Check the saved receipt number, cash received, discount and remaining due; print the receipt.",
+      "Reopen payment history or the ledger and confirm the remaining balance. Reprint the existing receipt when another copy is needed."
+    ],
+    "tips": [
+      "Remaining due = posted charges minus money received minus payment discounts. Do not subtract a posting discount a second time.",
+      "Example: Rs 5,000 posted, Rs 3,000 received and Rs 200 payment discount leaves Rs 1,800 due.",
+      "Identical submissions have a short duplicate-protection window; payment history remains the check after an uncertain result."
+    ]
+  },
+  {
+    "id": "ledger-posting",
+    "category": "fees",
+    "title": "Post fees: create the amount students owe",
+    "summary": "Posting creates charges. It does not collect money.",
+    "where": "Payment ▸ Ledger posting",
+    "view": "payment.ledger-posting",
+    "steps": [
+      "Check class rates, payable months, student discounts and transport/hostel arrangements first.",
+      "Choose the class/section and verify its running academic year.",
+      "Select the month or months being charged and search/load the student rows.",
+      "Review students, titles, amounts and discounts. Compare the total with your expected bill run.",
+      "Post once and read the result. The backend checks already-posted class months and filters duplicate student/title charges.",
+      "Check sample student ledgers, including a discounted student and one with transport if applicable.",
+      "For a late admission, use the student profile ledger workflow to catch up missing posted months, then verify that student only."
+    ],
+    "tips": [
+      "If a month is already posted, inspect posting history before trying another method.",
+      "Opening dues and adjustments without months need separate review.",
+      "Fee changes take effect in new postings; they do not automatically correct old ones."
+    ]
+  },
+  {
+    "id": "old-dues",
+    "category": "fees",
+    "title": "Enter opening dues from the previous register",
+    "summary": "Use this for verified balances brought into the system.",
+    "where": "Payment ▸ Old dues posting",
+    "view": "payment.old-dues-posting",
+    "steps": [
+      "Prepare the opening balance per student and a signed-off total from the previous register.",
+      "Check that those balances were not already entered or carried by a year close or class transfer.",
+      "Choose the correct class and running year under Old dues posting.",
+      "Enter the student amounts, review the total and save once.",
+      "Compare the saved student ledgers and total with the previous register."
+    ],
+    "tips": [
+      "Old dues need no ordinary fee month.",
+      "Do not re-enter balances already carried by Academic Year Closing."
+    ]
+  },
+  {
+    "id": "reminder-bills",
+    "category": "fees",
+    "title": "Send home a dues reminder bill",
+    "summary": "A printed bill per student showing what is still owed.",
+    "where": "Payment ▸ Reminder bills",
+    "view": "payment.reminder-bills",
+    "steps": [
+      "Open Payment ▸ Reminder bills.",
+      "Pick the class and section.",
+      "Review the list, then print — several bills lay out per sheet."
+    ],
+    "tips": [
+      "Prefer a text message? SMS and Communication ▸ SMS ▸ Send Dues Reminder does the same thing by SMS."
+    ]
+  },
+  {
+    "id": "who-owes",
+    "category": "fees",
+    "title": "Find out who still owes money",
+    "summary": "The report to open before a fee drive.",
+    "where": "Reports ▸ Overall Remaining dues",
+    "view": "reports.overall-remaining-dues",
+    "steps": [
+      "Open Reports ▸ Overall Remaining dues.",
+      "Filter to the class or the whole school.",
+      "Use the Columns button to hide anything you do not need before printing or exporting."
+    ],
+    "tips": [
+      "Every report honours the columns you have left visible when it prints or exports."
+    ]
+  },
+  {
+    "id": "exam-setup",
+    "category": "exams",
+    "title": "Set up an exam",
+    "summary": "Do this before anyone tries to enter marks.",
+    "where": "Exam and result ▸ Exam",
+    "view": "exams.setup",
+    "steps": [
+      "Exam and result ▸ Exam — create the exam (First Terminal, Final…) for this academic year.",
+      "Exam and result ▸ Schedule — set the date and time per subject.",
+      "Exam and result ▸ Grading rules — confirm the pass marks and grade bands.",
+      "Exam and result ▸ Entry cards — print admit cards for the students."
+    ],
+    "tips": [
+      "If a subject is missing from marks entry, it is not attached to that class under Manage ▸ Classes/Periods."
+    ]
+  },
+  {
+    "id": "marks-entry",
+    "category": "exams",
+    "title": "Enter marks and publish results",
+    "summary": "From an empty mark sheet to a printable marksheet.",
+    "where": "Exam and result ▸ Marks entry",
+    "view": "exams.marks-entry",
+    "steps": [
+      "Print Exam and result ▸ Marks entry slip and give it to each subject teacher.",
+      "Open Exam and result ▸ Marks entry, pick the exam, class, section and subject.",
+      "Type the marks and save — the page saves per subject, so finish one before moving on.",
+      "Enter extra activities under Exam and result ▸ Extra activities entry, if the school uses them.",
+      "Exam and result ▸ Publish results, then print from Exam and result ▸ Results."
+    ],
+    "tips": [
+      "A subject that was taught but has no marks column shows as blank on the marksheet — check the class's subject list rather than re-entering."
+    ]
+  },
+  {
+    "id": "attendance-daily",
+    "category": "attendance",
+    "title": "Take attendance for the day",
+    "summary": "Manually, from the class register.",
+    "where": "App ▸ Attendance ▸ Student Attendance entry",
+    "view": "attendance.entry",
+    "steps": [
+      "Open App ▸ Attendance ▸ Student Attendance entry.",
+      "Pick the class, section and date.",
+      "Mark the absent students; everyone else is counted present.",
+      "Save. Guardians of present and absent students receive an app notification."
+    ],
+    "tips": [
+      "The absent-student SMS is not sent automatically. Send it deliberately from SMS and Communication ▸ SMS ▸ Absence SMS."
+    ]
+  },
+  {
+    "id": "rfid",
+    "category": "attendance",
+    "title": "When the RFID device shows no new attendance",
+    "summary": "Almost always the device, not the system.",
+    "where": "App ▸ RFID ▸ Attendance Logs",
+    "view": "attendance.rfid.attd-logs",
+    "steps": [
+      "Open App ▸ RFID ▸ Attendance Logs and look at the date of the last log.",
+      "If it stopped on a particular day, check the device's power and internet at the school.",
+      "Once it is back online, use the Pull logs button to fetch everything it recorded while it was offline."
+    ],
+    "tips": [
+      "Any punch counts as present, and the earliest punch of the day is taken as the check-in time.",
+      "A card only works after the person is registered under App ▸ RFID ▸ Users Setup."
+    ]
+  },
+  {
+    "id": "sms-setup",
+    "category": "sms",
+    "title": "Turn SMS on for the school",
+    "summary": "One API key, entered once. Nothing sends until it is there.",
+    "where": "SMS and Communication ▸ SMS ▸ SMS Settings",
+    "view": "communication.sms.settings",
+    "steps": [
+      "Open SMS and Communication ▸ SMS ▸ SMS Settings.",
+      "Follow the Help steps on that page to create a token in the SMS portal.",
+      "Paste the Auth Token into 'SMS API Key' and save.",
+      "Write your message wording under SMS ▸ SMS Templates."
+    ],
+    "tips": [
+      "Every send costs one credit per recipient. The credit balance is shown at the top of each SMS page."
+    ]
+  },
+  {
+    "id": "sms-bulk",
+    "category": "sms",
+    "title": "Send an SMS to a group of guardians",
+    "summary": "A holiday notice, a meeting call, a fee reminder.",
+    "where": "SMS and Communication ▸ SMS ▸ Send Bulk SMS",
+    "view": "communication.sms.bulk-sms",
+    "steps": [
+      "Open SMS and Communication ▸ SMS ▸ Send Bulk SMS.",
+      "Filter to the students you mean — by class, by name, or by bus station.",
+      "Search, then check the count against your SMS credits.",
+      "Write the message. Use the place values to drop in each student's own name.",
+      "Send."
+    ],
+    "tips": [
+      "Bulk SMS goes to the guardian's contact number, not the student's."
+    ]
+  },
+  {
+    "id": "sms-staff",
+    "category": "sms",
+    "title": "Send an SMS to teachers and staff",
+    "summary": "Straight to the staff member's own phone, not a guardian's.",
+    "where": "SMS and Communication ▸ SMS ▸ Send SMS to Staff",
+    "view": "communication.sms.staff-sms",
+    "steps": [
+      "Open SMS and Communication ▸ SMS ▸ Send SMS to Staff.",
+      "Filter by name, role or employment status — leave it blank for every employed staff member.",
+      "Search and check the count against your SMS credits.",
+      "Write the message; the place values fill in each person's name and designation.",
+      "Send."
+    ],
+    "tips": [
+      "It sends to the staff member's primary contact. Anyone without one is skipped and reported back to you."
+    ]
+  },
+  {
+    "id": "birthday",
+    "category": "sms",
+    "title": "Wish students and teachers on their birthday",
+    "summary": "Sent automatically each morning, once per person, from your own template.",
+    "where": "SMS ▸ SMS Templates, then Profile ▸ settings",
+    "view": "communication.sms.templates",
+    "steps": [
+      "Open SMS and Communication ▸ SMS ▸ SMS Templates.",
+      "Write the 'Birthday Wish SMS Template' for students and the 'Staff Birthday Wish SMS Template' for teachers and staff.",
+      "Open Profile ▸ SMS and Notification Settings and switch on the birthday wishes you want.",
+      "Save. From the next morning, anyone whose birth date falls on that day is wished automatically."
+    ],
+    "tips": [
+      "A birth date has to be recorded for the wish to fire — staff birth dates live on the staff member's Other info tab."
+    ]
+  },
+  {
+    "id": "salary",
+    "category": "money",
+    "title": "Pay salaries for the month",
+    "summary": "Post the month's salary, then record the payment.",
+    "where": "Payroll",
+    "view": "payroll.salary-posting",
+    "steps": [
+      "Payroll ▸ Salary posting — post the month's salary for the staff you are paying.",
+      "Payroll ▸ Payment — record what was actually paid to each person.",
+      "Payroll ▸ Pay slips — print the slips.",
+      "Payroll ▸ Salary sheet — the month's summary, including TDS, PF and insurance deductions."
+    ],
+    "tips": [
+      "PF and insurance are fixed monthly deductions taken at payment time. Net pay = gross − TDS − PF − insurance."
+    ]
+  },
+  {
+    "id": "accounting-entry",
+    "category": "money",
+    "title": "Record income, expenses and adjustments",
+    "summary": "Accounting vouchers are separate from student fee receipts.",
+    "where": "Accounting ▸ Income entry",
+    "view": "accounting.income-entry",
+    "steps": [
+      "Confirm the open Accounting Economic Year and its date range.",
+      "Create the required ledgers with the right groups and verified opening balances under Accounting ▸ Create Ledger.",
+      "For Income Entry, select date, cash/bank mode, receiving ledger and income particulars; enter amounts and narration, then save.",
+      "For Expense Entry, select the paying cash/bank ledger and expense particulars; enter amounts and narration, then save.",
+      "Use Journal Entry for approved adjustments or transfers, entering debit and credit lines with equal totals.",
+      "Check the saved voucher in the day book and individual ledger report.",
+      "Reconcile fee collections to accounting records using your agreed accounting process. The reviewed student payment save path does not create an accounting income voucher."
+    ],
+    "tips": [
+      "Do not assume collecting a student payment updates the general ledger.",
+      "The Contra menu is disabled in the current frontend; use the accountant-reviewed journal workflow for transfers.",
+      "Choose the accounting treatment with the school accountant; these steps describe the software, not tax rules."
+    ]
+  },
+  {
+    "id": "library-issue",
+    "category": "library",
+    "title": "Issue and return a book",
+    "summary": "Scan or search, issue, and take it back later.",
+    "where": "Library ▸ Book Issue/Return",
+    "view": "library.book-transaction",
+    "steps": [
+      "Library ▸ Library Setup — set the loan period and the fine per day, once.",
+      "Library ▸ Books — add the titles and their copies.",
+      "Library ▸ Book Issue/Return — find the member, find the book, issue it.",
+      "On return, open the same page; any fine is calculated for you."
+    ],
+    "tips": [
+      "The accession number of a copy is its own number in the system — it is unique across every school sharing the library.",
+      "Issuing to a student from another school? Add them under 'Other schools' on the issue page."
+    ]
+  },
+  {
+    "id": "promotion",
+    "category": "yearend",
+    "title": "Promote students or change their section",
+    "summary": "Move only the selected students, then verify their class and balances.",
+    "where": "Enrollment ▸ Class promotion",
+    "view": "enrollment.class-promotion",
+    "steps": [
+      "Check results and decide who passes, repeats, leaves or has completed the course.",
+      "Check source and destination classes and their mapped academic periods. For ordinary school year-end, close and verify the affected year mappings before the promotion; college continuing cohorts need a planned rollover.",
+      "Choose From and To classes and the appropriate student statuses.",
+      "Select only the students who should move. Keep repeaters out of that selection.",
+      "Check whether the screen identifies a section change or a real promotion, then submit once.",
+      "Check a moved student’s class, results where relevant, and ledger. Retain their original batch identity.",
+      "When moving classes in sequence, work from higher classes down so newly promoted students are not selected again."
+    ],
+    "tips": [
+      "A same-academic-year move does not need a second opening-dues entry.",
+      "If academic periods are incompatible, resolve the mapping problem; do not bypass it by manually re-entering dues."
+    ]
+  },
+  {
+    "id": "year-close",
+    "category": "yearend",
+    "title": "Close the academic year and carry student dues",
+    "summary": "Closing carries balances and changes class-year mappings. Promotion is a separate action.",
+    "where": "Manage ▸ Academic Year Closing",
+    "view": "manage.academic-year-closing",
+    "steps": [
+      "Finish the intended charges, receipts and discounts. Save the closing dues report and arrange a recoverable database backup with support.",
+      "Open Academic Year Closing and Review the running year. Read every listed level/faculty: groups sharing that year may close together.",
+      "Use the invoice and ledger academic-year mismatch links to resolve reported issues before closing.",
+      "Review classes, student statuses and balances. For continuing college batches, stop if the continuing-cohort guard blocks the close and ask support to plan the rollover.",
+      "Enter the next academic year name and correct B.S. start/end dates in the closing form, then confirm once.",
+      "Reload and check the old year is closed, mappings/classes now use the new year and carried student opening balances equal the previous net dues.",
+      "Handle promotion separately and verify destination class and dues before posting new-year fees."
+    ],
+    "tips": [
+      "Normal portal closing carries a net opening balance; it does not preserve every fee title as a new-year charge.",
+      "Closing does not automatically promote students or graduate batches.",
+      "Support has an undo flow, but it is not a routine button for school users. Report a mistaken close before entering further transactions."
+    ]
+  },
+  {
+    "id": "academic-years",
+    "category": "start",
+    "title": "Understand the three kinds of year",
+    "summary": "Academic year, billing economic year and accounting economic year have different jobs.",
+    "where": "Manage ▸ Academic Year",
+    "view": "manage.academic-year",
+    "steps": [
+      "Use the academic year for class operation, student charges, payments and results.",
+      "Use Academic Year Mapping to check which year each class group operates in. The page year selector alone does not determine every class year.",
+      "Check the billing economic year on receipts and collection reports. Student, cash and Extra Billing receipts share numbering within the school and this fiscal year.",
+      "Use Accounting ▸ Economic Year for vouchers and accounting reports. It is a separate record from the student academic year.",
+      "Use Academic Year Closing to carry student balances; use Accounting Economic Year Closing to close the books. Review payroll carry in the accounting close result."
+    ],
+    "tips": [
+      "Closing an academic year does not restart receipt numbers within the same billing fiscal year.",
+      "Use B.S. dates where the form requests them. Check the actual final day of the month."
+    ]
+  },
+  {
+    "id": "sections-classes",
+    "category": "start",
+    "title": "Create sections and classes",
+    "summary": "A section name and a class using that section are separate setup steps.",
+    "where": "Manage ▸ Classes/Periods",
+    "view": "manage.classes",
+    "steps": [
+      "Open Manage ▸ Sections and add names such as A and B once.",
+      "Open Classes/Periods. Choose the education level and grade, or the course and year/semester.",
+      "Create the base class without a section and verify its academic year.",
+      "Create each required section class, for example Class Two A and Class Two B.",
+      "Reopen the class picker and confirm the class/section appears before enrolling students."
+    ],
+    "tips": [
+      "For +2, a faculty or course/stream is not the same thing as section A/B.",
+      "If a class is missing, check its year mapping, education level and actual section assignment."
+    ]
+  },
+  {
+    "id": "courses-subjects",
+    "category": "start",
+    "title": "Set up courses and classwise subjects",
+    "summary": "A course is a program or stream; a subject is something taught within it.",
+    "where": "Manage ▸ Courses/Subjects",
+    "view": "manage.courses-subjects",
+    "steps": [
+      "In Course Setup, enter the course name and education level. For +2 select its faculty.",
+      "For a college program, set its total years or total semesters according to its structure.",
+      "Create its classes in Classes/Periods if they do not exist.",
+      "Open Classwise Subject Setup and select the intended class.",
+      "Enter the subject name, code, compulsory/optional type, order and credit hours. Add practical details where applicable, then save.",
+      "For optional subjects, use Exam and result ▸ Optional Subject Assignment to select the students taking each subject.",
+      "Check the subject list for that class before setting periods or entering marks."
+    ],
+    "tips": [
+      "A subject already used or marked protected cannot simply be deleted.",
+      "Correct program length helps the closing check distinguish continuing students from final-year students."
+    ]
+  },
+  {
+    "id": "class-periods",
+    "category": "start",
+    "title": "Assign subjects and teachers to periods",
+    "summary": "Set up the period slots for a class.",
+    "where": "Manage ▸ Classes/Periods",
+    "view": "manage.classes",
+    "steps": [
+      "Create the class, its subjects and the staff records first.",
+      "In Manage Class/Periods, choose the class and click Edit.",
+      "Enter No. of Period.",
+      "Choose a subject and teacher for every period slot.",
+      "Read any missing-count or duplicate teacher/subject warning, save, and reopen the class to check the assignments."
+    ],
+    "tips": [
+      "This screen stores numbered slots; it is not a full weekly timetable with room and time-clash checking."
+    ]
+  },
+  {
+    "id": "batches",
+    "category": "start",
+    "title": "Manage a college intake or batch",
+    "summary": "The admission batch stays the same when students advance to another year or semester.",
+    "where": "Manage ▸ Batches",
+    "view": "manage.batches",
+    "steps": [
+      "Create the course first, including its total years or semesters.",
+      "Open Batches and choose the course and admission year in B.S., for example 2082.",
+      "Select the start academic year, program structure and current year or semester. Save.",
+      "Check the actual students and classes separately. Adding or editing this registry does not move them or change their fees.",
+      "Use Class Promotion for student movement. Keep the original admission-year batch identity.",
+      "Only mark the registry Graduated after verifying the cohort has finished; student statuses must also be handled separately."
+    ],
+    "tips": [
+      "Existing unstamped classes need a support-led batch assignment and mapping check. Do not change year mappings just to make a batch appear.",
+      "Automatic batch progression and an end-to-end batch-aware closing wizard are not available in this flow."
+    ]
+  },
+  {
+    "id": "fee-setup",
+    "category": "fees",
+    "title": "Set fee titles, amounts and payable months",
+    "summary": "A title says what is charged; a class fee says how much and when.",
+    "where": "Manage ▸ Fees",
+    "view": "manage.fees",
+    "steps": [
+      "Create one fee title per charge, such as Tuition, Admission or Exam, and select its default payable months.",
+      "In class fee setup, select the class and title and enter the rate.",
+      "The backend supports class-specific payable months, but the current Fee Setup form exposes only title and amount. Ask support to review or configure a class month override for a later intake.",
+      "An empty class month override follows the title months. It does not mean never charge.",
+      "Check base-class and section-specific rates carefully. Review the amount actually offered in Ledger Posting for each section.",
+      "Save, then preview a posting before charging the class."
+    ],
+    "tips": [
+      "A class month override changes timing, not the admission batch identity. Fee lookup is not a separate batch-price list.",
+      "Changing a rate does not rewrite existing posted charges or receipts.",
+      "Do not use a Cash Receipt title to collect an ordinary student ledger debt."
+    ]
+  },
+  {
+    "id": "receipt-types",
+    "category": "fees",
+    "title": "Choose student payment, cash receipt or Extra Billing",
+    "summary": "Choose the workflow that matches whose balance you are settling.",
+    "where": "Payment ▸ Fast Cash Receipt",
+    "view": "payment.fast-cash-receipt",
+    "steps": [
+      "Use Student Payment for money against a student ledger; check that their due reduces.",
+      "Use Fast Cash Receipt for a standalone receipt: choose the payer, title, amount, date and mode and verify the printed receipt.",
+      "Do not use Fast Cash Receipt as a shortcut for a student fee balance; cash receipts are excluded from ordinary student dues calculations.",
+      "For recurring non-student parties such as tenants, use Extra Billing if the school has that module enabled.",
+      "Keep the saved receipt number and fiscal year together when locating a receipt."
+    ],
+    "tips": [
+      "A reminder bill asks for payment; a receipt confirms money received.",
+      "Student, standalone cash and Extra Billing receipts share the school fiscal-year sequence."
+    ]
+  },
+  {
+    "id": "daily-billing-check",
+    "category": "fees",
+    "title": "Balance the counter at the end of the day",
+    "summary": "Reconcile collections, receipts and outstanding dues separately.",
+    "where": "Reports ▸ Overall Remaining dues",
+    "view": "reports.overall-remaining-dues",
+    "steps": [
+      "Open collection/payment reports for the same date range and school. Check the fiscal year and academic-year filters.",
+      "Split collections by cash, bank, cheque and wallet. Compare cash to the till and other modes to their records.",
+      "Review discounts and any edited/deleted receipts. Keep the reasons and original receipt references.",
+      "Compare outstanding dues with student ledgers. Investigate differences in year, class, posting months and cash-receipt filters.",
+      "Reconcile any accounting entries made for these collections so the same receipt is not entered twice.",
+      "Keep a daily record of totals and unresolved differences before the next day starts."
+    ],
+    "tips": [
+      "Missing SMS does not mean the payment failed. Check the receipt first.",
+      "A collection report and a dues report answer different questions."
+    ]
+  },
+  {
+    "id": "accounting-reports",
+    "category": "money",
+    "title": "Check the books before closing",
+    "summary": "Read the day book, ledger reports and year totals together.",
+    "where": "Accounting ▸ Reports",
+    "view": "accounting.reports.trial-balance",
+    "steps": [
+      "Select the same accounting year and reporting dates throughout.",
+      "Check the Day Book against source receipts and vouchers.",
+      "Use Individual Ledger and Groupwise Ledger reports to investigate balances.",
+      "Check Trial Balance debit and credit totals, then review Profit/Loss, Balance Sheet and Cash Flow.",
+      "Compare cash/bank balances with physical cash and bank records; resolve differences before closing."
+    ],
+    "tips": [
+      "A balanced trial balance alone does not prove every entry uses the right ledger or date."
+    ]
+  },
+  {
+    "id": "accounting-close",
+    "category": "yearend",
+    "title": "Close the accounting year and review payroll carry",
+    "summary": "This closes accounting books, separately from student academic-year closing.",
+    "where": "Accounting ▸ Economic Year Closing",
+    "view": "accounting.economic-year-closing",
+    "steps": [
+      "Finish and reconcile vouchers, ledgers, bank/cash totals and payroll for the year. Save the final reports and arrange a recoverable backup.",
+      "Open Accounting Economic Year Closing and verify the selected year and its full B.S. date range.",
+      "Choose the retained earnings ledger and enter the next accounting year details.",
+      "Review the payroll carry preview, then close once.",
+      "Check new opening balances: balance-sheet ledgers carry forward; income/expense results move into retained earnings.",
+      "Read the close response for payroll carried and any payroll year skipped with a reason. Verify each staff opening due.",
+      "Reopen the new year’s ledger reports and compare them to the signed-off old-year closing figures."
+    ],
+    "tips": [
+      "Accounting closing does not perform student promotion or student academic-year closing.",
+      "Undo is a support operation; later entries must be reviewed before any recovery."
+    ]
+  },
+  {
+    "id": "extra-billing",
+    "category": "fees",
+    "title": "Bill non-student parties such as tenants",
+    "summary": "Use the separate Extra Billing module when it is enabled for the school.",
+    "where": "Extra Billing ▸ Parties",
+    "view": "extra-billing.parties",
+    "steps": [
+      "Create charge heads and the party, including any verified opening due.",
+      "Set the party’s monthly amounts per charge head.",
+      "Open Billing, select parties, months and B.S. bill date; review and raise the bills.",
+      "Open Payment, choose the party, enter the amount and mode, then save and print the receipt.",
+      "Check the party ledger and Extra Billing reports: opening due plus charges minus payments is the balance.",
+      "Include Extra Billing receipts in fiscal-year collection reconciliation and keep them separate from student dues."
+    ],
+    "tips": [
+      "Adding a party or changing a monthly rate does not itself raise a bill.",
+      "Module access controls whether these menus appear."
+    ]
+  }
 ];
 
 export default GUIDES;

@@ -42,7 +42,7 @@ function ManageBusStations() {
             </>
             <>
                 {
-                    stations?.length > 0 ?
+                    stations === null ? <Loader /> :
                         <BasicTable name={"Bus Stations"} columns={[
                             ['station'],
                             ['fee'],
@@ -50,8 +50,7 @@ function ManageBusStations() {
                         ]} data={stations} onSelect={(action, id) => {
                             if (action === editAction.action) onEdit(id);
                             else if (action === deleteAction.action) onDelete(id);
-                        }} actions={[editAction, deleteAction]} /> :
-                        <Loader />
+                        }} actions={[editAction, deleteAction]} />
                 }
             </>
         </>

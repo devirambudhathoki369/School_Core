@@ -47,13 +47,12 @@ export const email_required = (label) => string().label(label || 'Email address'
 // 
 export const username = () => string().label('Username').trim().must().size(6, 25)
     .matches(/^[\w.@+-]+$/, "Letters, digits and @/./+/-/_ only.");
-export const password = () => string().label('Password').trim().must().size(6, 20);
-export const strong_password = () => password()
-    .matches(/[a-z]/, 'Password must contain at least one lowercase letter.')
-    .matches(/[A-Z]/, 'Password must contain at least one uppercase letter.')
-    .matches(/[0-9]/, 'Password must contain at least one number.')
-    .matches(/[@$!%*#?&]/, 'Password must contain at least one special character from the following: @$!%*#?&.');
-// ... .notOneOf(['12345678', 'password', 'qwerty'], 'Do not use a common password.');
+// Sign-in accepts existing credentials; strength applies only when choosing a new password.
+export const password = () => string().label('Password').must().max(1024);
+export const strong_password = () => string().label('Password').must()
+    .test('passphrase-length', 'Use 15 to 128 characters. Try a unique phrase with several words.',
+        value => typeof value === 'string' && [...value].length >= 15 && [...value].length <= 128)
+    .matches(/[^0-9]/, 'Use more than just numbers.');
 /** name: string, required, min:2, max:10, cast : [trimmed, lowercased] */
 export const name = (label, size) => text(label).must().size(...size || DEFAULT_NAME_SIZE);
 export const name_optional = (label) => text(label).nullable().size(...DEFAULT_NAME_SIZE);

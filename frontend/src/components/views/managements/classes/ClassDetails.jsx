@@ -74,7 +74,11 @@ function ClassDetails({ selectedClass }) {
                 updateNotification("No period was selected!");
             }
         }
-        else setData(state => ({ ...state, [name]: value }));
+        else setData(state => {
+            const next = { ...state, [name]: value };
+            if (name === "period_count") setError(findPeriodIssue(next));
+            return next;
+        });
     }
     function handleSearchView(view, period) {
         setOpenSearch({ view, period });
@@ -97,7 +101,7 @@ function ClassDetails({ selectedClass }) {
                 is_active: data?.period_count === 0 ? false : true,
             });
             updateNotification(status, message);
-        } else updateNotification('', "Invalid input!");
+        } else updateNotification('', "Assign a subject and teacher to every period before saving.");
         statusHandler.toggleUploading();
     }
     //
@@ -157,33 +161,13 @@ function ClassDetails({ selectedClass }) {
         }
     }, [user, selectedClass.class_info.id]);
     function findPeriodIssue({ period_count, teachers, subjects }) {
+        const expected = Number(period_count) || 0;
         const t = Object.values(teachers || {});
         const s = Object.values(subjects || {});
-        // count mismatch
-        if (t.length !== period_count || s.length !== period_count) {
-            return `Invalid count! teachers ${t.length}, subjects ${s.length}, expected ${period_count}`;
+        if (!expected) return null;
+        if (t.length !== expected || s.length !== expected) {
+            return `${expected - s.length} subject assignment(s) and ${expected - t.length} teacher assignment(s) remaining.`;
         }
-        // duplicates
-        function findDuplicatePeriods(arr) {
-            const map = {};
-            for (let i = 0; i < arr.length; i++) {
-                const val = arr[i];
-                if (!map[val]) map[val] = [];
-                map[val].push(i + 1);
-            }
-            const dups = Object.values(map).filter(v => v.length > 1);
-            return dups.flat();
-        }
-
-        const tDup = findDuplicatePeriods(t);
-        const sDup = findDuplicatePeriods(s);
-        if (tDup.length && sDup.length)
-            return `Duplicate teachers in periods ${tDup.join(", ")} and duplicate subjects in periods ${sDup.join(", ")}.`;
-        if (tDup.length)
-            return `Duplicate teachers found in periods ${tDup.join(", ")}.`;
-        if (sDup.length)
-            return `Duplicate subjects found in periods ${sDup.join(", ")}.`;
-        //   
         return null;
     }
     // 
@@ -191,21 +175,23 @@ function ClassDetails({ selectedClass }) {
         <>
             {fetching ? <Loader /> :
                 <form onSubmit={onClassPeriodsSave} className="my-5 flex flex-col">
-                    <Section title={"Manage Class details"}>
-                        <TextInput input={{ name: 'period_count', label: 'No. of Period', type: 'number' }} value={data?.period_count} onChange={onChange} />
+                    <Section title={`Periods for ${selectedClass.classname}`}
+                        description="Set the number of periods, then assign one subject and one teacher to each card.">
+                        <TextInput input={{ name: 'period_count', label: 'Number of periods', type: 'number', required: true, placeholder: 'Example: 8' }}
+                            value={data?.period_count} onChange={onChange} info="Maximum 15 periods." />
                     </Section>
                     <>
                         {data?.period_count > 0 ?
                             <>
-                                <Typography variant="h5" className={`my-2 text-center`}>
-                                    Periods
+                                <Typography variant="h5" className="my-2">
+                                    Assign periods
                                 </Typography>
                                 <>
                                     {error &&
-                                        <AttentionBox title={"Warning"} description={error} />
+                                        <AttentionBox title={"Setup incomplete"} description={error} />
                                     }
                                 </>
-                                <Card className="grid grid-cols-3 gap-3 p-3 rounded-md bg-transparent shadow-default">
+                                <Card className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 p-3 rounded-md bg-transparent shadow-default">
                                     {
                                         Array.from({ length: data?.period_count }, (_, index) => index + 1)
                                             .map((period, pi) => (
@@ -216,18 +202,22 @@ function ClassDetails({ selectedClass }) {
                                     }
                                 </Card>
                             </> :
-                            <span className="text-red-500 text-base">Enter number of periods for class <span className="font-semibold text-lg capitalize">{selectedClass.classname}</span>!</span>
+                            <div className="rounded-lg border border-dashed border-blue-gray-200 bg-blue-gray-50/40 p-5 text-center text-blue-gray-600">
+                                Enter the number of daily periods above to start assigning subjects and teachers.
+                            </div>
                         }
                     </>
                     <>
                         <SearchDialog name={"subjects"} open={openSearch.view === SEARCH_VIEWS.subjects}
-                            title={"subjects"} data={subjects} hideOptionsUntilSearch={false}
+                            title={`Assign a subject · Period ${openSearch.period || ''}`} data={subjects} hideOptionsUntilSearch={false}
+                            emptyMessage="No subjects are set up for this class yet. Add them from School setup → Courses & subjects → Subjects by class."
                             handler={handleSearchView} onSelect={(name, value) => {
                                 onChange({ name, value });
                                 handleSearchView('', '');
                             }} />
                         <SearchDialog name={"teachers"} open={openSearch.view === SEARCH_VIEWS.teachers}
-                            title={"teachers"} data={teachers}
+                            title={`Assign a teacher · Period ${openSearch.period || ''}`} data={teachers} hideOptionsUntilSearch={false}
+                            emptyMessage="No teachers are available yet. Enroll staff before assigning a period teacher."
                             handler={handleSearchView} onSelect={(name, value) => {
                                 onChange({ name, value });
                                 handleSearchView('', '');
@@ -246,33 +236,38 @@ function ClassDetails({ selectedClass }) {
 }
 
 function DashedBox({ period, subject, teacher, onClick, onReset }) {
-    const classes = {
-        dashed: "px-8 py-3 m-1 border border-dashed border-gray-700 rounded-sm flex justify-around items-center cursor-pointer uppercase"
-    }
+    const complete = Boolean(subject && teacher);
     return (
-        <span className={`${classes.dashed} !p-2 relative`}>
-            <>
-                <button type="button" className="w-5 h-5 absolute top-0 right-0 hover:bg-gray-300"
-                    onClick={onReset}>
-                    <XMarkIcon className="icon" />
-                </button>
-            </>
-            <div className="flex flex-col w-full">
-                <span className={`flex items-center justify-center gap-x-2 text-lg font-bold ${(period && subject) && 'text-green-700'}`}>
-                    {(period && subject) && <CheckBadgeIcon className="w-6 h-6" />}
+        <div className={`relative rounded-lg border p-4 ${complete ? 'border-green-300 bg-green-50/40' : 'border-blue-gray-200 bg-white'}`}>
+            <button type="button" aria-label={`Clear period ${period}`} title="Clear this period"
+                className="absolute right-2 top-2 rounded p-1 text-blue-gray-500 hover:bg-blue-gray-100 hover:text-red-600"
+                onClick={onReset}>
+                <XMarkIcon className="h-5 w-5" />
+            </button>
+            <div className="flex flex-col gap-3">
+                <span className={`flex items-center gap-2 text-lg font-bold ${complete ? 'text-green-700' : 'text-blue-gray-800'}`}>
+                    {complete && <CheckBadgeIcon className="h-6 w-6" />}
                     Period {period}
                 </span>
-                <div className="flex flex-col m-3">
-                    <span className={`${classes.dashed} ${subject && 'font-bold text-green-700'}`} onClick={() => { onClick(SEARCH_VIEWS.subjects, period) }}>
-                        {subject || `Subject ${period}`}
-                    </span>
-                    <span className={`${classes.dashed} ${teacher && 'font-bold text-green-700'}`} onClick={() => { onClick(SEARCH_VIEWS.teachers, period) }}>
-                        {teacher || `Teacher ${period}`}
-                    </span>
-                </div>
+                <PeriodChoice label="Subject" value={subject} action="Choose subject"
+                    onClick={() => onClick(SEARCH_VIEWS.subjects, period)} />
+                <PeriodChoice label="Teacher" value={teacher} action="Choose teacher"
+                    onClick={() => onClick(SEARCH_VIEWS.teachers, period)} />
             </div>
-        </span>
+        </div>
     )
+}
+
+function PeriodChoice({ label, value, action, onClick }) {
+    return (
+        <button type="button" onClick={onClick}
+            className="w-full rounded-md border border-dashed border-blue-gray-300 px-3 py-2 text-left transition hover:border-blue-500 hover:bg-blue-50">
+            <span className="block text-xs font-semibold uppercase tracking-wide text-blue-gray-500">{label}</span>
+            <span className={`mt-0.5 block normal-case ${value ? 'font-semibold text-blue-gray-900' : 'text-blue-600'}`}>
+                {value || action}
+            </span>
+        </button>
+    );
 }
 
 export default ClassDetails;

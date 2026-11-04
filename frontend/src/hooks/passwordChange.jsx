@@ -2,7 +2,7 @@ import { object } from "yup";
 import { strong_password } from "@/schemas/validations";
 import { useState } from "react";
 
-const pwChangeSchema = { username: '', password: '', confirm_password: '' };
+const pwChangeSchema = { username: '', current_password: '', password: '', confirm_password: '' };
 const pwChangeValidationSchema = object({
     password: strong_password(),
     confirm_password: strong_password()

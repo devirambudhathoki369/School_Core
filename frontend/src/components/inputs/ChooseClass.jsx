@@ -9,11 +9,12 @@ import FilterItem from "./FilterItem";
 import { Button, Tooltip } from "@material-tailwind/react";
 import switchAcademicYear from "@/methods/switchAcademicYear";
 import { prepareNameValue } from "@/methods/genAcademicYearMappingKey";
+import NotFound from "../NotFound";
 
 // TODO: fix for high-level/faculties!
 function ChooseClass({ children, title, selectedClass, actions, onSelect: onSelectOG, info, reset, onReset = () => null, hideSections = false, disabled = false }) {
     const { user: { user },
-        class: { loadClasses, classesBackup, coursesBackup, classes, setClasses },
+        class: { loadClasses, classesBackup, classesLoaded, coursesBackup, classes, setClasses },
         fiscalYear: { updateAcademicYear } } = useAppContext();
     classPickerSchema['school'] = user?.profile?.school || user?.profile?.id;
     const [data, setData] = useState({ ...classPickerSchema });
@@ -93,7 +94,7 @@ function ChooseClass({ children, title, selectedClass, actions, onSelect: onSele
 
     return (
         <>
-            {classesBackup?.length > 0 ?
+            {!classesLoaded ? <Loader /> : classesBackup?.length > 0 ?
                 <div className="flex flex-col">
                     {title &&
                         <h2 className="text-xl font-semibold leading-7 text-gray-900">{title}</h2>
@@ -101,7 +102,7 @@ function ChooseClass({ children, title, selectedClass, actions, onSelect: onSele
                     <div className="flex items-center">
                         <span className="w-full my-3 flex gap-x-3 text-base items-center font-semibold">
                             <BookmarkIcon className="icon" />
-                            {info || "Select class"}
+                            {info || "Filter and select a saved class"}
                         </span>
                         <div className="flex w-max justify-end items-center">
                             <Tooltip content="Refresh Classes">
@@ -177,7 +178,8 @@ function ChooseClass({ children, title, selectedClass, actions, onSelect: onSele
                         }
                     </>
                 </div >
-                : <Loader />
+                : <NotFound error="Create a class first"
+                    hint="This school has no classes yet. Add the first one from School setup → Classes & periods, then return here." />
             }
         </>
     )

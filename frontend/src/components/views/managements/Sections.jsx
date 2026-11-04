@@ -28,13 +28,12 @@ function ManageSections() {
                 </form>
             </>
             <>
-                {sections?.length > 0 ?
+                {sections === null ? <Loader /> :
                     <BasicTable onSelect={(action, id) => {
                         if (action === editAction.action) onEdit(id);
                     }} name={"Sections"} columns={[
                         ['section']
-                    ]} data={sections} actions={[editAction]} /> :
-                    <Loader />
+                    ]} data={sections} actions={[editAction]} />
                 }
             </>
         </div>

@@ -1,3 +1,4 @@
+import { navigatePortal } from "@/methods/portalRoutes";
 import BasicTable from "@/components/tables/BasicTable";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import Warning from "@/components/Warning";
@@ -28,7 +29,7 @@ function AcademicYearClosing() {
     function onSelect(action, id, item) {
         if (id && item?.academic_year) {
             saveTempState(ACADEMIC_YEAR_CLOSING_KEY, item);
-            router.push("/admin#manage.academic-year-review");
+            navigatePortal(router, "/admin#manage.academic-year-review");
         }
     }
 

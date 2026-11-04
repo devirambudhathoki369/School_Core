@@ -9,12 +9,12 @@ import { PERMISSIONS } from "@/configs/permissions";
 const VIEWS = [
     {
         value: 'course-setup',
-        label: 'Course Setup',
+        label: 'Programs & streams (optional)',
         panel: Courses
     },
     {
         value: 'classwise-subject-setup',
-        label: 'Classwise Subject Setup',
+        label: 'Subjects by class',
         panel: ManageSubjectsClasswise
     }
 ]

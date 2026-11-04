@@ -28,7 +28,7 @@ const FILTER_LABELS = {
     batch: "Batch",
 };
 
-function StudentSearchForm({ useStatus = false, useAcademicYear = false }) {
+function StudentSearchForm({ useStatus = false, useAcademicYear = false, classPickerProps = null }) {
     const [searchOpened, setSearchOpened] = useState(true);
     const { studentSearch, methods: { onChange, onSeachFormReset, onSearch } } = useSearch();
 
@@ -74,7 +74,7 @@ function StudentSearchForm({ useStatus = false, useAcademicYear = false }) {
                     </div>
                 </FilterSection>
                 {/* --- */}
-                <ClassPicker data={studentSearch} onChange={onChange} classwise={true} />
+                <ClassPicker data={studentSearch} onChange={onChange} classwise={true} {...classPickerProps} />
                 {/* --- */}
                 {useAcademicYear &&
                     <FilterSection title={"Academic Year"}>

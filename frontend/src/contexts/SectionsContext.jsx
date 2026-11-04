@@ -18,7 +18,9 @@ const sectionValidationSchema = object({
 })
 export default function SectionsProvider({ children }) {
     const { user: { user }, notification: { updateNotification } } = useAppContext();
-    const [sections, setSections] = useState([]);
+    // null = request in flight; [] = request finished and this new school has
+    // no sections yet. Conflating both states left the skeleton up forever.
+    const [sections, setSections] = useState(null);
     sectionSchema['school'] = user?.profile?.school || user?.profile?.id;
     const [form, setForm] = useState(() => ({ ...sectionSchema }));
     const [errors, setErrors] = useState([]);

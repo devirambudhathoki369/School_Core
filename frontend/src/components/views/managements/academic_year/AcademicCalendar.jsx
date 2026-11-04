@@ -10,7 +10,7 @@ import { __delete, __fetch, __save, __update } from "@/services/functions";
 import { Textarea, Button, Tooltip } from "@material-tailwind/react";
 import { useEffect, useState } from "react";
 import { CalendarDaysIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
+import Link from "@/components/PortalLink";
 
 const DEFAULT_TYPE = 1;
 const calendarEventSchema = {
