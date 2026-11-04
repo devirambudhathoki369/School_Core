@@ -19,50 +19,51 @@ export const UI_THEME_CLASSIC = 'classic';
 export const UI_THEME_CONSOLE = 'console';
 
 // Five palettes on one layout. The keys are the ones schools already have
-// stored, so moving to the SchoolCore design changed no school's setting, only
-// what each key paints: `classic` is Core, `vivid` is Himalaya, `daylight` is
-// Phewa, `evergreen` is Terai. `swatches` are, in order, the brand, its tint,
-// the page and the second chart colour.
+// stored, so a new look never moves a school's setting, only what each key
+// paints: `classic` is Marigold, `vivid` is Himalaya, `daylight` is Rara,
+// `evergreen` is Terai. Each is a dark frame and one bright highlight; the
+// `swatches` are, in order, the frame, the highlight, the page and the button
+// colour.
 export const UI_THEMES = [
     {
         value: UI_THEME_CLASSIC,
-        name: 'Core',
-        blurb: 'Indigo on clean white with a light menu. Calm and neutral for a full day at the desk. Every school starts here.',
-        swatches: ['#3B5BDB', '#EDF1FD', '#F5F6F8', '#D9730D'],
-        rail: '#FFFFFF',
-        railInk: '#374151',
+        name: 'Marigold',
+        blurb: 'A chalkboard-green frame and one marigold for what you have chosen. The SchoolCore look, and where every school starts.',
+        swatches: ['#0E2B23', '#FFC233', '#F3F6F4', '#17614D'],
+        rail: '#0E2B23',
+        railInk: '#E4EEE9',
     },
     {
         value: 'vivid',
         name: 'Himalaya',
-        blurb: 'Night-sky menu, glacier teal and a saffron second colour. Bold without shouting.',
-        swatches: ['#0E6F8C', '#E3F2F7', '#F2F5F9', '#E0661B'],
-        rail: '#13223F',
-        railInk: '#E4EAF5',
+        blurb: 'A midnight-indigo frame with a saffron highlight. Deep, calm and unmistakable.',
+        swatches: ['#171B45', '#FF9F45', '#F4F4FA', '#3B44B0'],
+        rail: '#171B45',
+        railInk: '#E5E7F7',
     },
     {
         value: 'daylight',
-        name: 'Phewa',
-        blurb: 'A clear lake-blue menu and accent, with sunset orange for the second colour. Bright and trustworthy.',
-        swatches: ['#0B63BD', '#E9F1F9', '#EFF5FB', '#E06A26'],
-        rail: '#0B5CAD',
-        railInk: '#F1F8FF',
+        name: 'Rara',
+        blurb: 'A lake-blue frame with a spring-green highlight. Fresh, clear and bright.',
+        swatches: ['#04334A', '#4CF0A0', '#F1F6F9', '#0A5F80'],
+        rail: '#04334A',
+        railInk: '#DCEEF5',
     },
     {
         value: 'evergreen',
         name: 'Terai',
-        blurb: 'A fresh field-green menu and accent, with paddy gold for the second colour. Grounded and fresh.',
-        swatches: ['#127A46', '#EAF3EE', '#F0F7F2', '#BF8410'],
-        rail: '#0F6B45',
-        railInk: '#F0FBF5',
+        blurb: 'A deep paddy-green frame with a new-rice lime highlight. Earthy and alive.',
+        swatches: ['#1D3510', '#C9F25A', '#F4F7EF', '#3E6B1C'],
+        rail: '#1D3510',
+        railInk: '#E7F1DD',
     },
     {
         value: 'laliguras',
         name: 'Laliguras',
-        blurb: 'Rhododendron crimson on warm white with gold for the second chart colour. Warm and confident.',
-        swatches: ['#BE123C', '#FCE9EE', '#FAF7F6', '#B7860B'],
-        rail: '#FFFFFF',
-        railInk: '#3F3236',
+        blurb: 'An aubergine frame with a rhododendron-pink highlight. Warm and confident.',
+        swatches: ['#2A1630', '#FF7096', '#F8F4F6', '#9C2457'],
+        rail: '#2A1630',
+        railInk: '#F2E6EF',
     },
 ];
 

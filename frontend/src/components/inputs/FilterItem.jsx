@@ -1,15 +1,14 @@
-import { MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { CheckIcon } from "@heroicons/react/24/outline";
 import { Button } from "@material-tailwind/react";
 import { useEffect } from "react";
 
 /**
- * One toggleable filter chip (education level, faculty…).
+ * One toggleable choice tile (education level, class, faculty, month…).
  *
- * Classic keeps the teal-200/teal-400 chips it has always had. The
- * `app-filter-chip` hook is inert there and is what lets a theme repaint them
- * in its own accent (globals.css) — without it, the first row of every search
- * block stayed mint on a blue or green school, which was the loudest thing left
- * un-themed on those screens.
+ * Drawn as a square tile by `.app-filter-chip` in globals.css: white with a
+ * real edge, and when chosen it turns into the theme's frame colour, lettered
+ * in its highlight, with a tick. `aria-pressed` says the same to a screen
+ * reader, which a colour change alone never did.
  */
 function FilterItem({ label, name, value, selectedOption, isSelected, isDisabled, isWarned, title, onClick }) {
     value = parseInt(value);
@@ -27,6 +26,7 @@ function FilterItem({ label, name, value, selectedOption, isSelected, isDisabled
         <Button
             disabled={isDisabled}
             title={title}
+            aria-pressed={isSelected ? "true" : "false"}
             data-selected={isSelected ? "true" : undefined}
             data-warned={isWarned ? "true" : undefined}
             className={`app-filter-chip sm:col-span-2 flex items-center p-2 gap-4 text-black text-xs
@@ -35,11 +35,7 @@ function FilterItem({ label, name, value, selectedOption, isSelected, isDisabled
             onClick={() => {
                 onClick({ name, value });
             }}>
-            <>
-                {isSelected ?
-                    <MinusIcon className="icon" /> :
-                    <PlusIcon className="icon" />}
-            </>
+            {isSelected && <CheckIcon className="icon" strokeWidth={3} aria-hidden="true" />}
             {label}
         </Button>
     );
