@@ -137,14 +137,25 @@ export default function Page({ role }) {
                     // page given to this member of staff, shows without signing
                     // in again (configs/moduleGates.js `menuAccessOf`).
                     const access = menuAccessOf(holder.profile);
+                    // ...and the school's interface theme: a theme the
+                    // superadmin changes shows on the open screens too, not
+                    // only after the next sign-in.
+                    const theme = holder.profile?.ui_theme;
                     setUser(state => {
                         if (!state) return state;
                         const newDay = state.today !== today || state.today_npt !== today_npt;
                         const newAccess = !!access && menuAccessKey(holder.profile) !== menuAccessKey(state.profile);
-                        if (!newDay && !newAccess) return state;
+                        const newTheme = theme !== undefined && theme !== state.profile?.ui_theme;
+                        if (!newDay && !newAccess && !newTheme) return state;
                         return {
                             ...state, today, today_npt,
-                            ...(newAccess ? { profile: { ...state.profile, ...access } } : {}),
+                            ...((newAccess || newTheme) ? {
+                                profile: {
+                                    ...state.profile,
+                                    ...(newAccess ? access : {}),
+                                    ...(newTheme ? { ui_theme: theme } : {}),
+                                },
+                            } : {}),
                         };
                     });
                 }

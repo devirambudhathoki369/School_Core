@@ -56,7 +56,7 @@ function InterfaceTheme() {
             setSchools((prev) => prev.map((s) =>
                 String(s.id) === String(school) ? { ...s, ui_theme: theme } : s
             ));
-            updateNotification(200, "Interface theme updated! The school sees it on their next sign-in.");
+            updateNotification(200, "Interface theme updated. Open screens at the school change within a few minutes, or as soon as someone returns to the tab.");
         } else {
             updateNotification(400, message || "Failed.");
         }
@@ -72,7 +72,7 @@ function InterfaceTheme() {
                 page is only about the schools. A console that looks like one of
                 the school themes is a console you can mistake for a school. */}
             <Section title="Interface Theme per School"
-                description="The colours a school's screens are drawn in. Presentation only — no page changes what it shows, and printed bills, vouchers and marksheets look identical on every theme. Classic is the look every school has today; a school stays on it until it is moved here.">
+                description="The colours a school's screens are drawn in. Presentation only — no page changes what it shows, and printed bills, vouchers and marksheets look identical on every theme. Ocean is the default; a school stays on it until it is moved here.">
                 {loading ? <Loader /> : (
                     <SearchInput input={{ name: "school", label: "School", options }}
                         value={school} onChange={onSchool} />
