@@ -61,14 +61,14 @@ function ProductWindow() {
     // label, mark, the tile's role colour (the dashboard's own --k1..4), its
     // tint, its soft bar, then the two bar lengths
     const tiles = [
-        ["Total students", AcademicCapIcon, "#3B5BDB", "#EDF1FD", "#CCD4F6", 54, 72],
-        ["Total staff", UserGroupIcon, "#0284c7", "#e0f0fa", "#cfe4f5", 32, 80],
-        ["Economic year", CalendarDaysIcon, "#059669", "#dff3ea", "#c5e8d8", 78, 58],
-        ["SMS credits", ChatBubbleLeftRightIcon, "#b45309", "#fbefdc", "#f3dfbd", 46, 66],
+        ["Total students", AcademicCapIcon, "#17614D", "#ECF2F1", "#C3D6D1", 54, 72],
+        ["Total staff", UserGroupIcon, "#0E2B23", "#E1EAE8", "#BED3CD", 32, 80],
+        ["Economic year", CalendarDaysIcon, "#7A5200", "#FFF2D2", "#FFE08A", 78, 58],
+        ["SMS credits", ChatBubbleLeftRightIcon, "#155442", "#EFF4F3", "#C3D6D1", 46, 66],
     ];
     // a year of months: eight collected, the eighth in progress, four to come
     const columns = [36, 58, 46, 74, 54, 82, 64, 94, 0, 0, 0, 0];
-    const stations = [[5.5, 90, "#3B5BDB"], [4.25, 68, "#7289E5"], [5, 49, "#A7B5EF"], [3.5, 31, "#CCD4F6"]];
+    const stations = [[5.5, 90, "#0E2B23"], [4.25, 68, "#17614D"], [5, 49, "#5D9082"], [3.5, 31, "#C3D6D1"]];
     const ring = (colour, track, dash) => (
         <svg viewBox="0 0 50 50" className="pub-window-ring -rotate-90 shrink-0">
             <circle cx="25" cy="25" r="20" fill="none" strokeWidth="6" stroke={track} />
@@ -92,7 +92,7 @@ function ProductWindow() {
             <div className="pub-window-row">
                 <div className="pub-window-cell">
                     <span className="pub-window-label">Today&apos;s attendance</span>
-                    {[["#3B5BDB", "#E4E8FA", 108, 62, 84], ["#D9730D", "#FBE8D6", 116, 44, 70]].map(([colour, track, dash, first, second]) => (
+                    {[["#17614D", "#E1EAE8", 108, 62, 84], ["#FFC233", "#FFF2D2", 116, 44, 70]].map(([colour, track, dash, first, second]) => (
                         <div key={colour} className="flex items-center gap-x-3.5">
                             {ring(colour, track, dash)}
                             <div className="flex min-w-0 flex-1 flex-col gap-y-2">
@@ -113,7 +113,7 @@ function ProductWindow() {
                         {columns.map((height, i) => (
                             <span key={i} className="flex-1 rounded-t-[5px]"
                                 style={height
-                                    ? { height: `${height}%`, background: i === 7 ? "#3B5BDB" : "#CCD4F6" }
+                                    ? { height: `${height}%`, background: i === 7 ? "#FFC233" : "#C3D6D1" }
                                     : { height: 4, background: "#e2e8f0" }}></span>
                         ))}
                     </div>
@@ -123,11 +123,11 @@ function ProductWindow() {
                 <div className="pub-window-cell">
                     <span className="pub-window-label">Running students · by gender</span>
                     <div className="flex h-3 gap-x-[3px]">
-                        <span className="rounded-l-full bg-[#3B5BDB]" style={{ flex: 52 }}></span>
-                        <span className="bg-[#D9730D]" style={{ flex: 45 }}></span>
+                        <span className="rounded-l-full bg-[#17614D]" style={{ flex: 52 }}></span>
+                        <span className="bg-[#FFC233]" style={{ flex: 45 }}></span>
                         <span className="rounded-r-full bg-[#94a3b8]" style={{ flex: 3 }}></span>
                     </div>
-                    {[["#3B5BDB", 3, 2.25], ["#D9730D", 3.75, 2.25], ["#94a3b8", 2.75, 1.5]].map(([colour, name, count]) => (
+                    {[["#17614D", 3, 2.25], ["#FFC233", 3.75, 2.25], ["#94a3b8", 2.75, 1.5]].map(([colour, name, count]) => (
                         <div key={colour} className="flex items-center gap-x-2.5">
                             <span className="h-[9px] w-[9px] shrink-0 rounded-[3px]" style={{ background: colour }}></span>
                             <span className="pub-window-bar h-2 bg-[#cbd5e1]" style={{ width: `${name}rem` }}></span>
@@ -160,15 +160,15 @@ function Glance() {
             <div className="pub-glance-cell">
                 <span className="pub-glance-label">Attendance</span>
                 <svg width="40" height="40" viewBox="0 0 50 50" className="-rotate-90">
-                    <circle cx="25" cy="25" r="20" fill="none" strokeWidth="7" stroke="#E4E8FA" />
-                    <circle cx="25" cy="25" r="20" fill="none" strokeWidth="7" stroke="#3B5BDB" strokeLinecap="round" strokeDasharray="108 126" />
+                    <circle cx="25" cy="25" r="20" fill="none" strokeWidth="7" stroke="#E1EAE8" />
+                    <circle cx="25" cy="25" r="20" fill="none" strokeWidth="7" stroke="#17614D" strokeLinecap="round" strokeDasharray="108 126" />
                 </svg>
             </div>
             <div className="pub-glance-cell">
                 <span className="pub-glance-label">Fees</span>
                 <div className="flex h-10 items-end gap-x-1 border-b border-[#e2e8f0]">
                     {[40, 66, 52, 90].map((height, i) => (
-                        <span key={i} className="flex-1 rounded-t-[3px]" style={{ height: `${height}%`, background: i === 3 ? "#3B5BDB" : "#CCD4F6" }}></span>
+                        <span key={i} className="flex-1 rounded-t-[3px]" style={{ height: `${height}%`, background: i === 3 ? "#FFC233" : "#C3D6D1" }}></span>
                     ))}
                 </div>
             </div>

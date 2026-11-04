@@ -7,7 +7,7 @@
     right: 16px;
     bottom: 16px;
     z-index: 70;
-    --focus: #0b5d57;
+    --focus: #155442;
 }
 
 :global(.lp) .launcher {
@@ -17,14 +17,14 @@
     padding: 0 12px;
     border: 2px solid #ffffff;
     border-radius: 999px;
-    background: #0b1f1c;
+    background: #0e211c;
     color: #ffffff;
     box-shadow: 0 10px 26px -10px rgba(6, 41, 37, .7);
     cursor: pointer;
 }
 
 :global(.lp) .launcher:focus-visible {
-    outline: 2px solid #f7941d;
+    outline: 2px solid #ffc233;
     outline-offset: 2px;
     border-radius: 999px;
 }
@@ -66,7 +66,7 @@
     border: 1px solid #d5cdbb;
     border-radius: 20px;
     background: #ffffff;
-    color: #0b1f1c;
+    color: #0e211c;
     box-shadow: 0 30px 60px -22px rgba(6, 41, 37, .6);
     font-family: var(--f-body);
     font-size: 15px;
@@ -96,7 +96,7 @@
     width: 24px;
     height: 24px;
     flex: none;
-    color: #0b5d57;
+    color: #155442;
 }
 
 :global(.lp) .iconButton {
@@ -108,8 +108,8 @@
     flex: none;
     border: 0;
     border-radius: 12px;
-    background: #f1ebdd;
-    color: #0b1f1c;
+    background: #e6ede9;
+    color: #0e211c;
     cursor: pointer;
 }
 
@@ -145,17 +145,17 @@
     width: 46px;
     height: 46px;
     flex: none;
-    border: 1.5px solid #0b1f1c;
+    border: 1.5px solid #0e211c;
     border-radius: 14px;
     background: #ffffff;
-    color: #0b1f1c;
+    color: #0e211c;
     cursor: pointer;
 }
 
-:global(.lp) .stepButton:hover:not(:disabled) { background: #f1ebdd; }
+:global(.lp) .stepButton:hover:not(:disabled) { background: #e6ede9; }
 
 :global(.lp) .stepButton:disabled {
-    border-color: #cdc3ac;
+    border-color: #bcc8c1;
     color: #8c9692;
     cursor: default;
 }
@@ -191,10 +191,10 @@
     width: 22px;
     height: 4px;
     border-radius: 2px;
-    background: #d9d2c2;
+    background: #cbd4ce;
 }
 
-:global(.lp) .stepBar[data-filled] { background: #0f766e; }
+:global(.lp) .stepBar[data-filled] { background: #17614d; }
 
 :global(.lp) .tones {
     margin-top: 8px;
@@ -209,10 +209,10 @@
     align-items: center;
     gap: 7px;
     padding: 9px 4px 8px;
-    border: 1.5px solid #d9d2c2;
+    border: 1.5px solid #cbd4ce;
     border-radius: 14px;
     background: #ffffff;
-    color: #0b1f1c;
+    color: #0e211c;
     font-size: 13px;
     line-height: 16px;
     font-weight: 600;
@@ -220,11 +220,11 @@
     cursor: pointer;
 }
 
-:global(.lp) .tone:hover { border-color: #0b1f1c; }
+:global(.lp) .tone:hover { border-color: #0e211c; }
 
 :global(.lp) .tone[aria-pressed="true"] {
-    border-color: #0f766e;
-    box-shadow: inset 0 0 0 1.5px #0f766e;
+    border-color: #17614d;
+    box-shadow: inset 0 0 0 1.5px #17614d;
     background: #ecf7f3;
 }
 
@@ -234,7 +234,7 @@
     justify-content: center;
     width: 100%;
     height: 30px;
-    border: 1px solid #d9d2c2;
+    border: 1px solid #cbd4ce;
     border-radius: 9px;
     font-family: var(--f-display);
     font-weight: 700;
@@ -244,7 +244,7 @@
 
 :global(.lp) .swatch[data-tone="standard"] {
     background: #faf6ee;
-    color: #0a3833;
+    color: #0e2b23;
 }
 
 :global(.lp) .swatch[data-tone="high"] {
@@ -261,7 +261,7 @@
 
 :global(.lp) .switches {
     margin-top: 12px;
-    border-top: 1px solid #e4dccb;
+    border-top: 1px solid #dce3de;
     list-style: none;
 }
 
@@ -273,9 +273,9 @@
     gap: 14px;
     padding: 8px 2px;
     border: 0;
-    border-bottom: 1px solid #e4dccb;
+    border-bottom: 1px solid #dce3de;
     background: transparent;
-    color: #0b1f1c;
+    color: #0e211c;
     text-align: left;
     cursor: pointer;
 }
@@ -320,8 +320,8 @@
 }
 
 :global(.lp) .switchRow[aria-checked="true"] .track {
-    border-color: #0f766e;
-    background: #0f766e;
+    border-color: #17614d;
+    background: #17614d;
 }
 
 :global(.lp) .switchRow[aria-checked="true"] .thumb {
@@ -343,20 +343,20 @@
     gap: 8px;
     min-height: 42px;
     padding: 0 16px;
-    border: 1.5px solid #0b1f1c;
+    border: 1.5px solid #0e211c;
     border-radius: 999px;
     background: #ffffff;
-    color: #0b1f1c;
+    color: #0e211c;
     font-size: 14px;
     line-height: 20px;
     font-weight: 700;
     cursor: pointer;
 }
 
-:global(.lp) .reset:hover:not(:disabled) { background: #f1ebdd; }
+:global(.lp) .reset:hover:not(:disabled) { background: #e6ede9; }
 
 :global(.lp) .reset:disabled {
-    border-color: #cdc3ac;
+    border-color: #bcc8c1;
     color: #8c9692;
     cursor: default;
 }

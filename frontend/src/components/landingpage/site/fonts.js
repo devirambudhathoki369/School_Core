@@ -1,4 +1,4 @@
-import { Anek_Devanagari, Atkinson_Hyperlegible, Bricolage_Grotesque, IBM_Plex_Mono } from "next/font/google"
+import { Anek_Devanagari, Atkinson_Hyperlegible, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google"
 
 // The website's own faces, fetched at BUILD time and served from our origin.
 // The body is the app's typeface, which `_app` already loads for every page.
@@ -13,7 +13,7 @@ const displayFont = Bricolage_Grotesque({
 })
 
 // Labels, times and figures.
-const monoFont = IBM_Plex_Mono({
+const monoFont = JetBrains_Mono({
     subsets: ["latin"],
     weight: "500",
     display: "swap",

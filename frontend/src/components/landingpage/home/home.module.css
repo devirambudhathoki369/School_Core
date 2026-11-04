@@ -18,8 +18,6 @@
     right: 0;
     bottom: 0;
     left: 0;
-    background-image: radial-gradient(circle, var(--pine-2) 1.3px, transparent 1.7px);
-    background-size: 24px 24px;
     pointer-events: none;
 }
 
@@ -323,7 +321,7 @@
     padding: 2px 9px;
     border-radius: 999px;
     background: var(--sun);
-    color: #0b1f1c;
+    color: #0e211c;
     font-family: var(--f-mono);
     font-size: 11px;
     line-height: 16px;
@@ -448,7 +446,7 @@
     margin: auto 0;
     padding: 12px;
     border-radius: 14px;
-    background: #f5f0e6;
+    background: #eef2ef;
 }
 
 :global(.lp) .sectionLink { margin-top: 28px; }

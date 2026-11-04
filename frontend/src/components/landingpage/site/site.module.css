@@ -20,33 +20,34 @@
    ========================================================================== */
 
 .root {
-    /* ---- colour: pine, marigold and paper ---- */
-    --ink: #0b1f1c;
-    --ink-2: #3b4b47;
-    --ink-3: #5c6b66;
-    --paper: #faf6ee;
-    --paper-2: #f1ebdd;
+    /* ---- colour: the SchoolCore frame (chalkboard green), marigold and a cool paper.
+       Flat throughout: no gradient on any surface of the site. ---- */
+    --ink: #0e211c;
+    --ink-2: #3d4d47;
+    --ink-3: #56655f;
+    --paper: #f3f6f4;
+    --paper-2: #e6ede9;
     --card: #ffffff;
-    --line: #e4dccb;
-    --line-2: #cdc3ac;
-    --pine: #0a3833;
-    --pine-2: #114a43;
-    --pine-deep: #062925;
-    --teal: #0f766e;
-    --teal-ink: #0b5d57;
-    --mint: #d6efe8;
-    --mint-2: #ecf7f3;
-    --mint-line: #bcdcd3;
-    --sun: #f7941d;
-    --sun-hi: #ffab45;
-    --sun-tint: #fdebd0;
-    --sun-ink: #8a4703;
-    --brick: #c2410c;
-    --on-dark: #fbf8f1;
-    --on-dark-2: #c5d6d1;
-    --on-dark-3: #9bb3ac;
-    --line-dark: #1f524b;
-    --shadow: 6, 41, 37;
+    --line: #dce3de;
+    --line-2: #bcc8c1;
+    --pine: #0e2b23;
+    --pine-2: #164034;
+    --pine-deep: #091d18;
+    --teal: #17614d;
+    --teal-ink: #155442;
+    --mint: #e1eae8;
+    --mint-2: #eff4f3;
+    --mint-line: #c3d6d1;
+    --sun: #ffc233;
+    --sun-hi: #ffd465;
+    --sun-tint: #fff2d2;
+    --sun-ink: #7a5200;
+    --brick: #b42318;
+    --on-dark: #f7faf8;
+    --on-dark-2: #e4eee9;
+    --on-dark-3: #97b3a8;
+    --line-dark: #24493e;
+    --shadow: 9, 29, 24;
 
     /* what a component reads; a dark band re-points these (see .onDark) */
     --fg: var(--ink);
@@ -163,7 +164,7 @@ div.root * {
     --line: #1c4640;
     --line-2: #2b5a53;
     --pine: #0a332e;
-    --pine-2: #114a43;
+    --pine-2: #164034;
     --pine-deep: #041512;
     --teal: #2fb5a8;
     --teal-ink: #6fd6c9;
@@ -218,7 +219,7 @@ div.root * {
     padding: 12px 18px;
     border-radius: 10px;
     background: var(--sun);
-    color: #0b1f1c;
+    color: #0e211c;
     font-size: 16px;
     line-height: 24px;
     font-weight: 700;
@@ -265,13 +266,13 @@ div.root * {
 
 /* on marigold: ink only */
 :global(.lp) .onSun {
-    --fg: #0b1f1c;
+    --fg: #0e211c;
     --fg-2: #2c2410;
     --fg-3: #3d3115;
     --rule: rgba(11, 31, 28, .28);
     --rule-2: rgba(11, 31, 28, .4);
-    --accent: #0b1f1c;
-    --focus: #0b1f1c;
+    --accent: #0e211c;
+    --focus: #0e211c;
     color: var(--fg);
 }
 
@@ -344,9 +345,9 @@ div.root * {
     min-height: 52px;
     padding: 6px 8px 6px 24px;
     border: 0;
-    border-radius: 999px;
+    border-radius: 14px;
     background: var(--sun);
-    color: #0b1f1c;
+    color: #0e211c;
     font-size: 16px;
     line-height: 24px;
     font-weight: 700;
@@ -365,8 +366,8 @@ div.root * {
     width: 38px;
     height: 38px;
     flex: none;
-    border-radius: 50%;
-    background: #0b1f1c;
+    border-radius: 10px;
+    background: var(--pine);
     color: var(--sun);
 }
 
@@ -410,7 +411,7 @@ div.root * {
 
 :global(.lp) .btnInk .btnDisc {
     background: var(--sun);
-    color: #0b1f1c;
+    color: #0e211c;
 }
 
 /* the quiet second action: an outline */
@@ -687,11 +688,11 @@ div.root * {
     right: 0;
     width: 286px;
     padding: 8px;
-    border: 1px solid #d9d2c2;
+    border: 1px solid #cbd4ce;
     border-radius: 16px;
     background: #ffffff;
     box-shadow: 0 24px 50px -20px rgba(var(--shadow), .55);
-    --focus: #0b5d57;
+    --focus: #155442;
 }
 
 :global(.lp) .signInItem {
@@ -701,11 +702,11 @@ div.root * {
     gap: 12px;
     padding: 11px 12px;
     border-radius: 10px;
-    color: #0b1f1c;
+    color: #0e211c;
     text-decoration: none;
 }
 
-:global(.lp) .signInItem:hover { background: #f1ebdd; }
+:global(.lp) .signInItem:hover { background: #e6ede9; }
 
 :global(.lp) .signInName {
     display: block;
@@ -725,7 +726,7 @@ div.root * {
     width: 16px;
     height: 16px;
     flex: none;
-    color: #0b5d57;
+    color: #155442;
     stroke-width: 2.4;
 }
 
