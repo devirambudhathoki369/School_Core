@@ -18,7 +18,8 @@ export const UI_THEME_CLASSIC = 'classic';
  */
 export const UI_THEME_CONSOLE = 'console';
 
-// Five palettes on one layout. The keys are the ones schools already have
+// Ten palettes on one layout: five with a soft tinted menu, five with a
+// deep dark one (Graphite and the last five below). The keys are the ones schools already have
 // stored, so a new look never moves a school's setting, only what each key
 // paints: `classic` is Ocean, `vivid` Violet, `daylight` Graphite, `evergreen`
 // Emerald, `laliguras` Berry. The `swatches` are, in order, the menu, the
@@ -63,6 +64,46 @@ export const UI_THEMES = [
         swatches: ['#FEEFF3', '#A1326B', '#F2F4F7', '#1CA9A3'],
         rail: '#FEEFF3',
         railInk: '#3E1A37',
+    },
+    {
+        value: 'deep_ocean',
+        name: 'Deep Ocean',
+        blurb: 'A deep-sea menu with a blue-green brand and amber for the small marks. Dark, calm and focused.',
+        swatches: ['#053537', '#037177', '#EFF7FA', '#CD8000'],
+        rail: '#053537',
+        railInk: '#F5FCFE',
+    },
+    {
+        value: 'forest',
+        name: 'Forest',
+        blurb: 'A deep green menu with emerald buttons and gold for the small marks. Rich and grounded.',
+        swatches: ['#04381F', '#047744', '#EFF7F5', '#BF8800'],
+        rail: '#04381F',
+        railInk: '#F6FDF9',
+    },
+    {
+        value: 'midnight',
+        name: 'Midnight',
+        blurb: 'A deep indigo menu with violet buttons and mint for the small marks. Bold and modern.',
+        swatches: ['#2B235B', '#644ABE', '#F5F4FA', '#22AC81'],
+        rail: '#2B235B',
+        railInk: '#FCFAFE',
+    },
+    {
+        value: 'wine',
+        name: 'Wine',
+        blurb: 'A deep wine menu with berry buttons and teal for the small marks. Warm and striking.',
+        swatches: ['#491836', '#A1326B', '#F7F4F7', '#1CA9A3'],
+        rail: '#491836',
+        railInk: '#FEFAFA',
+    },
+    {
+        value: 'terracotta',
+        name: 'Terracotta',
+        blurb: 'A dark brown menu with copper buttons and sage for the small marks. Warm and crafted.',
+        swatches: ['#462213', '#99491F', '#F8F4F3', '#71A181'],
+        rail: '#462213',
+        railInk: '#FFFAF6',
     },
 ];
 
