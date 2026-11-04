@@ -7136,3 +7136,71 @@ button.app-att-day { cursor: pointer; }
 .app-student-search .app-reveal { border: 0; }
 /* each theme tints the page ground too (Night keeps its own dark ground) */
 [data-ui-theme] { --canvas-classic: var(--t-canvas); }
+
+/* ===========================================================================
+   SYSTEM -- the canvas's rules, applied to the shared parts (Nov 2026)
+
+   One set of sizes for every screen: body 14, labels 13, page title 30;
+   controls 40 tall with 8px corners; cards 12px corners, a 1px line and a soft
+   shadow; spacing from 4 · 8 · 12 · 16 · 24 · 32 · 48. It sits last, after
+   OCEAN, and restates the same hooks, so it wins without new specificity.
+   =========================================================================== */
+
+/* -- the type scale's root.
+   The `*` rule near the top gives EVERY element `font-size: .9rem`, and `*`
+   matches <html> too, so the root itself became 14.4px and every rem in the
+   app (text, padding, control heights) came out a tenth small: body text at
+   13px, labels at 11.5, table headings at 10.8. Inside the signed-in app the
+   root is 16px again, which puts body text at 14.4, labels at 12.8 and the
+   fields at 38. Screen only: printed receipts, marksheets and cards are laid
+   out on paper at the old size and keep it. The public pages have their own
+   scale and are not inside `.app-shell`. */
+@media screen {
+    html:has(.app-shell) { font-size: 16px; }
+    /* the rail keeps the canvas's 256px instead of growing with the rem */
+    html:has(.app-shell) .app-rail:not(.app-rail-mini) { width: 16rem; }
+}
+
+/* -- the page heading (View.jsx): trail, title, one sentence ---------------- */
+.app-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 4px 0 24px;
+}
+.app-heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 20px;
+    margin-bottom: 4px;
+}
+.app-heading-trail ol { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; list-style: none; }
+.app-heading-trail li { display: inline-flex; align-items: center; gap: 4px; }
+.app-heading-trail li,
+.app-heading-date { font-size: 13px; line-height: 20px; font-weight: 500; color: var(--ink-600); }
+.app-heading-trail svg { width: 12px; height: 12px; stroke-width: 2.2; color: var(--ink-400); }
+.app-heading-title {
+    margin: 0;
+    font-family: var(--font-display, "Bricolage Grotesque"), var(--font-app, "Hanken Grotesk"), sans-serif;
+    font-size: 30px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink-900);
+}
+.app-heading-desc {
+    margin: 0;
+    max-width: 72ch;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--ink-600);
+}
+@media (max-width: 539.98px) {
+    .app-heading { margin-bottom: 16px; }
+    .app-heading-title { font-size: 24px; }
+    .app-heading-desc { font-size: 14px; }
+}
+/* a dashboard greets you instead */
+.app-view-enter:has(.app-dash-greeting) > .app-heading { display: none; }

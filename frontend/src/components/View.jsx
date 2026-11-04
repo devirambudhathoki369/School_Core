@@ -1,8 +1,8 @@
 import { Button, IconButton, Tooltip, Typography } from "@material-tailwind/react";
 import { useAppContext } from "@/contexts/AppContext";
 import { MapPinIcon, PhoneIcon } from "@heroicons/react/24/solid";
-import { BellIcon, Bars3Icon, CalendarIcon, HomeIcon, Squares2X2Icon, ChatBubbleLeftIcon, ChevronDownIcon, ChevronRightIcon, MoonIcon, SunIcon } from "@heroicons/react/24/outline";
-import { Fragment, useEffect, useState } from "react";
+import { BellIcon, Bars3Icon, CalendarIcon, Squares2X2Icon, ChatBubbleLeftIcon, ChevronDownIcon, ChevronRightIcon, MoonIcon, SunIcon } from "@heroicons/react/24/outline";
+import { useEffect, useState } from "react";
 import Head from "next/head";
 import ShortcutsView from "./ShortcutsView";
 import FiscalYearView from "./views/profiles/school/FiscalYearView";
@@ -17,6 +17,7 @@ import { formatImagePath } from "@/methods/formatMediaPath";
 import BusTrackingHeaderLink from "./views/bus_tracking/HeaderLink";
 import { useColorMode } from "@/configs/colorMode";
 import { labelTrail } from "@/methods/menuTree";
+import { describePage } from "@/configs/pageDescriptions";
 
 // Light or dark, for whoever is at this screen (configs/colorMode.js).
 function ModeButton({ mode, toggle, className = "" }) {
@@ -60,25 +61,42 @@ function View({ type, children, selectedMenu }) {
     // The menu's own labels, so the trail says "Fees & payments / Collect
     // fees" -- the words the rail uses -- rather than the address's
     // ("Payment / Student").
+    const viewKey = String(selectedMenu || '');
     selectedMenu = labelTrail(menuBundle?.menu, selectedMenu);
-    const crumbTrail = (
-        <>
-            <HomeIcon aria-hidden="true" />
-            {selectedMenu.map((menu, i) => (
-                <Fragment key={i}>
-                    <span className="app-crumb-sep" aria-hidden="true">/</span>
-                    <span className={i === selectedMenu.length - 1 ? 'app-crumb-current' : ''}
-                        aria-current={i === selectedMenu.length - 1 ? 'page' : undefined}>{menu}</span>
-                </Fragment>
-            ))}
-        </>
-    );
     // On a wide screen the page is said as a TITLE with the path to it above
     // ("Home › Payment ›" over "Student payment"), beside the school's name
     // plate — where you are, next to who you are. Narrower screens keep the
     // one-line trail in a strip under the bar.
     const pageTitle = selectedMenu[selectedMenu.length - 1] || '';
     const pageParents = selectedMenu.slice(0, -1);
+    const pageDescription = describePage(type, viewKey);
+    // Every page opens the same way: where it sits, what it is, what it is
+    // for. It used to be said in the top bar, squeezed beside the school's
+    // name plate at 15px and hidden below 1280px, while the page itself
+    // opened straight onto a form. Now it is the page's own first line: the
+    // trail, a 30px title and one sentence. A dashboard says hello instead
+    // (globals.css hides this one where `.app-dash-greeting` is shown).
+    const showHeading = !!pageTitle && [Users.ADMIN, Users.STAFF, Users.CANTEEN, Users.SUPERADMIN].includes(type);
+    const pageHeading = showHeading && (
+        <header className="app-heading hide-from-print">
+            <div className="app-heading-row">
+                {pageParents.length > 0 &&
+                    <nav aria-label="Breadcrumb" className="app-heading-trail">
+                        <ol>
+                            {pageParents.map((menu, i) => (
+                                <li key={i}>{menu}<ChevronRightIcon aria-hidden="true" /></li>
+                            ))}
+                            <li aria-current="page" className="sr-only">{pageTitle}</li>
+                        </ol>
+                    </nav>}
+                {/* a phone has no room for the date in the top bar */}
+                {user?.today &&
+                    <span className="app-heading-date md:hidden tabular-nums">{user.today}</span>}
+            </div>
+            <h1 className="app-heading-title">{pageTitle}</h1>
+            {pageDescription && <p className="app-heading-desc">{pageDescription}</p>}
+        </header>
+    );
     // 
     // The page shell is a flex COLUMN: the header takes the height it needs and
     // the content takes the rest. It used to be a stack of percentage caps —
@@ -229,20 +247,6 @@ function View({ type, children, selectedMenu }) {
                                             </div>
                                         </div>
                                         </div>
-                                        <span className="app-topbar-rule hidden xl:block" aria-hidden="true"></span>
-                                        <div className="app-page hidden xl:flex flex-col min-w-0">
-                                            <nav aria-label="Breadcrumb" className="app-page-trail">
-                                                <span>Home</span>
-                                                {pageParents.map((menu, i) => (
-                                                    <Fragment key={i}>
-                                                        <ChevronRightIcon aria-hidden="true" />
-                                                        <span>{menu}</span>
-                                                    </Fragment>
-                                                ))}
-                                                <ChevronRightIcon aria-hidden="true" />
-                                            </nav>
-                                            <span className="app-page-title truncate" aria-current="page">{pageTitle}</span>
-                                        </div>
                                     </div>
                                     {/* what day it is | what you can open */}
                                     <div className="app-topbar-tools flex items-center justify-end gap-x-2 shrink-0">
@@ -299,16 +303,6 @@ function View({ type, children, selectedMenu }) {
                                     </div>
                                 </div>
                             </div>
-                            {/* Under the bar on anything narrower than the wide
-                                layout: the trail on one line, free to scroll
-                                sideways without squeezing the bar above it. A
-                                phone has no room for the date up there, so the
-                                strip carries it. */}
-                            <nav aria-label="Breadcrumb" className="app-crumbs xl:hidden flex items-center justify-between gap-x-3 px-3 py-1.5 bg-white overflow-x-auto">
-                                <div className="app-crumb-trail">{crumbTrail}</div>
-                                {user?.today &&
-                                    <span className="app-crumbs-date md:hidden shrink-0 tabular-nums">{user.today}</span>}
-                            </nav>
                         </div>
                     }
                     {/* The SUPERADMIN console had no header at all — the whole
@@ -350,31 +344,12 @@ function View({ type, children, selectedMenu }) {
                                             </p>
                                         </div>
                                     </div>
-                                    <span className="app-topbar-rule hidden xl:block" aria-hidden="true"></span>
-                                    <div className="app-page hidden xl:flex flex-col min-w-0">
-                                        <nav aria-label="Breadcrumb" className="app-page-trail">
-                                            <span>Home</span>
-                                            {pageParents.map((menu, i) => (
-                                                <Fragment key={i}>
-                                                    <ChevronRightIcon aria-hidden="true" />
-                                                    <span>{menu}</span>
-                                                </Fragment>
-                                            ))}
-                                            <ChevronRightIcon aria-hidden="true" />
-                                        </nav>
-                                        <span className="app-page-title truncate" aria-current="page">{pageTitle}</span>
-                                    </div>
                                 </div>
                                 <div className="flex items-center gap-x-2 shrink-0">
                                     <span className="hidden md:flex items-center"><NpDatetimeView /></span>
                                     <ModeButton mode={mode} toggle={toggleMode} />
                                 </div>
                             </div>
-                            <nav aria-label="Breadcrumb" className="app-crumbs xl:hidden flex items-center justify-between gap-x-3 px-3 py-1.5 bg-white overflow-x-auto">
-                                <div className="app-crumb-trail">{crumbTrail}</div>
-                                {user?.today &&
-                                    <span className="app-crumbs-date md:hidden shrink-0 tabular-nums">{user.today}</span>}
-                            </nav>
                         </div>
                     }
                     {type === Users.SUPERADMIN &&
@@ -406,9 +381,6 @@ function View({ type, children, selectedMenu }) {
                                     </Typography>
                                 </div>
                             </div>
-                            <nav aria-label="Breadcrumb" className="app-crumbs flex items-center px-3 py-1.5 bg-white border-t overflow-x-auto">
-                                <div className="app-crumb-trail">{crumbTrail}</div>
-                            </nav>
                         </div>
                     }
                 </>
@@ -443,6 +415,7 @@ function View({ type, children, selectedMenu }) {
                                 and fade, `.app-view-enter` in globals.css)
                                 instead of swapping in a single frame. */}
                             <div key={selectedMenu?.join('.')} className="app-view-enter h-full">
+                                {pageHeading}
                                 {children}
                             </div>
                         </ErrorBoundary>
