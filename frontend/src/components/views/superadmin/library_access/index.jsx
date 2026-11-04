@@ -15,7 +15,7 @@ import Loader from "@/components/Loader";
 import { fetchLibraryAccess, saveLibraryAccess } from "@/services/functions/library";
 
 /**
- * Library Access.
+ * Library sharing.
  *
  * Which OTHER schools' students a school's library may look up and issue books
  * to (schools of one foundation sharing a physical library, typically).
@@ -129,7 +129,7 @@ function LibraryAccess() {
                             <p className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-white/75">
                                 Superadmin · Setup
                             </p>
-                            <h1 className="text-xl font-bold leading-tight text-white sm:text-2xl">Library Access</h1>
+                            <h1 className="text-xl font-bold leading-tight text-white sm:text-2xl">Library sharing</h1>
                             <p className="mt-1 max-w-2xl text-[0.85rem] text-white/85">
                                 Which other schools&apos; students a library may issue books to. Used when
                                 schools of one foundation share a physical library.

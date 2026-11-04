@@ -452,10 +452,11 @@ const superAdminMenu = [
             { name: "Grade sheet style", view: 'gradesheet-style', prefix: <SwatchIcon className="icon" /> },
             { name: "ID Card Design", view: 'idcard-design', prefix: <IdentificationIcon className="icon" /> },
             { name: "Shareholders", prefix: <UserGroupIcon className="icon" />, view: 'shareholders' },
-            { name: "Library Access", prefix: <BuildingLibraryIcon className="icon" />, view: 'library-access' },
-            { name: "Hostel Access", prefix: <HomeModernIcon className="icon" />, view: 'hostel-access' },
-            { name: "Extra Billing Access", prefix: <BuildingStorefrontIcon className="icon" />, view: 'extra-billing-access' },
-            { name: "Canteen Access", prefix: <ShoppingBagIcon className="icon" />, view: 'canteen-access' },
+            // Hostel, extra billing and canteen are switched on a school's own
+            // form (School/Admin > Facilities), not on pages of their own.
+            // Library sharing stays: it is not a facility switch but which
+            // other schools' students a library may serve.
+            { name: "Library sharing", prefix: <BuildingLibraryIcon className="icon" />, view: 'library-access' },
         ]
     },
     { section: "Schools", name: "Interface Theme", view: 'ui-theme', prefix: <PaintBrushIcon className="icon" /> },

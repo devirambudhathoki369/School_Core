@@ -16,7 +16,7 @@ export async function saveLibrary(data, clean = true) {
 //
 // READ ONLY for a school. That access exposes another school's student records,
 // so a school cannot grant it to itself: the superadmin assigns it under
-// Setup > Library Access, and the school only reads back what it has been given.
+// Setup > Library sharing, and the school only reads back what it has been given.
 const LIB_GUEST_SCHOOLS_API = "/library/guest-schools";
 const LIB_ACCESS_API = "/library/manage/guest-schools";
 

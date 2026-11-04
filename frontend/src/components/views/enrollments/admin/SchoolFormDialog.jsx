@@ -8,6 +8,8 @@ import { Error } from "@/components/Error";
 import { useEnrollmentContext } from "@/contexts/EnrollmentContext";
 import useBackdropDismiss from "@/hooks/backdropDismiss";
 import { SCHOOL_MODULES } from "@/configs/moduleGates";
+import { confirmAction } from "@/components/ConfirmDialog";
+import { getCanteenAccess } from "@/services/functions/canteen";
 
 // One titled block of the form. `!items-start`: a field with a message under it
 // must not push its neighbours' inputs a line up (`.mygrid` bottom-aligns).
@@ -24,11 +26,15 @@ function Group({ title, children }) {
 }
 
 // Every switch shares one shape: tick → onChange, leave → onBlur.
-function Flag({ name, text, description = null, admin, methods }) {
+// `confirmOff`, when given, is asked before a tick is taken off; answering
+// no leaves the facility on.
+function Flag({ name, text, description = null, admin, methods, confirmOff = null }) {
     return (
         <div className="app-dialog-flag sm:col-span-6">
-            <Checkbox name={name} checked={admin?.[name]} text={text} description={description} onClick={() => {
-                methods.onChange({ name, value: !admin?.[name] });
+            <Checkbox name={name} checked={admin?.[name]} text={text} description={description} onClick={async () => {
+                const next = !admin?.[name];
+                if (!next && confirmOff && !(await confirmOff())) return;
+                methods.onChange({ name, value: next });
             }} onBlur={() => {
                 methods.onBlur({ name, value: !admin?.[name] });
             }} />
@@ -49,6 +55,25 @@ function SchoolFormDialog() {
     const titleId = useId();
     const aboutId = useId();
     const isEdit = !!admin?.id;
+
+    // The facilities are switched here and only here. Switching the canteen
+    // off strands the money families have topped up onto cards, so the school
+    // is told how much before it goes off, as the old Canteen Access page did.
+    async function confirmCanteenOff() {
+        let held = 0;
+        try {
+            const { schools } = await getCanteenAccess();
+            held = Number((schools || []).find((x) => String(x.id) === String(admin?.id))?.held || 0);
+        } catch { /* the warning still goes out, without the figure */ }
+        return confirmAction({
+            tone: "warning",
+            confirmText: "Switch off",
+            title: `Switch the canteen OFF for ${admin?.name || "this school"}?`,
+            body: "The school stops seeing the Canteen menu, and every canteen page stops answering for them when you save. "
+                + "Nothing is deleted: items, sales and card accounts come back if it is switched on again."
+                + (held > 0 ? ` Rs. ${held.toLocaleString("en-IN")} of families' top-ups is still held on cards and cannot be refunded through the canteen while it is off.` : ""),
+        });
+    }
     const { panelRef, outsidePress } = useBackdropDismiss();
 
     useEffect(() => {
@@ -134,7 +159,8 @@ function SchoolFormDialog() {
                             switching one off later deletes nothing in it. */}
                         <Group title="Facilities">
                             {SCHOOL_MODULES.map(({ flag, label, hint }) => (
-                                <Flag key={flag} name={flag} text={label} description={hint} admin={admin} methods={methods} />
+                                <Flag key={flag} name={flag} text={label} description={hint} admin={admin} methods={methods}
+                                    confirmOff={flag === 'uses_canteen' && isEdit ? confirmCanteenOff : null} />
                             ))}
                         </Group>
 

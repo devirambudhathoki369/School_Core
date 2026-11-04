@@ -9,7 +9,7 @@ import { fetchGuestSchools } from "@/services/functions/library";
  * This used to be an add/remove control on this page, which meant a school
  * could grant ITSELF the ability to look up another school's students. That
  * access exposes a different customer's records, so it is assigned by the
- * superadmin (Setup ▸ Library Access) and only reported here.
+ * superadmin (Setup ▸ Library sharing) and only reported here.
  *
  * It still loads the list, because the ids are the borrower search scope — and
  * saying so on the page is what stops "why is a student from another school
