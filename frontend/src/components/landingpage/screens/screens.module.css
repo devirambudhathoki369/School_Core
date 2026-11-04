@@ -929,3 +929,26 @@
     :global(.lp) .months { grid-template-columns: repeat(12, minmax(0, 1fr)); }
     :global(.lp) .start { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+
+/* LIGHT (Nov 2026): the inner pages follow the front page -- plain labels in
+   the body face, and the chosen module a brand tint rather than a dark pill */
+:global(.lp) :is(.channelLabel, .creedTerm, .monthTag, .officeLabel, .phoneNote, .sheetRow dt, .changes thead th, .changes td::before) {
+    letter-spacing: 0;
+    text-transform: none;
+}
+:global(.lp) .jumpLink { border-radius: 8px; }
+:global(.lp) .jumpLink:hover { border-color: var(--line-2); background: var(--paper-2); }
+:global(.lp) .jumpLink[aria-current="true"] {
+    border-color: var(--teal);
+    background: var(--mint-2);
+    color: var(--teal-ink);
+}
+:global(.lp) .jumpLink[aria-current="true"] span { color: var(--teal-ink); }
+/* one hairline over a list, as everywhere else on the site */
+:global(.lp) :is(.months, .startStep, .changes, .channels, .doors, .faq, .sheet) { border-top: 1px solid var(--line-2); }
+/* the number to call is ink on a light page (amber on white is unreadable) */
+:global(.lp) .heroNumber { color: var(--ink); }
+/* the steps' numbers: a quiet brand tint, not amber coins */
+:global(.lp) .numeral { background: var(--mint-2); color: var(--teal-ink); box-shadow: inset 0 0 0 1px var(--mint-line); font-weight: 700; }
+/* the phone stands on its own: no disc behind it */
+:global(.lp) .phoneDisc { display: none; }

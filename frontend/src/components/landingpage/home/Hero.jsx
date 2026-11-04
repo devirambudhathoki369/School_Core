@@ -7,7 +7,7 @@ import styles from "./home.module.css"
 
 export default function HeroSection() {
     return (
-        <section className={cx(styles.hero, site.onDark)}>
+        <section className={styles.hero}>
             <div className={cx(site.wrap, styles.heroGrid)}>
                 <div>
                     <Kicker>{heroContent.kicker}</Kicker>

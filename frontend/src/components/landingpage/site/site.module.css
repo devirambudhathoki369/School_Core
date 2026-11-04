@@ -1156,3 +1156,182 @@ div.root * {
 
     :global(.lp) .band { padding: 104px 0; }
 }
+
+/* ==========================================================================
+   LIGHT (Nov 2026) -- the website wears the product's own design.
+
+   The same system as the signed-in app: a white page with soft grey bands,
+   ink type, a 1px line and a soft shadow on cards, and the Ocean brand only
+   where it means something: the main button, a link, a chosen thing. Amber
+   is a small mark now, never a button or a band. The header, the hero, the
+   inner pages' openings and the call to action are light; the footer and at
+   most one band a page stay deep. No pills with discs, no spaced capitals,
+   no colour blocks.
+   ========================================================================== */
+
+.root {
+    --ink: #101828;
+    --ink-2: #475467;
+    --ink-3: #667085;
+    --paper: #F8FAFB;
+    --paper-2: #F2F4F7;
+    --card: #FFFFFF;
+    --line: #E4E7EC;
+    --line-2: #D0D5DD;
+    --accent: var(--teal-ink);
+    --shadow-card: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .08);
+    --shadow-raised: 0 12px 32px -8px rgba(16, 24, 40, .14), 0 4px 8px -4px rgba(16, 24, 40, .06);
+    background: var(--card);
+}
+
+/* bands: white and the soft grey take turns, split by a hairline */
+:global(.lp) .band { padding: 88px 0; }
+:global(.lp) .bandPaper,
+:global(.lp) .bandSand,
+:global(.lp) .bandMint { background: var(--paper); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+:global(.lp) .bandCard { background: var(--card); }
+:global(.lp) .onDark { --accent: var(--on-dark-3); }
+
+/* the label over a heading: a few words in the brand, not spaced capitals */
+:global(.lp) .kicker {
+    gap: 8px;
+    font-family: var(--f-body);
+    font-size: calc(14px * var(--k));
+    line-height: calc(20px * var(--k));
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+}
+:global(.lp) .kickerMark { display: none; }
+
+:global(.lp) .h2 { letter-spacing: -1px; }
+
+/* buttons: one shape, the app's. Brand fill for the main action, white with
+   a grey edge for the other; the arrow is just an arrow. */
+:global(.lp) .btn,
+:global(.lp) .btnInk {
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 20px;
+    border-radius: 10px;
+    background: var(--teal);
+    color: #FFFFFF;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .05);
+}
+:global(.lp) .btn:hover,
+:global(.lp) .btnInk:hover { background: var(--teal-ink); }
+:global(.lp) .btnDisc,
+:global(.lp) .btnInk .btnDisc,
+:global(.lp) .btnSm .btnDisc {
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+}
+:global(.lp) .btnDisc svg,
+:global(.lp) .btnSm .btnDisc svg { width: 18px; height: 18px; stroke-width: 2.2; transform: none; }
+:global(.lp) .btn:hover .btnDisc svg { transform: translateX(2px); }
+:global(.lp) .btnSm { min-height: 40px; padding: 0 16px; font-size: 15px; border-radius: 8px; }
+:global(.lp) .btnPlain { padding: 0 20px; }
+:global(.lp) .btnLine {
+    min-height: 48px;
+    padding: 0 20px;
+    border: 1px solid var(--line-2);
+    border-radius: 10px;
+    background: var(--card);
+    color: var(--ink);
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .05);
+}
+:global(.lp) .btnLine:hover { border-color: var(--line-2); background: var(--paper); }
+:global(.lp) .onDark .btn { background: #FFFFFF; color: var(--pine); }
+:global(.lp) .onDark .btn:hover { background: var(--mint); }
+:global(.lp) .onDark .btnLine { background: transparent; border-color: rgba(255, 255, 255, .28); color: var(--on-dark); box-shadow: none; }
+:global(.lp) .onDark .btnLine:hover { background: rgba(255, 255, 255, .08); }
+
+:global(.lp) .textLink { color: var(--teal-ink); }
+
+/* ---- header: white, a hairline, the brand on the one button ---------------- */
+:global(.lp) .header {
+    background: rgba(255, 255, 255, .98);
+    border-bottom: 1px solid var(--line);
+}
+:global(.lp) .header[data-stuck] { border-bottom-color: var(--line); box-shadow: 0 1px 2px rgba(16, 24, 40, .05); }
+:global(.lp) .brand { color: var(--ink); }
+:global(.lp) .brandMark { background: #FFFFFF; box-shadow: inset 0 0 0 1px var(--line); border-radius: 10px; }
+:global(.lp) .brandBy {
+    color: var(--ink-3);
+    font-family: var(--f-body);
+    font-size: 11px;
+    letter-spacing: 0;
+    text-transform: none;
+    font-weight: 500;
+}
+:global(.lp) .navLink { color: var(--ink-2); border-radius: 8px; }
+:global(.lp) .navLink:hover { background: var(--paper-2); color: var(--ink); }
+:global(.lp) .navLink[aria-current="page"] { color: var(--ink); }
+:global(.lp) .navLink[aria-current="page"]::after { background: var(--teal); }
+:global(.lp) .signInButton { color: var(--ink); border-radius: 8px; }
+:global(.lp) .signInButton:hover { background: var(--paper-2); }
+:global(.lp) .signInMenu { border-color: var(--line); border-radius: 12px; box-shadow: var(--shadow-raised); }
+:global(.lp) .signInItem:hover { background: var(--paper-2); }
+:global(.lp) .menuButton { border: 1px solid var(--line-2); border-radius: 10px; color: var(--ink); }
+:global(.lp) .sheet { background: #FFFFFF; color: var(--ink); border-top: 1px solid var(--line); }
+:global(.lp) .sheetLink { color: var(--ink); border-bottom-color: var(--line); }
+:global(.lp) .sheetLink[aria-current="page"] { color: var(--teal-ink); }
+:global(.lp) .sheetNo,
+:global(.lp) .sheetTitle { color: var(--ink-3); }
+:global(.lp) .sheetRole { color: var(--ink); border: 1px solid var(--line-2); border-radius: 10px; }
+
+/* ---- an inner page opens on white, like the app's page heading ------------ */
+:global(.lp) .pageHero { background: var(--paper); border-bottom: 1px solid var(--line); }
+:global(.lp) .pageHero::before { display: none; }
+:global(.lp) .crumbs { color: var(--ink-3); }
+:global(.lp) .crumbs a { color: var(--ink-2); }
+:global(.lp) .crumbs a:hover { color: var(--ink); }
+:global(.lp) .crumbNow { color: var(--teal-ink); }
+:global(.lp) .pageTitle { color: var(--ink); letter-spacing: -1px; }
+:global(.lp) .pageLede { color: var(--ink-2); }
+
+/* ---- the closing call: a card on the grey band, not a marigold slab -------- */
+:global(.lp) .call {
+    background: var(--paper);
+    border-top: 1px solid var(--line);
+    padding: 88px 0;
+}
+:global(.lp) .call .callGrid {
+    padding: 40px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+}
+:global(.lp) .callLabel { color: var(--ink-3); font-family: var(--f-body); letter-spacing: 0; text-transform: none; font-weight: 600; }
+:global(.lp) .callNumber { color: var(--ink); }
+:global(.lp) .callNumber:hover { color: var(--teal-ink); }
+@media (max-width: 639px) {
+    :global(.lp) .band { padding: 64px 0; }
+    :global(.lp) .call .callGrid { padding: 24px; }
+}
+
+/* ---- footer: deep, quiet ---------------------------------------------------- */
+:global(.lp) .footer { background: #0B1F22; }
+:global(.lp) .footerTitle { font-family: var(--f-body); letter-spacing: 0; text-transform: none; font-weight: 600; }
+:global(.lp) .footer .brand { color: var(--on-dark); }
+:global(.lp) .footer .brandBy { color: var(--on-dark-3); }
+:global(.lp) .footer .brandMark { box-shadow: none; }
+:global(.lp) .onDark .textLink { color: var(--on-dark); }
+:global(.lp) .call .callGrid {
+    width: calc(100% - 2 * var(--gutter));
+    max-width: calc(1240px - 2 * var(--gutter));
+}
+/* no typewriter type on the site: the "mono" labels are set in the body face */
+.root { --f-mono: var(--f-body); }
+:global(.lp) :is(.crumbs, .sheetTitle) { letter-spacing: 0; text-transform: none; font-weight: 600; }
+/* the accessibility panel's tones re-point the tokens; follow them */
+:global(.lp) .header { background: var(--card); }
+.root[data-tone="dark"] :is(.btn, .btnInk) { color: #041512; }
+.root[data-tone="dark"] .onDark .btn { background: var(--ink); color: #041512; }

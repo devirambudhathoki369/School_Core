@@ -1,7 +1,6 @@
 import SiteLayout, { getSiteProps } from "@/components/landingpage/site/Layout";
 import { CallBand } from "@/components/landingpage/site/ui";
 import HeroSection from "@/components/landingpage/home/Hero";
-import Ticker from "@/components/landingpage/home/Ticker";
 import DaySection from "@/components/landingpage/home/Day";
 import ModulesSection from "@/components/landingpage/home/Modules";
 import { PlatformsSection, RolesSection } from "@/components/landingpage/home/Roles";
@@ -15,7 +14,6 @@ export default function LandingPage({ bsYear }) {
   return (
     <SiteLayout title="SchoolCore | School Management System" bsYear={bsYear}>
       <HeroSection />
-      <Ticker />
       <DaySection />
       <ModulesSection />
       <RolesSection />

@@ -64,7 +64,7 @@ export function Ticks({ points }) {
 /** The pine band an inner page opens with. */
 export function PageHero({ name, title, lede, children }) {
     return (
-        <section className={cx(styles.pageHero, styles.onDark)}>
+        <section className={styles.pageHero}>
             <div className={cx(styles.wrap, styles.pageHeroIn)}>
                 <nav aria-label="Breadcrumb">
                     <ol className={styles.crumbs}>
@@ -88,7 +88,7 @@ export function PageHero({ name, title, lede, children }) {
 /** The marigold band every page but Contact closes with. */
 export function CallBand() {
     return (
-        <section className={cx(styles.call, styles.onSun)} aria-labelledby="call-title">
+        <section className={styles.call} aria-labelledby="call-title">
             <div className={cx(styles.wrap, styles.callGrid)}>
                 <div {...reveal()}>
                     <Kicker>Book a demo</Kicker>

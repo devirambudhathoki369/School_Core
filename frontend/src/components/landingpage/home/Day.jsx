@@ -5,16 +5,6 @@ import { Kicker, cx, reveal } from "../site/ui"
 import site from "../site/site.module.css"
 import styles from "./home.module.css"
 
-// Where each step sits on the arc the sun travels: left as a share of the
-// width, top in pixels. The arc is `M0 110 Q500 -60 1000 110` in a box 120 high.
-const ARC = [
-    { left: "10%", top: 79 },
-    { left: "30%", top: 39 },
-    { left: "50%", top: 25 },
-    { left: "70%", top: 39 },
-    { left: "90%", top: 79 },
-]
-
 /** Which part of the school day it is in Nepal at `clock`, and how to say so. */
 function readDay(clock) {
     const { steps } = schoolDay
@@ -31,7 +21,7 @@ function readDay(clock) {
 }
 
 /**
- * A school day, with the sun on the step the day has reached in Nepal.
+ * A school day, with the step the day has reached in Nepal marked.
  *
  * The page is built ahead of time, so the clock is read in the browser after
  * the first paint; until then the day is drawn with no step picked out.
@@ -47,7 +37,6 @@ export default function DaySection() {
     }, [])
 
     const { now, text } = readDay(clock)
-    const sun = now >= 0 ? ARC[now] : null
 
     return (
         <section className={cx(site.band, site.bandPaper)} aria-labelledby="day-title">
@@ -70,21 +59,6 @@ export default function DaySection() {
                             )}
                         </p>
                     </div>
-                </div>
-
-                <div className={styles.arc} aria-hidden="true">
-                    <svg viewBox="0 0 1000 120" preserveAspectRatio="none" className={styles.arcLine}>
-                        <path d="M0 110Q500 -60 1000 110" />
-                    </svg>
-                    {ARC.map((point, index) => (
-                        <span
-                            key={point.left}
-                            className={styles.arcStop}
-                            data-past={now >= index ? "" : undefined}
-                            style={{ left: point.left, top: `${point.top}px` }}
-                        />
-                    ))}
-                    {sun && <span className={styles.arcSun} style={{ left: sun.left, top: `${sun.top}px` }} />}
                 </div>
 
                 <ol className={styles.steps}>

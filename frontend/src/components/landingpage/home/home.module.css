@@ -793,3 +793,98 @@
     :global(.lp) .index { grid-template-columns: minmax(0, 1fr) 540px; }
     :global(.lp) .indexRow { grid-template-columns: 40px 236px minmax(0, 1fr) 20px; }
 }
+
+/* ==========================================================================
+   LIGHT (Nov 2026): the front page in the product's own design
+   ========================================================================== */
+
+/* ---- hero: white, ink type, the brand on one phrase and on the button, the
+        product on a soft tinted stage beside it -------------------------------- */
+:global(.lp) .hero {
+    background: var(--card);
+    padding: 56px 0 0;
+    border-bottom: 1px solid var(--line);
+}
+:global(.lp) .hero::before { display: none; }
+:global(.lp) .h1 {
+    margin-top: 16px;
+    color: var(--ink);
+    letter-spacing: -2px;
+}
+:global(.lp) .h1Mark { color: var(--teal); }
+:global(.lp) .heroLede { margin-top: 24px; color: var(--ink-2); }
+:global(.lp) .heroNote { color: var(--ink-3); }
+:global(.lp) .heroTel { color: var(--ink); }
+:global(.lp) .heroStage {
+    padding: 20px;
+    border: 1px solid var(--mint-line);
+    border-radius: 20px;
+    background: var(--mint-2);
+}
+/* the facts: four plain figures on a line, split by hairlines */
+:global(.lp) .facts { margin-top: 64px; border-top: 1px solid var(--line); }
+:global(.lp) .fact:nth-child(even) { border-left-color: var(--line); }
+:global(.lp) .fact:nth-child(n + 3) { border-top-color: var(--line); }
+:global(.lp) .factFigure { color: var(--ink); font-weight: 700; letter-spacing: -1px; }
+:global(.lp) .factLabel { color: var(--ink-2); }
+@media (min-width: 1080px) {
+    :global(.lp) .hero { padding-top: 72px; }
+    :global(.lp) .h1 { font-size: calc(64px * var(--kd)); line-height: calc(66px * var(--kd) * var(--kl)); }
+    :global(.lp) .fact:nth-child(n + 2) { border-left: 1px solid var(--line); }
+    :global(.lp) .fact { padding: 24px 24px 28px; }
+    :global(.lp) .fact:first-child { padding-left: 0; }
+}
+
+/* ---- a school day: five steps on one line, the step you are in marked ----- */
+:global(.lp) .steps { margin-top: 48px; }
+:global(.lp) .stepMark { border-color: var(--line-2); background: var(--card); }
+:global(.lp) .step[data-now] .stepMark { border-color: var(--teal); background: var(--teal); box-shadow: 0 0 0 4px var(--mint); }
+:global(.lp) .stepNow { background: var(--mint); color: var(--teal-ink); font-family: var(--f-body); letter-spacing: 0; text-transform: none; }
+:global(.lp) .stepMeridiem { color: var(--ink-3); font-family: var(--f-body); letter-spacing: 0; }
+:global(.lp) .nowDot { background: var(--teal); }
+@media (min-width: 1080px) {
+    :global(.lp) .steps { padding-top: 28px; border-top: 1px solid var(--line); }
+    :global(.lp) .step { position: relative; }
+    :global(.lp) .stepMark { position: absolute; top: -36px; }
+}
+
+/* ---- the modules: an index beside its plate, the plate a white card ------- */
+:global(.lp) .indexList { border-top: 1px solid var(--line); }
+:global(.lp) .indexRow { border-bottom-color: var(--line); border-radius: 0; }
+:global(.lp) .indexNo { font-family: var(--f-body); color: var(--ink-3); }
+:global(.lp) .plateIn {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+}
+:global(.lp) .plateLabel { color: var(--ink-2); font-family: var(--f-body); letter-spacing: 0; text-transform: none; font-weight: 600; }
+:global(.lp) .plateLabel span { color: var(--teal-ink); }
+:global(.lp) .plateDrawing { background: var(--paper); border: 1px solid var(--line); }
+
+/* ---- who it is for: four white cards, alike ------------------------------- */
+:global(.lp) .role {
+    padding: 28px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+}
+:global(.lp) .roleIcon { color: var(--teal-ink); width: 28px; height: 28px; }
+:global(.lp) .roleNo { font-family: var(--f-body); color: var(--ink-3); }
+:global(.lp) .roleTitle { margin-top: 28px; font-size: calc(22px * var(--kd)); line-height: calc(28px * var(--kd) * var(--kl)); }
+:global(.lp) .roleLine { border-bottom-color: var(--line); }
+
+/* ---- where it runs: the phone on its own, no disc behind it --------------- */
+:global(.lp) .platforms { border-top-color: var(--line); }
+:global(.lp) .platform { border-bottom-color: var(--line); }
+:global(.lp) .pocketDisc { display: none; }
+:global(.lp) .sample { font-family: var(--f-body); letter-spacing: 0; text-transform: none; font-size: 13px; }
+
+/* ---- built in Dang: the page's one deep band ------------------------------ */
+:global(.lp) .nepal { background: #0B3A3C; }
+@media (min-width: 1080px) {
+    /* each step sits on the day's line, the step you are in filled */
+    :global(.lp) .stepMark { display: block; left: 0; top: -35px; }
+}
+:global(.lp) .indexList { border-top: 1px solid var(--line-2); }

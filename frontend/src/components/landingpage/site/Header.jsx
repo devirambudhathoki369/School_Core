@@ -70,7 +70,7 @@ export default function Header() {
     const current = (href) => (pathname === href ? "page" : undefined)
 
     return (
-        <header className={cx(styles.header, styles.onDark)} data-stuck={stuck ? "" : undefined}>
+        <header className={styles.header} data-stuck={stuck ? "" : undefined}>
             <div className={styles.headerRow}>
                 <Link href="/" className={styles.brand} aria-label={`${company.name}, home`}>
                     <span className={styles.brandMark}>

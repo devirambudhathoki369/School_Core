@@ -1413,3 +1413,31 @@
         transform: rotate(1.6deg);
     }
 }
+
+/* LIGHT (Nov 2026): the portal in miniature as the app now looks -- a tinted
+   menu with the page you are on as a solid brand row, on a white window */
+:global(.lp) .window {
+    border-radius: 14px;
+    background: #F8FAFB;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 16px 40px -12px rgba(16, 24, 40, .18);
+    outline: 1px solid #E4E7EC;
+}
+:global(.lp) .windowTag { border-style: solid; border-color: #E4E7EC; font-family: inherit; letter-spacing: 0; text-transform: none; }
+:global(.lp) .rail { background: #E3F8FD; }
+:global(.lp) .railItem { color: #093138; }
+:global(.lp) .railItem:hover { background: #D4F5FC; color: #093138; }
+:global(.lp) .railItem[aria-selected="true"] { background: var(--d-teal); color: #FFFFFF; }
+:global(.lp) .railTimer { background: rgba(255, 255, 255, .55); }
+@media (min-width: 560px) {
+    :global(.lp) .rail { border-right: 1px solid #B2EBF6; }
+}
+/* a drawing sits on a white card, like a card in the app */
+:global(.lp) .frame {
+    padding: 16px 16px 12px;
+    border: 1px solid #E4E7EC;
+    border-radius: 16px;
+    background: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .08);
+}
+:global(.lp) .frameIn { background: #F8FAFB; border: 1px solid #EEF0F3; }
+:global(.lp) .frameNote { color: #667085; letter-spacing: 0; text-transform: none; font-size: 12px; }

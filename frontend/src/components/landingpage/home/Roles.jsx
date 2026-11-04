@@ -11,16 +11,15 @@ import { Kicker, TextLink, Ticks, cx, reveal } from "../site/ui"
 import site from "../site/site.module.css"
 import styles from "./home.module.css"
 
-// Each role gets one of the site's four grounds, so the four read as a set of
-// printed cards rather than four copies of one box.
+// One card for each person, all four alike: the words tell them apart. They
+// were four colour blocks (pine, marigold, mint, paper), which read as a
+// template's feature grid rather than as one product.
 const ROLE_LOOK = {
-    management: { icon: BuildingLibraryIcon, ground: "pine" },
-    accountant: { icon: CalculatorIcon, ground: "sun" },
-    teachers: { icon: AcademicCapIcon, ground: "mint" },
-    parents: { icon: DevicePhoneMobileIcon, ground: "paper" },
+    management: { icon: BuildingLibraryIcon },
+    accountant: { icon: CalculatorIcon },
+    teachers: { icon: AcademicCapIcon },
+    parents: { icon: DevicePhoneMobileIcon },
 }
-
-const GROUND_TOKENS = { pine: site.onDark, sun: site.onSun }
 
 export function RolesSection() {
     return (
@@ -38,12 +37,11 @@ export function RolesSection() {
 
                 <div className={styles.roles}>
                     {roles.map((role, index) => {
-                        const { icon: RoleIcon, ground } = ROLE_LOOK[role.id]
+                        const { icon: RoleIcon } = ROLE_LOOK[role.id]
                         return (
                             <article
                                 key={role.id}
-                                className={cx(styles.role, GROUND_TOKENS[ground])}
-                                data-ground={ground}
+                                className={styles.role}
                                 {...reveal(index * 70)}>
                                 <p className={styles.roleTop}>
                                     <RoleIcon className={styles.roleIcon} aria-hidden="true" />
@@ -74,7 +72,7 @@ const platformIcons = {
 
 export function PlatformsSection() {
     return (
-        <section className={cx(site.band, site.bandMint)} aria-labelledby="platforms-title">
+        <section className={cx(site.band, site.bandPaper)} aria-labelledby="platforms-title">
             <div className={cx(site.wrap, styles.pocket)}>
                 <div {...reveal()}>
                     <Kicker>{platformsIntro.kicker}</Kicker>
@@ -100,7 +98,6 @@ export function PlatformsSection() {
                 </div>
 
                 <div className={styles.pocketStage} {...reveal(120)}>
-                    <span className={styles.pocketDisc} aria-hidden="true" />
                     <Phone className={styles.pocketPhone} />
                     <p className={styles.sample}>Sample data</p>
                 </div>
