@@ -8,7 +8,7 @@ import {
     CheckCircleIcon, CheckBadgeIcon,
     ExclamationTriangleIcon, ExclamationCircleIcon, LockClosedIcon,
     BuildingLibraryIcon, UserGroupIcon, AcademicCapIcon, ShieldCheckIcon,
-    CalendarDaysIcon, ChatBubbleLeftRightIcon, ShoppingBagIcon,
+    ShoppingBagIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
 
@@ -39,150 +39,13 @@ const ROLE_ICON = {
 // What the product covers, in the words of its own summary line.
 const COVERS = ["Fees and accounting", "Examinations", "Attendance", "Transport", "Staff and payroll"];
 
-/**
- * The product, drawn rather than described.
- *
- * The wall used to be a headline over a column of ticked sentences — the page
- * a person meets first was the plainest one in the product. This is the
- * dashboard they are about to open, rising from the foot of the wall like a
- * screen: the four summary tiles, today's attendance as rings, a column a
- * month for collections, then the gender split and the busiest stations. It is
- * a drawing, not data — bars and lines where the figures go, so nothing here
- * can be mistaken for a school's numbers — and it is hidden from assistive
- * technology for the same reason.
- *
- * It is as wide as the wall and as tall as the wall has room for: on a short
- * window the foot of the drawing runs off the foot of the wall (see
- * `.pub-window`). It used to be 40rem wide and to vanish outright under 760px
- * of height, which on a wide laptop at 125% scaling left a headline in one
- * corner of an empty field.
- */
-function ProductWindow() {
-    // label, mark, the tile's role colour (the dashboard's own --k1..4), its
-    // tint, its soft bar, then the two bar lengths
-    const tiles = [
-        ["Total students", AcademicCapIcon, "#17614D", "#ECF2F1", "#C3D6D1", 54, 72],
-        ["Total staff", UserGroupIcon, "#0E2B23", "#E1EAE8", "#BED3CD", 32, 80],
-        ["Economic year", CalendarDaysIcon, "#7A5200", "#FFF2D2", "#FFE08A", 78, 58],
-        ["SMS credits", ChatBubbleLeftRightIcon, "#155442", "#EFF4F3", "#C3D6D1", 46, 66],
-    ];
-    // a year of months: eight collected, the eighth in progress, four to come
-    const columns = [36, 58, 46, 74, 54, 82, 64, 94, 0, 0, 0, 0];
-    const stations = [[5.5, 90, "#0E2B23"], [4.25, 68, "#17614D"], [5, 49, "#5D9082"], [3.5, 31, "#C3D6D1"]];
-    const ring = (colour, track, dash) => (
-        <svg viewBox="0 0 50 50" className="pub-window-ring -rotate-90 shrink-0">
-            <circle cx="25" cy="25" r="20" fill="none" strokeWidth="6" stroke={track} />
-            <circle cx="25" cy="25" r="20" fill="none" strokeWidth="6" stroke={colour} strokeLinecap="round" strokeDasharray={`${dash} 126`} />
-        </svg>
-    );
-    return (
-        <div className="pub-window" aria-hidden="true">
-            <div className="pub-window-tiles">
-                {tiles.map(([label, Mark, ink, tint, soft, figure, sub]) => (
-                    <div key={label} className="pub-window-tile">
-                        <span className="pub-window-chip" style={{ background: tint, color: ink }}><Mark /></span>
-                        <div className="flex min-w-0 flex-1 flex-col gap-y-1.5">
-                            <span className="pub-window-label">{label}</span>
-                            <span className="pub-window-bar h-3 bg-[#cbd5e1]" style={{ width: `${figure}%` }}></span>
-                            <span className="pub-window-bar h-1.5" style={{ width: `${sub}%`, background: soft }}></span>
-                        </div>
-                    </div>
-                ))}
-            </div>
-            <div className="pub-window-row">
-                <div className="pub-window-cell">
-                    <span className="pub-window-label">Today&apos;s attendance</span>
-                    {[["#17614D", "#E1EAE8", 108, 62, 84], ["#FFC233", "#FFF2D2", 116, 44, 70]].map(([colour, track, dash, first, second]) => (
-                        <div key={colour} className="flex items-center gap-x-3.5">
-                            {ring(colour, track, dash)}
-                            <div className="flex min-w-0 flex-1 flex-col gap-y-2">
-                                <span className="pub-window-bar h-[11px] bg-[#cbd5e1]" style={{ width: `${first}%` }}></span>
-                                <span className="pub-window-bar h-[7px] bg-[#e2e8f0]" style={{ width: `${second}%` }}></span>
-                            </div>
-                            <span className="pub-window-bar h-[22px] w-12 shrink-0 bg-[#eef2f6]"></span>
-                        </div>
-                    ))}
-                </div>
-                <div className="pub-window-cell">
-                    <span className="pub-window-label">Fee collections</span>
-                    <div className="flex items-center gap-x-3.5">
-                        <span className="pub-window-bar h-[13px] w-[8.5rem] bg-[#cbd5e1]"></span>
-                        <span className="pub-window-bar h-2 w-[4.75rem] bg-[#e2e8f0]"></span>
-                    </div>
-                    <div className="pub-window-columns">
-                        {columns.map((height, i) => (
-                            <span key={i} className="flex-1 rounded-t-[5px]"
-                                style={height
-                                    ? { height: `${height}%`, background: i === 7 ? "#FFC233" : "#C3D6D1" }
-                                    : { height: 4, background: "#e2e8f0" }}></span>
-                        ))}
-                    </div>
-                </div>
-            </div>
-            <div className="pub-window-row pb-5">
-                <div className="pub-window-cell">
-                    <span className="pub-window-label">Running students · by gender</span>
-                    <div className="flex h-3 gap-x-[3px]">
-                        <span className="rounded-l-full bg-[#17614D]" style={{ flex: 52 }}></span>
-                        <span className="bg-[#FFC233]" style={{ flex: 45 }}></span>
-                        <span className="rounded-r-full bg-[#94a3b8]" style={{ flex: 3 }}></span>
-                    </div>
-                    {[["#17614D", 3, 2.25], ["#FFC233", 3.75, 2.25], ["#94a3b8", 2.75, 1.5]].map(([colour, name, count]) => (
-                        <div key={colour} className="flex items-center gap-x-2.5">
-                            <span className="h-[9px] w-[9px] shrink-0 rounded-[3px]" style={{ background: colour }}></span>
-                            <span className="pub-window-bar h-2 bg-[#cbd5e1]" style={{ width: `${name}rem` }}></span>
-                            <span className="pub-window-bar ml-auto h-2 bg-[#e2e8f0]" style={{ width: `${count}rem` }}></span>
-                        </div>
-                    ))}
-                </div>
-                <div className="pub-window-cell">
-                    <span className="pub-window-label">Busiest stations</span>
-                    {stations.map(([name, share, colour]) => (
-                        <div key={share} className="flex items-center gap-x-3">
-                            <span className="w-[5.5rem] shrink-0">
-                                <span className="pub-window-bar h-2 bg-[#cbd5e1]" style={{ width: `${name}rem` }}></span>
-                            </span>
-                            <span className="flex h-2.5 flex-1 rounded-full bg-[#eef2f6]">
-                                <span className="rounded-full" style={{ width: `${share}%`, background: colour }}></span>
-                            </span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// The same idea at a phone's width: three small tiles under the sign-in sheet.
-function Glance() {
-    return (
-        <div className="pub-glance" aria-hidden="true">
-            <div className="pub-glance-cell">
-                <span className="pub-glance-label">Attendance</span>
-                <svg width="40" height="40" viewBox="0 0 50 50" className="-rotate-90">
-                    <circle cx="25" cy="25" r="20" fill="none" strokeWidth="7" stroke="#E1EAE8" />
-                    <circle cx="25" cy="25" r="20" fill="none" strokeWidth="7" stroke="#17614D" strokeLinecap="round" strokeDasharray="108 126" />
-                </svg>
-            </div>
-            <div className="pub-glance-cell">
-                <span className="pub-glance-label">Fees</span>
-                <div className="flex h-10 items-end gap-x-1 border-b border-[#e2e8f0]">
-                    {[40, 66, 52, 90].map((height, i) => (
-                        <span key={i} className="flex-1 rounded-t-[3px]" style={{ height: `${height}%`, background: i === 3 ? "#FFC233" : "#C3D6D1" }}></span>
-                    ))}
-                </div>
-            </div>
-            <div className="pub-glance-cell">
-                <span className="pub-glance-label">Results</span>
-                <div className="flex h-10 flex-col justify-center gap-y-1.5">
-                    <span className="pub-glance-line w-[90%] !bg-[#cbd5e1]"></span>
-                    <span className="pub-glance-line w-[64%]"></span>
-                    <span className="pub-glance-line w-[78%]"></span>
-                </div>
-            </div>
-        </div>
-    );
-}
+// Three plain facts at the foot of the panel. Words, not a drawing of a
+// dashboard: a sketch of charts with no figures in it told a visitor nothing.
+const FACTS = [
+    ["Bikram Sambat", "Dates, months and fiscal years in the calendar the office already uses."],
+    ["Web, Android and iPhone", "One account, and the same figures on every screen."],
+    ["Your records", "A complete backup of the school's data whenever you ask for one."],
+];
 
 function Login({ role }) {
     const { user: { setUser },
@@ -457,7 +320,14 @@ function Login({ role }) {
                         </div>
                     </div>
 
-                    <ProductWindow />
+                    <dl className="pub-facts">
+                        {FACTS.map(([term, text]) => (
+                            <div key={term}>
+                                <dt>{term}</dt>
+                                <dd>{text}</dd>
+                            </div>
+                        ))}
+                    </dl>
                 </div>
             </aside>
 
@@ -566,10 +436,6 @@ function Login({ role }) {
                         </button>
                     </form>
 
-                </div>
-
-                <div className="mx-auto mt-4 w-full max-w-[26rem] lg:hidden">
-                    <Glance />
                 </div>
 
                 <p className="pub-foot pub-signin-foot mx-auto mt-6 w-full max-w-[26rem] text-slate-500 2xl:max-w-[27.5rem]">
