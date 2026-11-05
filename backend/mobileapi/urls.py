@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .schema import MobileSchemaView
-from .views import school, students
+from .views import school, staff, students
 from .views.auth import (
     FamilyCodeView,
     ParentCodeView,
@@ -43,4 +43,13 @@ urlpatterns = [
     path("students/<int:student_id>/timetable", students.StudentTimetableView.as_view(), name="student-timetable"),
     path("notices", school.NoticesView.as_view(), name="notices"),
     path("calendar", school.CalendarView.as_view(), name="calendar"),
+    # staff (phase 4)
+    path("staff/today", staff.StaffTodayView.as_view(), name="staff-today"),
+    path("staff/classes", staff.StaffClassesView.as_view(), name="staff-classes"),
+    path("staff/classes/<int:class_id>/attendance", staff.ClassAttendanceDayView.as_view(), name="staff-class-day"),
+    path("staff/homework", staff.StaffHomeworkView.as_view(), name="staff-homework"),
+    path("staff/homework/<int:homework_id>/hand-ins", staff.HandInsView.as_view(), name="staff-hand-ins"),
+    path("staff/homework/<int:homework_id>/hand-ins/<int:hand_in_id>", staff.HandInDetailView.as_view(),
+         name="staff-hand-in"),
+    path("staff/me/attendance", staff.StaffOwnAttendanceView.as_view(), name="staff-own-attendance"),
 ]
