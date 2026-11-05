@@ -5,13 +5,13 @@ import dynamic from 'next/dynamic';
 
 const ReactQuill = dynamic(
     async () => {
-        const { default: RQ } = await import('react-quill');
+        const { default: RQ } = await import('react-quill-new');
         // eslint-disable-next-line react/display-name
         return ({ forwardedRef, ...props }) => <RQ ref={forwardedRef} {...props} />;
     },
     { ssr: false }
 );
-import 'react-quill/dist/quill.snow.css';
+import 'react-quill-new/dist/quill.snow.css';
 // 
 import { __update } from '@/services/functions';
 import { ACCEPT_STR, ALLOWED_IMAGE_TYPES, MAX_SIZE, aitString } from '@/configs/file_types';
@@ -96,7 +96,7 @@ const _modules = {
 };
 const formats = [
     'header', 'bold', 'italic', 'underline',
-    'list', 'bullet', 'indent', 'link', 'image',
+    'list', 'indent', 'link', 'image',
     'color',
 ];
 
