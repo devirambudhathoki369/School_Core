@@ -1,0 +1,253 @@
+{% extends "server/base.html" %}
+{% load tz %}
+
+{% block style %}
+/* the service list: one card, a row per service, its routes inside */
+.services { overflow: hidden; }
+.svc + .svc { border-top: 1px solid var(--line); }
+.svc > summary {
+    list-style: none; cursor: pointer;
+    display: grid; grid-template-columns: minmax(0, 1fr) auto auto 20px; align-items: center; gap: 8px 24px;
+    padding: 16px 24px;
+}
+.svc > summary::-webkit-details-marker { display: none; }
+.svc > summary:hover { background: var(--card-2); }
+.svc[open] > summary { background: var(--card-2); border-bottom: 1px solid var(--line); }
+.svc-title { font-size: 15px; font-weight: 700; color: var(--ink); }
+.svc-line { margin-top: 2px; font-size: 14px; color: var(--ink-3); }
+.svc-where { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.mount { font: 500 13px/24px var(--f-mono); padding: 0 8px; border-radius: 6px; background: var(--card-2); border: 1px solid var(--line); color: var(--ink-2); }
+.svc[open] .mount { background: var(--card); }
+.ver { font: 600 12px/24px var(--f-mono); padding: 0 6px; border-radius: 6px; color: var(--brand-ink); background: var(--brand-tint); border: 1px solid var(--brand-line); }
+.svc-count { font-size: 14px; color: var(--ink-3); white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; min-width: 88px; }
+.svc-count b { color: var(--ink); font-weight: 600; }
+.chev { width: 20px; height: 20px; color: var(--ink-4); transition: transform .15s; }
+.svc[open] .chev { transform: rotate(90deg); }
+
+/* routes: three columns that wrap their words, never a sideways scroll */
+.routes { margin: 0; padding: 0; list-style: none; }
+.routes-head, .route {
+    display: grid; grid-template-columns: 148px minmax(0, 1fr) minmax(0, 240px); gap: 16px; align-items: baseline;
+    padding: 10px 24px;
+}
+.routes-head { padding-top: 8px; padding-bottom: 8px; font-size: 12px; font-weight: 600; color: var(--ink-3); border-bottom: 1px solid var(--line); }
+.route + .route { border-top: 1px solid var(--line); }
+.route:hover { background: var(--card-2); }
+.methods { display: flex; gap: 4px; flex-wrap: wrap; }
+.m { font: 600 11px/20px var(--f-mono); padding: 0 6px; border-radius: 4px; border: 1px solid var(--line); background: var(--card-2); color: var(--ink-3); }
+.m-GET { color: var(--brand-ink); background: var(--brand-tint); border-color: var(--brand-line); }
+.m-POST { color: var(--amber-ink); background: var(--amber-tint); border-color: var(--amber-line); }
+.m-DELETE { color: var(--sindoor); background: var(--sindoor-tint); border-color: var(--sindoor-line); }
+.path { font: 400 13px/20px var(--f-mono); color: var(--ink); overflow-wrap: anywhere; }
+.path .p { color: var(--brand-ink); font-weight: 600; }
+.rname { font: 400 12px/20px var(--f-mono); color: var(--ink-4); overflow-wrap: anywhere; }
+
+.filter {
+    display: flex; align-items: center; gap: 8px; width: 340px; max-width: 100%; height: 40px; padding: 0 12px;
+    background: var(--card); border: 1px solid var(--line-2); border-radius: 8px; box-shadow: var(--shadow);
+}
+.filter:focus-within { border-color: var(--brand); box-shadow: 0 0 0 4px var(--brand-tint); }
+.filter svg { width: 16px; height: 16px; color: var(--ink-4); flex: none; }
+.filter input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: 400 14px var(--f-ui); color: var(--ink); }
+.filter input::placeholder { color: var(--ink-4); }
+.filter kbd { font: 500 11px/18px var(--f-mono); padding: 0 6px; border: 1px solid var(--line); border-radius: 4px; color: var(--ink-4); }
+.filter-count { margin: 12px 0 0; font-size: 13px; color: var(--ink-3); min-height: 18px; }
+.empty { padding: 40px 24px; text-align: center; color: var(--ink-3); font-size: 14px; }
+.empty b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 4px; }
+
+.how { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.how .card { padding: 20px 24px; }
+.how h3 { margin: 0 0 4px; font-size: 15px; font-weight: 700; }
+.how p { margin: 0; font-size: 14px; color: var(--ink-3); }
+.how code { font-size: 12.5px; padding: 1px 6px; border-radius: 4px; background: var(--card-2); border: 1px solid var(--line); color: var(--ink-2); overflow-wrap: anywhere; }
+
+@media (max-width: 860px) {
+    .how { grid-template-columns: minmax(0, 1fr); }
+    .routes-head { display: none; }
+    .route { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 12px 20px; }
+    .svc > summary { grid-template-columns: minmax(0, 1fr) 20px; padding: 16px 20px; }
+    .svc-where { grid-column: 1; grid-row: 2; justify-content: flex-start; }
+    .svc-count { grid-column: 1; grid-row: 3; text-align: left; }
+    .chev { grid-column: 2; grid-row: 1; }
+}
+{% endblock %}
+
+{% block content %}
+<section class="head">
+    <div class="head-text">
+        <p class="trail"><span>Server</span><span class="mono">{{ host }}</span></p>
+        <h1>SchoolCore API</h1>
+        <p class="lede">This server answers the SchoolCore portal, the mobile apps and the attendance readers. Schools sign in at the portal, not here.</p>
+    </div>
+    {% if portal_url %}
+    <div class="head-actions">
+        <a class="btn btn-primary" href="{{ portal_url }}">Open the portal
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 13 13 7M8 7h5v5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+    </div>
+    {% endif %}
+</section>
+
+<section class="tiles" aria-label="Server status">
+    <div class="card tile">
+        <div class="tile-label"><span class="dot {% if status == 'ok' %}ok{% else %}bad{% endif %}"></span>Status</div>
+        <div class="tile-value {% if status != 'ok' %}is-bad{% endif %}">{% if status == "ok" %}Running{% else %}Degraded{% endif %}</div>
+        <div class="tile-note">{% if status == "ok" %}Answering requests{% else %}The database is not answering{% endif %}</div>
+    </div>
+    <div class="card tile">
+        <div class="tile-label"><span class="dot {% if database.ok %}ok{% else %}bad{% endif %}"></span>Database</div>
+        <div class="tile-value">{% if database.ok %}{% if detailed %}{{ db_vendor }}{% else %}Connected{% endif %}{% else %}<span class="is-bad">Unreachable</span>{% endif %}</div>
+        <div class="tile-note">{% if database.ok %}Answered in {{ database.ms }} ms{% if detailed and db_name %} · <span class="mono">{{ db_name }}</span>{% endif %}{% else %}Check that PostgreSQL is running{% endif %}</div>
+    </div>
+    {% if detailed %}
+    <div class="card tile">
+        {% if pending_migrations is None %}
+        <div class="tile-label"><span class="dot"></span>Migrations</div>
+        <div class="tile-value">Unknown</div>
+        <div class="tile-note">The plan could not be read</div>
+        {% elif pending_migrations %}
+        <div class="tile-label"><span class="dot warn"></span>Migrations</div>
+        <div class="tile-value is-warn">{{ pending_migrations }} waiting</div>
+        <div class="tile-note">Run <span class="mono">manage.py migrate</span></div>
+        {% else %}
+        <div class="tile-label"><span class="dot ok"></span>Migrations</div>
+        <div class="tile-value">All applied</div>
+        <div class="tile-note">The database matches the code</div>
+        {% endif %}
+    </div>
+    <div class="card tile">
+        <div class="tile-label"><span class="dot ok"></span>Routes</div>
+        <div class="tile-value">{{ route_count }}</div>
+        <div class="tile-note">in {{ services|length }} services</div>
+    </div>
+    {% else %}
+    <div class="card tile">
+        <div class="tile-label"><span class="dot"></span>Server time</div>
+        <div class="tile-value">{{ now_local|timezone:"Asia/Kathmandu"|date:"H:i" }}</div>
+        <div class="tile-note">{{ now_local|timezone:"Asia/Kathmandu"|date:"D j M Y" }}, Nepal</div>
+    </div>
+    {% endif %}
+</section>
+
+{% if detailed %}
+<section class="section" aria-labelledby="services-title">
+    <div class="section-head">
+        <div>
+            <h2 id="services-title">Services</h2>
+            <p class="section-line">Every route Django resolves, grouped by where it is mounted. Open one to read its paths.</p>
+        </div>
+        <label class="filter">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3" stroke-linecap="round"/></svg>
+            <input id="route-filter" type="search" placeholder="Filter by path or name" aria-label="Filter routes by path or name" autocomplete="off" spellcheck="false">
+            <kbd aria-hidden="true">/</kbd>
+        </label>
+    </div>
+    <div class="card services" id="services">
+        {% for service in services %}
+        <details class="svc" data-svc="{{ service.slug }}">
+            <summary>
+                <div>
+                    <div class="svc-title">{{ service.title }}</div>
+                    {% if service.line %}<div class="svc-line">{{ service.line }}</div>{% endif %}
+                </div>
+                <div class="svc-where">
+                    <span class="mount">{{ service.mount }}</span>
+                    {% for v in service.versions %}<span class="ver">{{ v }}</span>{% endfor %}
+                </div>
+                <div class="svc-count"><b data-count>{{ service.routes|length }}</b> <span data-unit>route{{ service.routes|length|pluralize }}</span></div>
+                <svg class="chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m8 5 5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="routes-head" aria-hidden="true"><span>Methods</span><span>Path</span><span>Name</span></div>
+            <ul class="routes">
+                {% for route in service.routes %}
+                <li class="route" data-q="{{ route.path|lower }} {{ route.name|lower }}">
+                    <span class="methods">{% for m in route.methods %}<span class="m m-{{ m }}">{{ m }}</span>{% empty %}<span class="m">ANY</span>{% endfor %}</span>
+                    <span class="path">{% for part in route.parts %}{% if part.param %}<span class="p">{{ part.text }}</span>{% else %}{{ part.text }}{% endif %}{% endfor %}</span>
+                    <span class="rname">{{ route.name }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </details>
+        {% endfor %}
+        <div class="empty" id="no-match" hidden><b>No route matches</b>Try part of a path, such as <span class="mono">students</span>, or a route's name.</div>
+    </div>
+    <p class="filter-count" id="filter-count" aria-live="polite"></p>
+</section>
+
+<section class="section" aria-labelledby="how-title">
+    <div class="section-head"><div><h2 id="how-title">Calling the API</h2></div></div>
+    <div class="how">
+        <div class="card">
+            <h3>Sign in first</h3>
+            <p>Each role signs in under <code>/auth/</code>. The session cookie it sets is what every other call is checked against.</p>
+        </div>
+        <div class="card">
+            <h3>Versions</h3>
+            <p>The school API answers at <code>/api/v1/</code> and <code>/api/v2/</code>. A bare <code>/api/</code> is the same as v1.</p>
+        </div>
+        <div class="card">
+            <h3>Health check</h3>
+            <p><code>/?format=json</code> returns the status as JSON, with 503 when the database is down.</p>
+        </div>
+    </div>
+</section>
+{% else %}
+<section class="section">
+    <div class="card note">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M10 9v4.5M10 6.5v.01" stroke-linecap="round"/></svg>
+        <span>The route map shows on a development server, or to staff signed in to the <a href="{% url 'admin:index' %}">admin</a>.</span>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block script %}
+{% if detailed %}
+<script>
+(function () {
+    var input = document.getElementById("route-filter");
+    var box = document.getElementById("services");
+    var count = document.getElementById("filter-count");
+    var empty = document.getElementById("no-match");
+    var services = Array.prototype.slice.call(box.querySelectorAll(".svc"));
+    services.forEach(function (svc) {
+        svc._routes = Array.prototype.slice.call(svc.querySelectorAll(".route"));
+        svc._count = svc.querySelector("[data-count]");
+        svc._unit = svc.querySelector("[data-unit]");
+        svc._total = svc._routes.length;
+    });
+    function apply() {
+        var q = input.value.trim().toLowerCase();
+        var shown = 0, total = 0;
+        services.forEach(function (svc) {
+            var hits = 0;
+            svc._routes.forEach(function (r) {
+                var hit = !q || r.getAttribute("data-q").indexOf(q) !== -1;
+                r.hidden = !hit;
+                if (hit) hits++;
+            });
+            total += svc._total;
+            shown += hits;
+            svc.hidden = q && hits === 0;
+            svc._count.textContent = q ? hits + " of " + svc._total : svc._total;
+            svc._unit.textContent = (q ? svc._total : hits) === 1 ? "route" : "routes";
+            if (q) svc.open = hits > 0 && hits <= 60;
+        });
+        empty.hidden = !q || shown > 0;
+        count.textContent = q ? shown + " of " + total + " routes match “" + input.value.trim() + "”" : "";
+    }
+    input.addEventListener("input", apply);
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "/" && document.activeElement !== input && !/input|textarea/i.test(document.activeElement.tagName)) {
+            e.preventDefault();
+            input.focus();
+        } else if (e.key === "Escape" && document.activeElement === input) {
+            input.value = "";
+            apply();
+            services.forEach(function (svc) { svc.open = false; });
+        }
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

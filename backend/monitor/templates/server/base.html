@@ -1,0 +1,212 @@
+{% load tz %}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{% block title %}SchoolCore API{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/* The server's own pages wear the product's Ocean look: a neutral page, white
+   cards with a 1px line, and the brand colour only where something is chosen
+   or is the main action. Flat colour throughout. */
+:root {
+    --page: #F3F5F5;
+    --card: #FFFFFF;
+    --card-2: #F9FAFB;
+    --line: #E4E7EC;
+    --line-2: #D0D5DD;
+    --ink: #101828;
+    --ink-2: #344054;
+    --ink-3: #475467;
+    --ink-4: #667085;
+    --brand: #037177;
+    --brand-ink: #015A5D;
+    --brand-hover: #025C61;
+    --brand-tint: #E8F7F8;
+    --brand-line: #B5E3E6;
+    --amber: #E69E44;
+    --amber-ink: #8A5A00;
+    --amber-tint: #FEF3E2;
+    --amber-line: #F6D7A7;
+    --jade: #0B7A5C;
+    --jade-tint: #E7F6F0;
+    --jade-line: #B7E4D3;
+    --sindoor: #B42318;
+    --sindoor-tint: #FEF1EF;
+    --sindoor-line: #FAC5BE;
+    --shadow: 0 1px 2px rgb(16 24 40 / .05);
+    --f-display: "Bricolage Grotesque", "Hanken Grotesk", "Segoe UI", system-ui, sans-serif;
+    --f-ui: "Hanken Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --page: #0B1314;
+        --card: #111C1D;
+        --card-2: #152224;
+        --line: #213335;
+        --line-2: #2E4447;
+        --ink: #EEF4F4;
+        --ink-2: #CFDADB;
+        --ink-3: #A3B3B5;
+        --ink-4: #82979A;
+        --brand: #2BA3A9;
+        --brand-ink: #7FD3D7;
+        --brand-hover: #3BB3B9;
+        --brand-tint: #0F2D30;
+        --brand-line: #1D4A4E;
+        --amber-ink: #F2BE79;
+        --amber-tint: #2C2214;
+        --amber-line: #4F3B1C;
+        --jade: #3CC497;
+        --jade-tint: #0E2A22;
+        --jade-line: #1C4A3B;
+        --sindoor: #F2806F;
+        --sindoor-tint: #2E1614;
+        --sindoor-line: #5A2721;
+        --shadow: none;
+        color-scheme: dark;
+    }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font: 400 15px/1.5 var(--f-ui);
+    -webkit-font-smoothing: antialiased;
+}
+a { color: var(--brand-ink); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
+code, .mono { font-family: var(--f-mono); }
+
+.wrap { width: 100%; max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+
+/* the bar along the top */
+.bar { background: var(--card); border-bottom: 1px solid var(--line); }
+.bar .wrap { display: flex; align-items: center; gap: 24px; min-height: 64px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; color: var(--ink); }
+.brand:hover { text-decoration: none; }
+.brand-name { font: 700 19px/1 var(--f-display); letter-spacing: -0.01em; }
+.brand-name b { color: var(--brand); font-weight: 700; }
+.brand-role { padding-left: 12px; border-left: 1px solid var(--line-2); font-size: 14px; color: var(--ink-3); line-height: 20px; }
+.nav { display: flex; gap: 4px; }
+.nav a {
+    display: inline-flex; align-items: center; height: 36px; padding: 0 12px;
+    border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--ink-3);
+}
+.nav a:hover { background: var(--card-2); color: var(--ink); text-decoration: none; }
+.nav a[aria-current="page"] { background: var(--brand-tint); color: var(--brand-ink); }
+.bar-end { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+.tag {
+    display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px;
+    border: 1px solid var(--line); border-radius: 6px; background: var(--card-2);
+    font-size: 12px; font-weight: 600; color: var(--ink-2); white-space: nowrap;
+}
+.tag.dev { background: var(--amber-tint); border-color: var(--amber-line); color: var(--amber-ink); }
+.tag.live { background: var(--jade-tint); border-color: var(--jade-line); color: var(--jade); }
+
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid transparent;
+    font: 600 14px/1 var(--f-ui); white-space: nowrap; cursor: pointer;
+}
+.btn:hover { text-decoration: none; }
+.btn-primary { background: var(--brand); color: #FFFFFF; }
+.btn-primary:hover { background: var(--brand-hover); }
+.btn-quiet { background: var(--card); border-color: var(--line-2); color: var(--ink-2); box-shadow: var(--shadow); }
+.btn-quiet:hover { background: var(--card-2); }
+.btn svg { width: 16px; height: 16px; flex: none; }
+
+/* every page opens with a trail, a title and one line, actions on the right */
+.head { display: flex; align-items: flex-end; gap: 24px; padding: 32px 0 24px; flex-wrap: wrap; }
+.head-text { flex: 1 1 420px; min-width: 0; }
+.trail { margin: 0 0 8px; font-size: 13px; color: var(--ink-4); display: flex; gap: 8px; flex-wrap: wrap; }
+.trail span + span::before { content: "/"; margin-right: 8px; color: var(--line-2); }
+h1 { margin: 0; font: 700 30px/38px var(--f-display); letter-spacing: -0.015em; }
+.lede { margin: 8px 0 0; max-width: 62ch; font-size: 16px; line-height: 24px; color: var(--ink-3); }
+.head-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+
+/* figures in a row of tiles */
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.tile { padding: 20px 24px; min-width: 0; }
+.tile-label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink-3); }
+.tile-value { margin-top: 8px; font: 600 24px/32px var(--f-display); letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.tile-note { margin-top: 4px; font-size: 13px; line-height: 18px; color: var(--ink-4); overflow-wrap: anywhere; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-4); flex: none; }
+.dot.ok { background: var(--jade); }
+.dot.warn { background: var(--amber); }
+.dot.bad { background: var(--sindoor); }
+.is-ok { color: var(--jade); }
+.is-warn { color: var(--amber-ink); }
+.is-bad { color: var(--sindoor); }
+
+.section { margin-top: 40px; }
+.section-head { display: flex; align-items: flex-end; gap: 16px 24px; flex-wrap: wrap; margin-bottom: 16px; }
+.section-head > div:first-child { flex: 1 1 320px; min-width: 0; }
+h2 { margin: 0; font: 700 18px/28px var(--f-ui); }
+.section-line { margin: 2px 0 0; font-size: 14px; color: var(--ink-3); }
+
+.note { padding: 16px 20px; display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--ink-2); }
+.note svg { width: 20px; height: 20px; flex: none; color: var(--ink-4); margin-top: 1px; }
+
+.foot { margin: 48px 0 0; padding: 24px 0 40px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-4); }
+.foot .wrap { display: flex; gap: 8px 24px; flex-wrap: wrap; }
+
+@media (max-width: 1020px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) {
+    .wrap { padding: 0 16px; }
+    .bar .wrap { gap: 8px 16px; padding-top: 12px; padding-bottom: 12px; }
+    .brand-role { display: none; }
+    .bar-end { margin-left: auto; }
+    .nav { order: 3; width: 100%; overflow-x: auto; }
+    .head { padding: 24px 0 20px; }
+    h1 { font-size: 26px; line-height: 32px; }
+    .tiles { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .tile { padding: 16px 20px; }
+    .head-actions, .head-actions .btn { width: 100%; }
+}
+{% block style %}{% endblock %}
+</style>
+</head>
+<body>
+<header class="bar">
+    <div class="wrap">
+        <a class="brand" href="/">
+            <span class="brand-name">School<b>Core</b></span>
+            <span class="brand-role">API server</span>
+        </a>
+        <nav class="nav" aria-label="Server pages">
+            <a href="/" {% if page == "home" %}aria-current="page"{% endif %}>Overview</a>
+            {% if is_staff %}<a href="{% url 'live_system_monitor' %}" {% if page == "monitor" %}aria-current="page"{% endif %}>Monitor</a>{% endif %}
+            <a href="{% url 'admin:index' %}">Admin</a>
+        </nav>
+        <div class="bar-end">
+            {% if debug %}<span class="tag dev">Development</span>{% else %}<span class="tag live">Production</span>{% endif %}
+        </div>
+    </div>
+</header>
+<main class="wrap">
+{% block content %}{% endblock %}
+</main>
+<footer class="foot">
+    <div class="wrap">
+        <span>SchoolCore API</span>
+        <span>{{ host }}</span>
+        {% if versions %}<span>Django {{ versions.django }}</span><span>Python {{ versions.python }}</span>{% endif %}
+        <span>{{ now_local|timezone:"Asia/Kathmandu"|date:"D j M Y, H:i" }} Nepal time</span>
+    </div>
+</footer>
+{% block script %}{% endblock %}
+</body>
+</html>

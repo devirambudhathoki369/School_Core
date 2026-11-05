@@ -272,6 +272,9 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 INTERNAL_IPS = ["127.0.0.1"]
+# The toolbar opens over every HTML page, and on the server's own front page it
+# covered the status it exists to show. It stays on everywhere else.
+DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": "monitor.views.show_debug_toolbar"}
 
 # LOGGING
 # Django's default config sends unhandled-view exceptions to `mail_admins` only,

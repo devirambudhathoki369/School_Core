@@ -1,0 +1,278 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | SchoolCore admin{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Django's admin in the product's Ocean look: a white bar, a quiet grey trail,
+   the brand colour on links and the main button, flat colour throughout.
+   The variable blocks mirror admin/css/dark_mode.css, so the admin's own
+   light / dark / auto switch keeps working. */
+html[data-theme="light"], :root {
+    --primary: #E8F7F8;
+    --secondary: #037177;
+    --accent: #E69E44;
+    --primary-fg: #FFFFFF;
+    --body-fg: #344054;
+    --body-bg: #FFFFFF;
+    --body-quiet-color: #667085;
+    --body-medium-color: #475467;
+    --body-loud-color: #101828;
+    --header-color: #475467;
+    --header-branding-color: #101828;
+    --header-bg: #FFFFFF;
+    --header-link-color: #015A5D;
+    --breadcrumbs-fg: #667085;
+    --breadcrumbs-link-fg: #015A5D;
+    --breadcrumbs-bg: #F9FAFB;
+    --link-fg: #037177;
+    --link-hover-color: #015A5D;
+    --link-selected-fg: #015A5D;
+    --hairline-color: #EAECF0;
+    --border-color: #D0D5DD;
+    --error-fg: #B42318;
+    --message-success-bg: #E7F6F0;
+    --message-warning-bg: #FEF3E2;
+    --message-error-bg: #FEF1EF;
+    --darkened-bg: #F9FAFB;
+    --selected-bg: #E8F7F8;
+    --selected-row: #FEF3E2;
+    --button-fg: #FFFFFF;
+    --button-bg: #037177;
+    --button-hover-bg: #025C61;
+    --default-button-bg: #037177;
+    --default-button-hover-bg: #025C61;
+    --close-button-bg: #667085;
+    --close-button-hover-bg: #344054;
+    --delete-button-bg: #B42318;
+    --delete-button-hover-bg: #912018;
+    --object-tools-fg: #344054;
+    --object-tools-bg: #FFFFFF;
+    --object-tools-hover-bg: #F9FAFB;
+    --sc-page: #F3F5F5;
+    --sc-line: #E4E7EC;
+    --sc-tint: #E8F7F8;
+    --sc-tint-line: #B5E3E6;
+    --font-family-primary: "Hanken Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-family-monospace: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary: #0F2D30;
+        --secondary: #2BA3A9;
+        --primary-fg: #F7FAFA;
+        --body-fg: #CFDADB;
+        --body-bg: #111C1D;
+        --body-quiet-color: #A3B3B5;
+        --body-medium-color: #CFDADB;
+        --body-loud-color: #EEF4F4;
+        --header-color: #A3B3B5;
+        --header-branding-color: #EEF4F4;
+        --header-bg: #111C1D;
+        --header-link-color: #7FD3D7;
+        --breadcrumbs-fg: #A3B3B5;
+        --breadcrumbs-link-fg: #7FD3D7;
+        --breadcrumbs-bg: #152224;
+        --link-fg: #7FD3D7;
+        --link-hover-color: #A8E4E7;
+        --link-selected-fg: #A8E4E7;
+        --hairline-color: #213335;
+        --border-color: #2E4447;
+        --error-fg: #F2806F;
+        --message-success-bg: #0E2A22;
+        --message-warning-bg: #2C2214;
+        --message-error-bg: #2E1614;
+        --darkened-bg: #152224;
+        --selected-bg: #0F2D30;
+        --selected-row: #2C2214;
+        --button-bg: #037177;
+        --button-hover-bg: #04858C;
+        --default-button-bg: #037177;
+        --default-button-hover-bg: #04858C;
+        --close-button-bg: #2E4447;
+        --close-button-hover-bg: #3B5558;
+        --object-tools-fg: #CFDADB;
+        --object-tools-bg: #152224;
+        --object-tools-hover-bg: #1B2C2E;
+        --sc-page: #0B1314;
+        --sc-line: #213335;
+        --sc-tint: #0F2D30;
+        --sc-tint-line: #1D4A4E;
+        color-scheme: dark;
+    }
+}
+html[data-theme="dark"] {
+    --primary: #0F2D30;
+    --secondary: #2BA3A9;
+    --primary-fg: #F7FAFA;
+    --body-fg: #CFDADB;
+    --body-bg: #111C1D;
+    --body-quiet-color: #A3B3B5;
+    --body-medium-color: #CFDADB;
+    --body-loud-color: #EEF4F4;
+    --header-color: #A3B3B5;
+    --header-branding-color: #EEF4F4;
+    --header-bg: #111C1D;
+    --header-link-color: #7FD3D7;
+    --breadcrumbs-fg: #A3B3B5;
+    --breadcrumbs-link-fg: #7FD3D7;
+    --breadcrumbs-bg: #152224;
+    --link-fg: #7FD3D7;
+    --link-hover-color: #A8E4E7;
+    --link-selected-fg: #A8E4E7;
+    --hairline-color: #213335;
+    --border-color: #2E4447;
+    --error-fg: #F2806F;
+    --message-success-bg: #0E2A22;
+    --message-warning-bg: #2C2214;
+    --message-error-bg: #2E1614;
+    --darkened-bg: #152224;
+    --selected-bg: #0F2D30;
+    --selected-row: #2C2214;
+    --button-bg: #037177;
+    --button-hover-bg: #04858C;
+    --default-button-bg: #037177;
+    --default-button-hover-bg: #04858C;
+    --close-button-bg: #2E4447;
+    --close-button-hover-bg: #3B5558;
+    --object-tools-fg: #CFDADB;
+    --object-tools-bg: #152224;
+    --object-tools-hover-bg: #1B2C2E;
+    --sc-page: #0B1314;
+    --sc-line: #213335;
+    --sc-tint: #0F2D30;
+    --sc-tint-line: #1D4A4E;
+    color-scheme: dark;
+}
+
+body { font-size: 14px; -webkit-font-smoothing: antialiased; }
+
+/* the bar along the top */
+#header { padding: 14px 32px; border-bottom: 1px solid var(--sc-line); color: var(--header-color); }
+#site-name { font: 700 19px/1 "Bricolage Grotesque", var(--font-family-primary); letter-spacing: -0.01em; }
+#site-name a, #site-name a:link, #site-name a:visited { color: var(--header-branding-color); display: inline-flex; align-items: baseline; gap: 10px; }
+#site-name a:hover { text-decoration: none; }
+#site-name b { color: var(--secondary); font-weight: 700; }
+#site-name small { font: 500 13px/1 var(--font-family-primary); color: var(--body-quiet-color); padding-left: 10px; border-left: 1px solid var(--border-color); }
+#user-tools { font-size: 13px; letter-spacing: 0; text-transform: none; }
+#user-tools a, #logout-form button { border-bottom: 0; color: var(--header-link-color); font-weight: 600; font-size: 13px; text-transform: none; letter-spacing: 0; }
+#user-tools a:hover, #logout-form button:hover { color: var(--link-hover-color); text-decoration: underline; }
+
+/* the trail */
+div.breadcrumbs { padding: 12px 32px; border-bottom: 1px solid var(--sc-line); font-size: 13px; }
+div.breadcrumbs a { font-weight: 600; }
+
+/* page */
+#content { padding: 24px 32px; }
+#content > h1, #content-main > h1, .colM > h1 { font: 700 26px/32px "Bricolage Grotesque", var(--font-family-primary); letter-spacing: -0.01em; color: var(--body-loud-color); margin-bottom: 16px; }
+#content > h2 { font-size: 15px; color: var(--body-medium-color); }
+
+/* modules: cards with a quiet caption, not a coloured band */
+.module { border: 1px solid var(--sc-line); border-radius: 12px; overflow: hidden; background: var(--body-bg); box-shadow: 0 1px 2px rgb(16 24 40 / .05); }
+#content-main .module, #content-related .module { margin-bottom: 20px; }
+.module h2, .module caption, .inline-group h2 {
+    background: var(--darkened-bg); color: var(--body-medium-color);
+    font-size: 13px; font-weight: 700; letter-spacing: 0; text-transform: none;
+    padding: 12px 16px; border-bottom: 1px solid var(--sc-line);
+}
+.module caption a.section, .module h2 a.section, a.section:link, a.section:visited { color: var(--body-loud-color); }
+.module table { width: 100%; }
+.module th, .module td { padding: 10px 16px; border-bottom-color: var(--hairline-color); }
+.module tr:last-child th, .module tr:last-child td { border-bottom: 0; }
+#content-related { background: transparent; }
+#content-related .module h2 { background: var(--darkened-bg); }
+
+/* tables */
+thead th, tfoot td, #changelist table thead th {
+    background: var(--darkened-bg); color: var(--body-quiet-color);
+    font-size: 12px; font-weight: 600; text-transform: none; letter-spacing: 0;
+    border-bottom: 1px solid var(--sc-line);
+}
+#changelist table thead th { padding: 0; }
+#changelist table thead th .text a, #changelist table thead th .text span { padding: 10px 12px; }
+td, th { border-bottom-color: var(--hairline-color); padding: 10px 12px; font-size: 14px; }
+tr:nth-child(even), .row-form-errors { background: transparent; }
+#changelist table tbody tr:hover td, #changelist table tbody tr:hover th { background: var(--darkened-bg); }
+#changelist .results { border: 1px solid var(--sc-line); border-radius: 12px; overflow: hidden; }
+#changelist .paginator { border-top: 0; padding: 12px 0; color: var(--body-quiet-color); }
+#changelist-filter { border-radius: 12px; border: 1px solid var(--sc-line); overflow: hidden; }
+#changelist-filter h2 { background: var(--darkened-bg); color: var(--body-medium-color); text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 700; border-bottom: 1px solid var(--sc-line); }
+#changelist-filter li.selected a { color: var(--link-selected-fg); font-weight: 600; }
+#toolbar { background: transparent; border: 0; padding: 0 0 16px; }
+#changelist .actions { background: var(--darkened-bg); border: 1px solid var(--sc-line); border-radius: 12px; padding: 10px 16px; margin-bottom: 16px; color: var(--body-medium-color); }
+
+/* controls: one height, one corner */
+input[type=text], input[type=password], input[type=email], input[type=url], input[type=number], input[type=tel], input[type=search],
+textarea, select, .vTextField {
+    border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px; font-size: 14px;
+    background: var(--body-bg); color: var(--body-loud-color); box-shadow: 0 1px 2px rgb(16 24 40 / .05);
+}
+select { height: auto; padding: 7px 10px; }
+input:focus, textarea:focus, select:focus { border-color: var(--secondary); outline: 0; box-shadow: 0 0 0 4px var(--sc-tint); }
+.button, input[type=submit], input[type=button], .submit-row input, a.button, button.button {
+    border-radius: 8px; padding: 10px 16px; font: 600 14px/1 var(--font-family-primary); letter-spacing: 0;
+}
+.submit-row { background: var(--darkened-bg); border: 1px solid var(--sc-line); border-radius: 12px; padding: 12px 16px; }
+.submit-row a.deletelink { border-radius: 8px; padding: 10px 16px; height: auto; line-height: 1; }
+.object-tools a:link, .object-tools a:visited {
+    border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 14px;
+    font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0;
+}
+.object-tools a.addlink { background-image: none; padding-right: 14px; background: var(--button-bg); color: var(--button-fg); border-color: var(--button-bg); }
+.object-tools a.addlink:hover { background: var(--button-hover-bg); }
+fieldset .form-row { border-bottom-color: var(--hairline-color); padding: 12px 16px; }
+.aligned label { color: var(--body-medium-color); font-weight: 600; }
+.help, p.help, form .aligned p.help, form .aligned div.help { color: var(--body-quiet-color); }
+
+/* add / change / view: words in the link colour, without the coloured icons */
+.module a.addlink, .module a.changelink, .module a.viewlink, .module a.inlineviewlink, a.deletelink.inline-deletelink {
+    background-image: none; padding-left: 0; font-weight: 600;
+}
+#content-related .module h2 { font-size: 13px; padding: 12px 16px; }
+#content-related h3 { font-size: 12px; color: var(--body-quiet-color); text-transform: none; letter-spacing: 0; padding: 12px 16px 0; }
+#content-related .module p, #content-related ul.actionlist { padding: 0 16px; }
+
+/* messages: a tinted line, not a bright band */
+ul.messagelist li { border-radius: 8px; margin: 0 0 8px; padding: 12px 16px 12px 44px; font-size: 14px; color: var(--body-loud-color); background-position: 16px 13px; }
+.errornote { border-radius: 8px; border: 1px solid var(--error-fg); background: var(--message-error-bg); }
+
+/* the side menu on the left */
+#nav-sidebar { border-right-color: var(--sc-line); }
+#nav-sidebar .current-model { background: var(--sc-tint); }
+#nav-sidebar .module { border-radius: 0; border: 0; border-bottom: 1px solid var(--sc-line); box-shadow: none; }
+.toggle-nav-sidebar { border-right-color: var(--sc-line); background: var(--body-bg); color: var(--body-quiet-color); }
+
+/* sign in */
+body.login { background: var(--sc-page); }
+.login #container {
+    width: 400px; max-width: calc(100vw - 32px); margin: 96px auto 0; border: 1px solid var(--sc-line);
+    border-radius: 12px; box-shadow: 0 1px 3px rgb(16 24 40 / .08); overflow: hidden;
+}
+.login #header { padding: 20px 28px; }
+.login #content { padding: 24px 28px 28px; }
+.login .form-row { padding: 0 0 16px; }
+.login .form-row label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--body-medium-color); }
+.login .form-row #id_username, .login .form-row #id_password { width: 100%; height: 40px; }
+.login .submit-row { background: transparent; border: 0; padding: 4px 0 0; margin: 0; }
+.login .submit-row input { width: 100%; height: 40px; }
+.login .password-reset-link { text-align: center; }
+
+@media (max-width: 767px) {
+    #header, div.breadcrumbs, #content { padding-left: 16px; padding-right: 16px; }
+}
+</style>
+{% endblock %}
+
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}"><span>School<b>Core</b></span><small>Admin</small></a></div>
+{% if user.is_anonymous %}
+  {% include "admin/color_theme_toggle.html" %}
+{% endif %}
+{% endblock %}
+
+{% block userlinks %}{% if user.is_active and user.is_staff %}<a href="{% url 'live_system_monitor' %}">Monitor</a> / {% endif %}{{ block.super }}{% endblock %}
+
+{% block nav-global %}{% endblock %}
