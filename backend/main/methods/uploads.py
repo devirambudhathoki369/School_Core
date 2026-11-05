@@ -91,6 +91,8 @@ class UploadStorage(FileSystemStorage):
     """
 
     def _save(self, name, content):
+        if getattr(content, "size", 0) > 25 * 1024 * 1024:
+            raise SuspiciousFileOperation("Uploads must be 25 MB or smaller.")
         if is_active_content(name):
             raise SuspiciousFileOperation(
                 "Refused to store %r: browsers run that file type." % name

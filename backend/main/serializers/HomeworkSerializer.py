@@ -16,12 +16,20 @@ from ..models.Homework import (
 )
 
 
+class UploadList(serializers.ListField):
+    """Uploaded files only. The blank `files=` a form sends when nothing is
+    attached means "no file", so it is dropped rather than refused."""
+    child = serializers.FileField()
+
+    def to_internal_value(self, data):
+        if isinstance(data, (list, tuple)):
+            data = [item for item in data if item not in ("", None)]
+        return super().to_internal_value(data)
+
+
 class HomeworkSerializer(serializers.ModelSerializer):
     is_active = serializers.BooleanField(required=False, default=True)
-    files = serializers.ListField(
-        required=False,
-        default=list,
-    )
+    files = UploadList(max_length=10, required=False, default=list)
 
     class Meta:
         model = Homework
@@ -50,15 +58,14 @@ class HomeworkSerializer(serializers.ModelSerializer):
 
 class HomeworkSubmissionSerializer(serializers.ModelSerializer):
     is_active = serializers.BooleanField(required=False, default=True)
-    files = serializers.ListField(default=list)
-    submitted_date = serializers.CharField(required=False, default=ndt_today)
+    files = UploadList(max_length=10, allow_empty=False)
+    submitted_date = serializers.CharField(read_only=True)
     status = serializers.ChoiceField(
-        required=False,
-        default=1,
+        read_only=True,
         choices=HW_SUBMISSION_STATUS_CHOICES,
         help_text='Homework submission status i.e. {1: "Received", 2: "Checked"}',
     )
-    remarks = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    remarks = serializers.CharField(read_only=True)
 
     class Meta:
         model = HomeworkSubmission
@@ -92,7 +99,8 @@ class HomeworkSubmissionSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         homework = attrs.get("homework")
-        submitted_date = attrs.get("submitted_date")
+        submitted_date = ndt_today()
+        attrs["submitted_date"] = submitted_date
 
         if submitted_date > homework.due_date:
             raise serializers.ValidationError("Submission is late.")
