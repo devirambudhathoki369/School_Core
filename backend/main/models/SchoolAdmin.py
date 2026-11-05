@@ -9,6 +9,8 @@ from django.db.models import (
     JSONField,
     ForeignKey,
     CASCADE,
+    CheckConstraint,
+    Q,
 )
 
 #
@@ -52,6 +54,10 @@ class SchoolAdmin(BaseModel):
     test_account = BooleanField(default=False)
     uses_sms = BooleanField(default=False)
     uses_mobile_app = BooleanField(default=False)
+    # The public code a parent, student or teacher types into the mobile app
+    # to find this school (mobile/SPEC.md §2). Set by the superadmin; never
+    # the admin's username, which would hand out half of a login.
+    app_code = CharField(max_length=8, null=True, blank=True, unique=True)
     # DEPRECATED -- which modules (facilities) a school has lives in one table,
     # main.SchoolModule, and nothing reads these two columns any more. They are
     # kept for ONE release as a mirror, written alongside the table
@@ -68,6 +74,14 @@ class SchoolAdmin(BaseModel):
     attendance_in_time = TimeField(null=True, blank=True)
     attendance_out_time = TimeField(null=True, blank=True)
     foundation = ForeignKey("main.SchoolFoundation", on_delete=CASCADE, **_allow_empty)
+
+    class Meta:
+        constraints = [
+            CheckConstraint(
+                condition=Q(app_code__isnull=True) | Q(app_code__regex=r"^[A-Z0-9]{4,8}$"),
+                name="main_schooladmin_app_code_format",
+            ),
+        ]
 
     def __str__(self) -> str:
         return self.name

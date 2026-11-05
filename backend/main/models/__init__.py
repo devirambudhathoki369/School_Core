@@ -44,3 +44,4 @@ from .Normalized import (  # noqa: F401
     StudentLedgerLine,
     SubjectAssignmentStudent,
 )
+from .Guardian import Guardian, StudentGuardian  # noqa: F401
