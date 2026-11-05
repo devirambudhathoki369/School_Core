@@ -263,7 +263,7 @@ Base `/api/mobile/v1/`. These conventions hold everywhere:
 
 | Method and path | Who | What |
 |---|---|---|
-| `GET /schools/{code}` | anyone | School name, logo, and which sign-ins it offers |
+| `GET /schools/{code}` | anyone | School name, logo, its portal theme (`ui_theme`), and which sign-ins it offers |
 | `POST /auth/parent/code` | anyone | Email a sign-in code (same answer every time) |
 | `POST /auth/parent/verify` | anyone | Email + code → tokens |
 | `POST /auth/parent/family-code` | anyone | Family code + email → a code goes to that email; `verify` then saves the email and signs in |
@@ -331,8 +331,22 @@ screens on one canvas: the school-code screen, a parent's home and a
 teacher's attendance screen in each. You pick one, and the app is built in
 it. Flat colour, no gradients, light and dark.
 
+**Each school in its own colours.** The school's theme from the portal
+(`main_schooladmin.ui_theme`, the same keys: `classic` Ocean, `evergreen`
+Emerald, `laliguras` Berry, `vivid` Violet, `daylight` Graphite, `deep_ocean`,
+`forest`, `wine`, `midnight`, `terracotta`) comes back from
+`GET /schools/{code}` and `/me`. The app paints its brand colour, accent,
+tints and page colour from it. The four dark-menu themes give the app's
+coloured header their deep menu colour. Layout, type and icons stay the
+app's own look. Before a school is chosen, the app uses its own palette.
+When a school changes its theme in the portal, the app follows on its next
+refresh. Each theme also has a dark-mode set.
+
 Rules every look keeps:
 
+- **No decorative dots.** No dot next to the name, before labels, or under
+  the current tab. A count badge appears only when there is a real count to
+  show.
 - **Colour has one meaning each.**
   - Green: present, paid, done.
   - Orange-red: absent or overdue, and it is never the brand colour, so a
