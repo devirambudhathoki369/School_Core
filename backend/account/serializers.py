@@ -111,10 +111,13 @@ class StudentAccountSerializer(
             "last_login",
             "created_at",
             "deletion_requested_at",
+            "pending_student",
         )
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
+        if attrs.get("student") and attrs["student"].account_id:
+            raise serializers.ValidationError({"student": "This student already has an account. Contact the school for help."})
         if not contact_on_file(attrs.get("student"), attrs.get("contact")):
             raise serializers.ValidationError(
                 {"contact": "This number is not on the student's record."}
@@ -125,22 +128,25 @@ class StudentAccountSerializer(
         student = validated_data.pop("student")
         student_contact = validated_data.pop("contact")
         otp_verification = validated_data.pop("otp_verification", False)
-        if otp_verification:
-            school = student.class_info.school.id
-            school_sms_api_key = extractSchoolSMSAPIKey(school)
-            if school_sms_api_key:
-                otp, secret = self.generateOTP()
-                # print(otp, secret)
-                validated_data["otp"] = otp
-                validated_data["secret"] = secret
-                validated_data["verified"] = False
-                #
-                send_sms(student_contact, otp, school_sms_api_key, school=school)
         with transaction.atomic():
+            student = Student.objects.select_for_update().get(pk=student.pk)
+            if student.account_id:
+                raise serializers.ValidationError({"student": "This student already has an account."})
+            if otp_verification:
+                school = student.class_info.school_id
+                school_sms_api_key = extractSchoolSMSAPIKey(school)
+                if not school_sms_api_key:
+                    raise serializers.ValidationError({"message": "Phone verification is unavailable. Please contact the school."})
+                from .throttles import reserve_otp_send
+                reserve_otp_send(student.pk)
+                otp, secret = self.generateOTP()
+                validated_data.update(otp=otp, secret=secret, verified=False, pending_student=student)
             student_acc = StudentAccount.objects.create_user(**validated_data)
-            if student_acc:
+            if student_acc and not otp_verification:
                 student.account = student_acc
                 student.save()
+            if otp_verification:
+                send_sms(student_contact, otp, school_sms_api_key, school=school)
             return student_acc
 
 

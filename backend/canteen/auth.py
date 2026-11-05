@@ -23,7 +23,6 @@ class CanteenUserTokenAuthentication(BaseTokenAuthentication):
     def belongs_to_school(self, user, school_id):
         try:
             school_id = int(school_id)
-        except (TypeError, ValueError):
-            # Not a number: the view's own filter refuses it.
-            return True
+        except (TypeError, ValueError, OverflowError):
+            return False
         return user.school_id == school_id

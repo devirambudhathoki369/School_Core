@@ -343,7 +343,8 @@ class OneBrowserOneSignInTests(AuditSchool, TestCase):
         for account in (self.admin, self.sankalpa, self.prabeena):
             account.set_password("Secret#12345")
             account.save()
-        self.browser = APIClient()
+        # A browser names the page's origin on every sign-in it posts.
+        self.browser = APIClient(HTTP_ORIGIN="http://testserver")
 
     def sign_in(self, role, username):
         answer = self.browser.post(f"/auth/{role}/signin", {"username": username, "password": "Secret#12345"}, format="json")

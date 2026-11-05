@@ -21,13 +21,16 @@ class ResetUsersContextMiddleware:
 
 
 class AuthResponseSecurityMiddleware:
-    """Credentials and restored session profiles must never enter shared caches."""
+    """Dynamic school records and credentials must never enter shared caches."""
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
         response = self.get_response(request)
-        if request.path.startswith("/auth/"):
-            response["Cache-Control"] = "no-store, private"
+        if request.path.startswith(("/auth/", "/api/", "/accounting/", "/library/",
+                                    "/hostel/", "/canteen/", "/extra-billing/", "/rfid/", "/iclock/")):
+            # A view that already said no-store keeps its own wording.
+            if "no-store" not in response.get("Cache-Control", ""):
+                response["Cache-Control"] = "no-store, private"
             response["Pragma"] = "no-cache"
         return response

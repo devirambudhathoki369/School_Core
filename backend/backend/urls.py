@@ -138,8 +138,10 @@ urlpatterns = [
     path("iclock/", include("rfid.urls.device")),
     path("rfid/", include("rfid.urls.v1")),
     #
-    path("__debug__/", include("debug_toolbar.urls")),
     path("__live_usage__/", live_system_monitor, name="live_system_monitor"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += [path("__debug__/", include("debug_toolbar.urls"))]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,6 +1,6 @@
 from customs.EncryptedField import EncryptedCharField
 from main.models.BaseModel import CustomCharField
-from django.db.models import Model, CharField, BooleanField, DateTimeField
+from django.db.models import Model, CharField, BooleanField, DateTimeField, ForeignKey, SET_NULL
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.contrib.auth.models import AbstractBaseUser
@@ -85,7 +85,11 @@ class AppCreds(Model):
 
 
 class StudentAccount(BaseAccount, AppCreds):
-    pass
+    # A registration claim grants no access until the phone's OTP is verified.
+    pending_student = ForeignKey(
+        "main.Student", null=True, blank=True, on_delete=SET_NULL,
+        related_name="pending_accounts",
+    )
 
 
 class StaffAccount(BaseAccount, AppCreds):

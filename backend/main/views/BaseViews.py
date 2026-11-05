@@ -1,4 +1,5 @@
 import logging
+import math
 import re
 
 from django.conf import settings
@@ -18,6 +19,7 @@ from account.auth.AuthToken import (
     StudentAuthToken,
 )
 from ..models.ClassInfo import ClassInfo
+from account.throttles import AuthenticatedUserThrottle
 from ..models.SchoolAdmin import SchoolAdmin
 from ..models.Staff import Staff
 from ..models.Student import Student
@@ -108,6 +110,7 @@ def caller_staff_permissions(request):
 
 class SecuredAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
+    throttle_classes = (AuthenticatedUserThrottle,)
     # Handler names ("post", "put", ...) a STUDENT token may call that change
     # something. Empty by default — see enforce_student_boundary.
     student_write_methods = ()
@@ -280,13 +283,14 @@ class SecuredAPIView(APIView):
         ORM / an IntegerField, and was slipping past a check that only counted
         `str.isdigit()`.
         """
-        if isinstance(value, bool):
-            return None
         rid = None
+        # Match Django IntegerField coercion so booleans/floats cannot skip scope.
         if isinstance(value, int):
             rid = value
         elif isinstance(value, float):
-            rid = int(value) if value.is_integer() else None
+            if not math.isfinite(value):
+                raise ValidationError("Record ids must be finite numbers.")
+            rid = int(value)
         elif isinstance(value, str):
             text = value.strip()
             try:
@@ -329,7 +333,7 @@ class SecuredAPIView(APIView):
 
         def walk(node, depth):
             if depth > cls._MAX_BODY_DEPTH:
-                return
+                raise ValidationError("Request nesting is too deep.")
             if isinstance(node, dict):
                 items = node.lists() if hasattr(node, "lists") else node.items()
                 for key, value in items:
@@ -422,17 +426,9 @@ class SecuredAPIView(APIView):
         own = caller_student_id(request)
         if own is None:
             self._refuse_student(request, "no student record")
-        named = [request.query_params.get("student")]
-        data = request.data
-        if hasattr(data, "get"):
-            named.append(data.get("student"))
-        for value in named:
-            if isinstance(value, (list, tuple)) and len(value) == 1:
-                value = value[0]
-            if value in (None, ""):
-                continue
-            if str(value).strip() != str(own):
-                self._refuse_student(request, f"student {value!r}")
+        named = self._named_record_ids(request)["student"]
+        if named - {own}:
+            self._refuse_student(request, "another student's record")
 
     def _refuse_student(self, request, reason):
         security_logger.warning(

@@ -17,6 +17,7 @@ from datetime import timedelta
 #
 from main.views.BaseViews import SecuredAPIView
 from .passwords import password_problem, require_current_password
+from .throttles import AuthIPThrottle, RegistrationIPThrottle, reserve_otp_send
 from rest_framework.exceptions import APIException
 from .auth.Authentication import (
     UserTokenAuthentication,
@@ -199,6 +200,7 @@ class LoginView(APIView):
     """
 
     permission_classes = (permissions.AllowAny,)
+    throttle_classes = (AuthIPThrottle,)
     role = None
     check_superuser = False
     Model = None
@@ -286,13 +288,14 @@ class LoginView(APIView):
                 if not s:
                     return _login_rejected(username, request)
                 # Said only after the password was right, so it tells nobody
-                # whether a username exists.
-                if not getattr(user, "is_active", True):
-                    return _login_rejected(username, request)
+                # whether a username exists. The canteen's own reason (switched
+                # off, or no canteen) comes first, so its user is told which.
                 refused = self.refuse_signin(user)
                 if refused:
                     _login_clear_failures(username, request)
                     return Response({"message": refused}, status=status.HTTP_403_FORBIDDEN)
+                if not getattr(user, "is_active", True):
+                    return _login_rejected(username, request)
                 app_device_token = request.data.get("device_token")
                 # token generation
                 # a sign-in always mints its OWN token. Reusing one row per user
@@ -655,6 +658,7 @@ class StudentRegistrationView(RegistrationView):
     _user = "Student"
     swagger_schema = None
     otp_verification = True
+    throttle_classes = (RegistrationIPThrottle,)
 
 
 #
@@ -696,17 +700,19 @@ def _otp_clear_failures(username):
 
 
 class OTPVerificationView(APIView, BaseOTP):
+    throttle_classes = (AuthIPThrottle,)
     @swagger_auto_schema(
         operation_id="auth_otp_verification",
         request_body=OTPVerificationPayloadSerializer,
     )
+    @transaction.atomic
     def post(self, request):
         """
         OTP verification api [Only for students!]
         """
         username = request.data.get("username")
         otp = request.data.get("otp")
-        user = StudentAccount.objects.filter(username=username, verified=False).first()
+        user = StudentAccount.objects.select_for_update().filter(username=username, verified=False).first()
         if user and user.secret:
             isExpired = self.isOTPExpired(user)
             if isExpired:
@@ -726,6 +732,15 @@ class OTPVerificationView(APIView, BaseOTP):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             if self.verifyOTP(user, otp):
+                if user.pending_student_id:
+                    student = Student.objects.select_for_update().get(pk=user.pending_student_id)
+                    if student.account_id:
+                        return Response({"message": "This student already has an account."}, status=409)
+                    student.account = user
+                    student.save(update_fields=["account"])
+                    user.pending_student = None
+                elif not Student.objects.filter(account=user).exists():
+                    return Response({"message": "Invalid request!"}, status=400)
                 user.verified = True
                 user.otp = None
                 user.secret = None
@@ -744,6 +759,7 @@ class OTPVerificationView(APIView, BaseOTP):
 
 
 class OTPView(APIView, BaseOTP):
+    throttle_classes = (AuthIPThrottle,)
     @swagger_auto_schema(
         operation_id="auth_otp_resend",
         query_serializer=OTPResendParamsSerializer,
@@ -757,9 +773,12 @@ class OTPView(APIView, BaseOTP):
         contact = request.query_params.get("contact")
         if username and contact:
             try:
-                student = Student.objects.select_related(
-                    "class_info__school", "account", "guardian_info"
-                ).get(account__username=username, account__verified=False)
+                user = StudentAccount.objects.filter(username=username, verified=False).first()
+                if not user:
+                    return Response({"message": "Invalid request!"}, status=400)
+                student = (Student.objects.select_related("class_info__school", "guardian_info")
+                           .filter(pk=user.pending_student_id).first() if user.pending_student_id
+                           else Student.objects.select_related("class_info__school", "guardian_info").filter(account=user).first())
                 # the code goes only to a number the school holds for this
                 # student — see account.serializers.contact_on_file
                 if student and contact_on_file(student, contact):
@@ -767,12 +786,9 @@ class OTPView(APIView, BaseOTP):
                         student.class_info.school.id
                     )
                     if school_sms_api_key:
-                        resend_key = "otp-resend:" + sha256(username.encode()).hexdigest()
-                        if not cache.add(resend_key, True, 60):
-                            return Response({"message": "Please wait before requesting another code."}, status=429)
+                        reserve_otp_send(student.pk)
                         _otp_clear_failures(username)
                         otp, secret = self.generateOTP()
-                        user = student.account
                         user.secret = secret
                         user.otp = otp
                         user.created_at = timezone.now()
@@ -784,6 +800,8 @@ class OTPView(APIView, BaseOTP):
                             school=student.class_info.school.id,
                         )
                         return Response({"message": "OTP has been sent!"})
+            except APIException:
+                raise
             except Exception as e:
                 # print(e)
                 pass
@@ -839,6 +857,8 @@ class PasswordChangeView(SecuredAPIView):
         if schools is None:  # superadmin
             return True
         if role == UserRoles.ROLE_STAFF:
+            if isinstance(request.auth, StaffAuthToken):
+                return str(request.user.pk) == str(user_id)
             return Staff.objects.filter(
                 account_id=user_id, school_id__in=schools
             ).exists()

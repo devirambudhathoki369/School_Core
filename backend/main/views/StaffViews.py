@@ -6,6 +6,7 @@ from django.db.models.functions import Concat, Lower, Collate
 #
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.parsers import JSONParser, MultiPartParser
 
@@ -56,6 +57,8 @@ class StaffView(SecuredAPIView):
         """
         if getattr(request, "user_role", None) != UserRoles.ROLE_STAFF:
             return
+        if any(key == "account" or key.startswith("account[") for key in request.data):
+            raise PermissionDenied("Only the school admin can manage staff logins.")
         if "permissions" in request.data:
             security_logger.warning(
                 "staff permission grant dropped: %s %s by %s",

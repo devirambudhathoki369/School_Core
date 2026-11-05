@@ -203,7 +203,7 @@ class BaseTokenAuthentication(BaseAuthentication):
 
         def walk(node, depth):
             if depth > self._MAX_BODY_DEPTH:
-                return
+                raise exceptions.ValidationError("Request nesting is too deep.")
             if isinstance(node, dict):
                 items = node.lists() if hasattr(node, "lists") else node.items()
                 for key, value in items:
@@ -308,8 +308,8 @@ class BaseTokenAuthentication(BaseAuthentication):
         """
         try:
             school_id = int(school_id)
-        except (TypeError, ValueError):
-            return True
+        except (TypeError, ValueError, OverflowError):
+            return False
         try:
             if self.role == UserRoles.ROLE_ADMIN:
                 return SchoolAdmin.objects.filter(
