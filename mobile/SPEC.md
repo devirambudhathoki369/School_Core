@@ -263,7 +263,7 @@ Base `/api/mobile/v1/`. These conventions hold everywhere:
 
 | Method and path | Who | What |
 |---|---|---|
-| `GET /schools/{code}` | anyone | School name, logo, its portal theme (`ui_theme`), and which sign-ins it offers |
+| `GET /schools/{code}` | anyone | School name, logo, and which sign-ins it offers |
 | `POST /auth/parent/code` | anyone | Email a sign-in code (same answer every time) |
 | `POST /auth/parent/verify` | anyone | Email + code → tokens |
 | `POST /auth/parent/family-code` | anyone | Family code + email → a code goes to that email; `verify` then saves the email and signs in |
@@ -326,21 +326,32 @@ everywhere, and close account.
 
 ## 7. Look
 
-A design of its own, not the portal's. Four directions are drawn as phone
-screens on one canvas: the school-code screen, a parent's home and a
-teacher's attendance screen in each. You pick one, and the app is built in
-it. Flat colour, no gradients, light and dark.
+One palette for the whole app, the same at every school: **Himalayan blue
+and marigold**. A school is recognised by its name and logo, not by
+recolouring the app.
 
-**Each school in its own colours.** The school's theme from the portal
-(`main_schooladmin.ui_theme`, the same keys: `classic` Ocean, `evergreen`
-Emerald, `laliguras` Berry, `vivid` Violet, `daylight` Graphite, `deep_ocean`,
-`forest`, `wine`, `midnight`, `terracotta`) comes back from
-`GET /schools/{code}` and `/me`. The app paints its brand colour, accent,
-tints and page colour from it. The four dark-menu themes give the app's
-coloured header their deep menu colour. Layout, type and icons stay the
-app's own look. Before a school is chosen, the app uses its own palette.
-When a school changes its theme in the portal, the app follows on its next
-refresh. Each theme also has a dark-mode set.
+| Role | Colour | Where |
+|---|---|---|
+| Page | `#F5F7FC` | About 60%: the ground under every screen |
+| Card | `#FFFFFF`, edge `#E2E7F2` | Cards and lists |
+| Text | `#0F1733`; secondary `#374163`; quiet `#5C6585` | |
+| Header | `#142B6F`, a deep navy | The coloured top of each screen |
+| Blue | `#1F44C2`; as text `#1A3699`; tint `#E8EDFF` | About 30%: buttons, the current tab, links |
+| Marigold | `#F5A524`; as text `#8F5600`; tint `#FFF1D6` | About 10%: on the header (the date, the child's initials, the school mark), fees owed, the offline note |
+| Present, paid | `#12805C` on `#E1F5EC` | |
+| Absent | `#C8372D` on `#FDE9E6` | |
+
+Why these colours:
+- Blue reads as trust and calm, which suits a school holding children's
+  records and money, and it helps students focus.
+- Marigold is warm and optimistic, and it is the sayapatri of Tihar.
+- Blue and orange are complementary, so the highlights stand out. The pair
+  stays distinct for colour-blind users, where red and green would not.
+
+Type is Plus Jakarta Sans. Cards have 18 px corners and controls 14 px. The
+header is a navy panel with rounded lower corners. The tab bar is white,
+with a soft blue pill behind the current tab. Dark mode uses the same hues
+and is defined with the app foundation.
 
 Rules every look keeps:
 
@@ -395,11 +406,11 @@ Made on 2026-11-05:
 
 - Parents sign in with a code sent to their email.
 - Students, staff and admins sign in with their username and password.
-- Four looks are drawn to choose from.
+- One palette for every school: Himalayan blue and marigold (section 7).
+- No decorative dots.
 
 Still open:
 
 1. Sign-off on the tables in section 4.
-2. Which of the four looks.
-3. An email account for sending codes in production.
-4. App lock required for staff and admins.
+2. An email account for sending codes in production.
+3. App lock required for staff and admins.
