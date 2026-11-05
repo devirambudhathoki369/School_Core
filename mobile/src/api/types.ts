@@ -1,158 +1,65 @@
-// Shapes as the SchoolCore API returns them to a student token. Dates are
-// Bikram Sambat strings ("2083-07-19").
+// Shapes of /api/mobile/v1/ (backend/mobileapi). Dates are Bikram Sambat
+// "YYYY-MM-DD"; timestamps are ISO 8601.
 
-export type StudentProfile = {
-  id: number; // the student record
-  class_info: number;
-  image: string | null;
-  gender: number | null;
-  email: string | null;
-  contact: string | null;
-  location: string | null;
+export type Role = 'parent' | 'student' | 'staff' | 'admin';
+
+export type School = {
+  id: number;
+  code: string;
   name: string;
-  father_name: string | null;
-  mother_name: string | null;
-  guardian_name: string | null;
-  guardian_contact: string | null;
-  guardian_location: string | null;
-  school: number;
-  school_name: string;
-  school_address: string | null;
-  school_contact: string | null;
-  school_telephone: string | null;
-  school_email: string | null;
-  school_logo: string | null;
-  school_slogan: string | null;
-  uses_exams?: boolean;
+  address: string;
+  logo_url: string | null;
 };
 
-export type SignInResponse = {
-  message: string;
-  user: { username: string; role: string; token: string; today?: string; profile: StudentProfile };
+export type SchoolLookup = {
+  school: School;
+  sign_in: Record<Role, 'password' | 'email_code'>;
 };
 
-export type StudentRecord = {
+export type Tokens = {
+  access_token: string;
+  access_expires_at: number;
+  refresh_token: string;
+  token_type: 'Bearer';
+};
+
+export type Child = {
   id: number;
+  name: string;
+  class_name: string;
   roll_no: string | null;
-  regd_no: string | null;
-  symbol_no: string | null;
-  image: string | null;
-  class_info: { id: number; academic_year: number; grade: number | null; section: number | null; name: string | null };
-  guardian_info: {
-    father_name: string | null;
-    mother_name: string | null;
-    guardian_name: string | null;
-    guardian_contact: string | null;
-    guardian_location: string | null;
-  } | null;
+  photo_url: string | null;
 };
 
-/** `/api/classes` → { [classId]: [name, details, count] } */
-export type ClassMap = Record<string, [string, unknown, unknown]>;
-
-export type AttendanceDay = {
-  date: string;
-  status: boolean;
-  checked_in_at: string | null;
-  checked_out_at: string | null;
-};
-
-export type AttendanceResponse = { role: string; data: AttendanceDay[] };
-
-export type Homework = {
-  id: number;
-  subject_name: string | null;
-  title: string;
-  description: string | null;
-  due_date: string;
-  files: (string | null)[];
-};
-
-export type Dues = {
-  bill_amount: Record<string, number>;
-  total: number;
-  titles: Record<string, string>;
-  rates?: Record<string, number>;
-};
-
-export type LedgerEntry = {
-  id: number;
-  date: string;
-  months: number[] | number;
-  academic_year_name: string;
-  classname: string;
-  particulars: [string, number][];
-  remarks?: string | null;
-} & ({ debit_amount: number; credit_amount?: undefined; invoice_id?: undefined; mode?: undefined } | {
-  credit_amount: number;
-  debit_amount?: undefined;
-  invoice_id: number;
-  mode: number;
-});
-
-export type FeeHistory = { data: LedgerEntry[]; titles: Record<string, string> };
-
-export type Receipt = {
-  invoice: {
-    invoice_id: number;
-    date: string;
-    student_name: string;
-    guardian_name: string | null;
-    class: string;
-    payment_mode: string;
-    payment_month: number | null;
-    particulars: [string, number, number, number, number][];
-    total_paid: number;
-    total_due: number;
-    total_discount: number;
-    remarks: string | null;
-    cashier: string | null;
+export type Me = {
+  role: Role;
+  session_id: string;
+  school: School;
+  profile: {
+    id?: number;
+    name: string;
+    username?: string;
+    email?: string | null;
+    phone_last_digits?: string;
+    class_name?: string;
+    roll_no?: string | null;
+    designation?: string;
+    photo_url?: string | null;
   };
-  particular_format: string[];
+  children?: Child[];
+  permissions?: number[];
 };
 
-export type Page<T> = { next: string | null; previous: string | null; results: T[] };
+export type SignedIn = { tokens: Tokens; me: Me };
 
-export type Notice = {
-  id: number;
-  title: string;
-  description: string | null;
-  date: string;
-  image: string | null;
-};
+export type CodeSent = { sent_to: string; resend_after: number; expires_in: number };
 
-export type CalendarEvent = {
-  id: number;
-  type: number;
-  type_str: string;
-  description: string;
-  start_date: string;
-  end_date: string | null;
-  color_code: string | null;
-};
-
-export type Exam = { id: number; name: string; academic_year: number; academic_year_str: string };
-
-export type SubjectInfo = {
-  subject: string;
-  order: number;
-  type: number;
-  criteria: { fm: number; pm: number; fm_th?: number; pm_th?: number; fm_pr?: number; pm_pr?: number };
-};
-
-export type SubjectMark = {
-  subject: number;
-  theory: number | null;
-  practical: number | null;
-  total: number | null;
-  absent: boolean;
-  result: boolean;
-};
-
-export type ResultSheet = {
-  fm_total: number;
-  subjects: number[];
-  subjects_data: Record<string, SubjectInfo>;
-  result: Record<string, SubjectMark>;
-  classname: string;
+export type PhoneSession = {
+  id: string;
+  platform: 'android' | 'ios' | null;
+  device_label: string;
+  app_version: string;
+  created_at: string;
+  last_seen_at: string;
+  current: boolean;
 };

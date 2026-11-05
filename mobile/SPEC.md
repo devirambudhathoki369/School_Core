@@ -1,8 +1,11 @@
 # SchoolCore mobile: specification
 
 Status: signed off 2026-11-05. Phase 1 (the backend foundation) is built in
-`backend/mobileapi/` and migrations `main/0117` and `mobileapi/0001`. The app
-in this folder today is the first prototype and will be replaced.
+`backend/mobileapi/` and migrations `main/0117` and `mobileapi/0001`. Phase 2
+(the app foundation) is built in this folder: the look, school code, all four
+sign-ins, the app lock, several accounts on one phone and the offline cache.
+The app's types are still written by hand; they move to the generated OpenAPI
+types when Phase 3 adds the first data endpoints.
 
 One app for Android and iPhone with four kinds of user: **parent**,
 **student**, **staff** and **school admin**. Each signs in their own way and

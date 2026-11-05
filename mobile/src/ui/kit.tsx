@@ -1,4 +1,3 @@
-import { Feather } from '@expo/vector-icons';
 import { type ReactNode, useState } from 'react';
 import {
   ActivityIndicator,
@@ -13,187 +12,157 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { font, radius, space, type, usePalette } from './theme';
+import { font, radius, space, type, usePalette, type Palette } from '@/theme';
+import { Icon, type IconName } from './Icon';
 
 type Variant = keyof typeof type;
-type Tone = 'ink' | 'soft' | 'muted' | 'brand' | 'ok' | 'warn' | 'bad' | 'onBrand';
+type Tone = 'text' | 'soft' | 'quiet' | 'blue' | 'ok' | 'bad' | 'marigold' | 'onHeader' | 'onHeaderSoft';
+
+function toneColor(c: Palette, tone: Tone) {
+  return {
+    text: c.text,
+    soft: c.textSoft,
+    quiet: c.textQuiet,
+    blue: c.blueText,
+    ok: c.ok,
+    bad: c.bad,
+    marigold: c.marigoldText,
+    onHeader: c.onHeader,
+    onHeaderSoft: c.onHeaderSoft,
+  }[tone];
+}
 
 export function T({
   v = 'body',
-  tone = 'ink',
+  tone = 'text',
   style,
   children,
   numberOfLines,
-  selectable,
+  center,
 }: {
   v?: Variant;
   tone?: Tone;
-  style?: TextStyle | TextStyle[];
+  style?: TextStyle;
   children: ReactNode;
   numberOfLines?: number;
-  selectable?: boolean;
+  center?: boolean;
 }) {
   const c = usePalette();
-  const color = {
-    ink: c.ink,
-    soft: c.inkSoft,
-    muted: c.inkMuted,
-    brand: c.brandInk,
-    ok: c.ok,
-    warn: c.warn,
-    bad: c.bad,
-    onBrand: c.onBrand,
-  }[tone];
   return (
     <Text
-      style={[type[v], { color }, style as TextStyle]}
       numberOfLines={numberOfLines}
-      selectable={selectable}>
+      style={[type[v], { color: toneColor(c, tone) }, center && { textAlign: 'center' }, style]}>
       {children}
     </Text>
   );
 }
 
-/** A scrolling page on the canvas colour, with pull-to-refresh when given. */
+/** The navy panel at the top of a screen, with rounded lower corners. */
+export function Header({
+  children,
+  onBack,
+  backLabel = 'Back',
+  right,
+}: {
+  children: ReactNode;
+  onBack?: () => void;
+  backLabel?: string;
+  right?: ReactNode;
+}) {
+  const c = usePalette();
+  const insets = useSafeAreaInsets();
+  return (
+    <View style={[styles.header, { backgroundColor: c.header, paddingTop: insets.top + space.lg }]}>
+      {onBack || right ? (
+        <View style={styles.headerBar}>
+          {onBack ? (
+            <Pressable
+              onPress={onBack}
+              accessibilityRole="button"
+              accessibilityLabel={backLabel}
+              hitSlop={8}
+              style={({ pressed }) => [styles.headerBack, pressed && { opacity: 0.7 }]}>
+              <Icon name="chevron-left" color={c.onHeader} size={24} />
+            </Pressable>
+          ) : (
+            <View />
+          )}
+          {right}
+        </View>
+      ) : null}
+      {children}
+    </View>
+  );
+}
+
+/** A page on the light ground: an optional header, then scrolling content. */
 export function Screen({
+  header,
   children,
   onRefresh,
   refreshing = false,
-  edges = ['top'],
+  footer,
   contentStyle,
 }: {
+  header?: ReactNode;
   children: ReactNode;
   onRefresh?: () => void;
   refreshing?: boolean;
-  edges?: ('top' | 'bottom')[];
+  footer?: ReactNode;
   contentStyle?: ViewStyle;
 }) {
   const c = usePalette();
+  const insets = useSafeAreaInsets();
   return (
-    <SafeAreaView edges={edges} style={{ flex: 1, backgroundColor: c.canvas }}>
+    <View style={{ flex: 1, backgroundColor: c.page }}>
       <ScrollView
-        contentContainerStyle={[styles.screen, contentStyle]}
         keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[
+          { paddingBottom: footer ? space.lg : insets.bottom + space.xxxl },
+          !header && { paddingTop: insets.top },
+        ]}
         refreshControl={
           onRefresh ? (
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={c.brand}
-              colors={[c.brand]}
-            />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.blue} colors={[c.blue]} />
           ) : undefined
         }>
-        {children}
+        {header}
+        <View style={[styles.content, contentStyle]}>{children}</View>
       </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-export function PageTitle({ title, sub }: { title: string; sub?: string }) {
-  return (
-    <View style={{ gap: space.xs, marginBottom: space.sm }}>
-      <T v="title">{title}</T>
-      {sub ? <T tone="muted">{sub}</T> : null}
+      {footer ? (
+        <View style={[styles.footer, { paddingBottom: insets.bottom + space.lg, backgroundColor: c.page }]}>{footer}</View>
+      ) : null}
     </View>
   );
 }
 
-export function Card({
-  children,
-  style,
-  onPress,
-  accessibilityLabel,
-}: {
-  children: ReactNode;
-  style?: ViewStyle;
-  onPress?: () => void;
-  accessibilityLabel?: string;
-}) {
+export function Card({ children, style, padded = true }: { children: ReactNode; style?: ViewStyle; padded?: boolean }) {
   const c = usePalette();
-  const base: ViewStyle = {
-    backgroundColor: c.surface,
-    borderColor: c.line,
-    borderWidth: StyleSheet.hairlineWidth * 2,
-    borderRadius: radius.md,
-    padding: space.lg,
-    gap: space.md,
-  };
-  if (!onPress) return <View style={[base, style]}>{children}</View>;
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
-      style={({ pressed }) => [base, style, pressed && { backgroundColor: c.surfaceAlt }]}>
+    <View
+      style={[
+        { backgroundColor: c.card, borderColor: c.line, borderWidth: 1, borderRadius: radius.card },
+        padded && { padding: space.lg, gap: space.md },
+        style,
+      ]}>
       {children}
-    </Pressable>
-  );
-}
-
-export function SectionLabel({ children, action }: { children: string; action?: ReactNode }) {
-  return (
-    <View style={styles.sectionLabel}>
-      <T v="label" tone="muted" style={{ textTransform: 'uppercase' }}>
-        {children}
-      </T>
-      {action}
     </View>
   );
 }
 
-export function Row({
-  label,
-  value,
-  strong,
-  tone,
-}: {
-  label: string;
-  value: ReactNode;
-  strong?: boolean;
-  tone?: Tone;
-}) {
+export function SectionLabel({ children }: { children: string }) {
   return (
-    <View style={styles.row}>
-      <T tone="soft" style={{ flexShrink: 1 }}>
-        {label}
-      </T>
-      {typeof value === 'string' || typeof value === 'number' ? (
-        <T v={strong ? 'bodyStrong' : 'body'} tone={tone ?? 'ink'} style={styles.rowValue}>
-          {value}
-        </T>
-      ) : (
-        value
-      )}
-    </View>
+    <T v="label" tone="quiet" style={{ textTransform: 'uppercase', marginTop: space.sm, marginBottom: -space.xs }}>
+      {children}
+    </T>
   );
 }
 
-export function Divider() {
+export function Divider({ inset = 0 }: { inset?: number }) {
   const c = usePalette();
-  return <View style={{ height: StyleSheet.hairlineWidth * 2, backgroundColor: c.line }} />;
-}
-
-type PillTone = 'ok' | 'warn' | 'bad' | 'brand' | 'off' | 'mark';
-
-export function Pill({ tone, children }: { tone: PillTone; children: string }) {
-  const c = usePalette();
-  const map = {
-    ok: [c.okTint, c.ok],
-    warn: [c.warnTint, c.warn],
-    bad: [c.badTint, c.bad],
-    brand: [c.brandTint, c.brandInk],
-    off: [c.offTint, c.inkMuted],
-    mark: [c.markTint, c.markInk],
-  } as const;
-  const [bg, fg] = map[tone];
-  return (
-    <View style={[styles.pill, { backgroundColor: bg }]}>
-      <Text style={[type.smallStrong, { color: fg }]}>{children}</Text>
-    </View>
-  );
+  return <View style={{ height: 1, backgroundColor: c.line, marginLeft: inset }} />;
 }
 
 export function Button({
@@ -206,17 +175,18 @@ export function Button({
 }: {
   title: string;
   onPress: () => void;
-  kind?: 'primary' | 'secondary' | 'quiet';
+  kind?: 'primary' | 'secondary' | 'quiet' | 'danger';
   busy?: boolean;
   disabled?: boolean;
-  icon?: keyof typeof Feather.glyphMap;
+  icon?: IconName;
 }) {
   const c = usePalette();
-  const off = disabled || busy;
+  const off = busy || disabled;
   const look = {
-    primary: { bg: c.brand, pressed: c.brandPressed, fg: c.onBrand, border: c.brand },
-    secondary: { bg: c.surface, pressed: c.surfaceAlt, fg: c.inkSoft, border: c.lineStrong },
-    quiet: { bg: 'transparent', pressed: c.brandTint, fg: c.brandInk, border: 'transparent' },
+    primary: { bg: c.blue, pressed: c.bluePressed, fg: c.onBlue, edge: c.blue },
+    secondary: { bg: c.card, pressed: c.cardAlt, fg: c.text, edge: c.lineStrong },
+    quiet: { bg: 'transparent', pressed: c.blueTint, fg: c.blueText, edge: 'transparent' },
+    danger: { bg: c.card, pressed: c.badTint, fg: c.bad, edge: c.lineStrong },
   }[kind];
   return (
     <Pressable
@@ -226,15 +196,15 @@ export function Button({
       accessibilityState={{ disabled: off, busy }}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor: pressed ? look.pressed : look.bg, borderColor: look.border },
-        off && { opacity: 0.55 },
+        { backgroundColor: pressed ? look.pressed : look.bg, borderColor: look.edge },
+        off && { opacity: 0.6 },
       ]}>
       {busy ? (
         <ActivityIndicator color={look.fg} />
       ) : (
         <View style={styles.buttonInner}>
-          {icon ? <Feather name={icon} size={18} color={look.fg} /> : null}
-          <Text style={[type.bodyStrong, { color: look.fg }]}>{title}</Text>
+          {icon ? <Icon name={icon} size={20} color={look.fg} /> : null}
+          <Text style={[type.bodyStrong, { color: look.fg, fontFamily: font.bold }]}>{title}</Text>
         </View>
       )}
     </Pressable>
@@ -252,7 +222,7 @@ export function Field({
   const [hidden, setHidden] = useState(true);
   const [focused, setFocused] = useState(false);
   return (
-    <View style={{ gap: space.xs + 2 }}>
+    <View style={{ gap: 6 }}>
       <T v="smallStrong" tone="soft">
         {label}
       </T>
@@ -260,15 +230,15 @@ export function Field({
         style={[
           styles.field,
           {
-            backgroundColor: c.surface,
-            borderColor: error ? c.bad : focused ? c.brand : c.lineStrong,
+            backgroundColor: c.card,
+            borderColor: error ? c.bad : focused ? c.blue : c.lineStrong,
             borderWidth: focused || error ? 1.5 : 1,
           },
         ]}>
         <TextInput
           {...input}
           secureTextEntry={secure ? hidden : false}
-          placeholderTextColor={c.off}
+          placeholderTextColor={c.textFaint}
           onFocus={(e) => {
             setFocused(true);
             input.onFocus?.(e);
@@ -277,15 +247,15 @@ export function Field({
             setFocused(false);
             input.onBlur?.(e);
           }}
-          style={[styles.fieldInput, { color: c.ink, fontFamily: font.regular }]}
+          style={[styles.fieldInput, { color: c.text, fontFamily: font.medium }, input.style]}
         />
         {secure ? (
           <Pressable
             onPress={() => setHidden((h) => !h)}
             accessibilityRole="button"
             accessibilityLabel={hidden ? 'Show password' : 'Hide password'}
-            hitSlop={8}>
-            <Feather name={hidden ? 'eye' : 'eye-off'} size={18} color={c.inkMuted} />
+            hitSlop={10}>
+            <Icon name={hidden ? 'eye' : 'eye-off'} size={20} color={c.textQuiet} />
           </Pressable>
         ) : null}
       </View>
@@ -294,7 +264,7 @@ export function Field({
           {error}
         </T>
       ) : hint ? (
-        <T v="small" tone="muted">
+        <T v="small" tone="quiet">
           {hint}
         </T>
       ) : null}
@@ -302,127 +272,102 @@ export function Field({
   );
 }
 
-export function Banner({ tone, children }: { tone: 'bad' | 'ok' | 'info'; children: string }) {
+/** `warn` is marigold: offline, or due soon (SPEC §7). */
+export function Banner({ tone, children }: { tone: 'bad' | 'ok' | 'info' | 'warn'; children: string }) {
   const c = usePalette();
   const [bg, fg, icon] = {
-    bad: [c.badTint, c.bad, 'alert-circle'],
-    ok: [c.okTint, c.ok, 'check-circle'],
-    info: [c.brandTint, c.brandInk, 'info'],
-  }[tone] as [string, string, keyof typeof Feather.glyphMap];
+    bad: [c.badTint, c.bad, 'alert'],
+    ok: [c.okTint, c.ok, 'check'],
+    info: [c.blueTint, c.blueText, 'alert'],
+    warn: [c.marigoldTint, c.marigoldText, 'alert'],
+  }[tone] as [string, string, IconName];
   return (
     <View style={[styles.banner, { backgroundColor: bg }]} accessibilityRole="alert">
-      <Feather name={icon} size={18} color={fg} style={{ marginTop: 2 }} />
-      <Text style={[type.small, { color: fg, flex: 1 }]}>{children}</Text>
+      <Icon name={icon} size={18} color={fg} />
+      <Text style={[type.small, { color: fg, flex: 1, fontFamily: font.medium }]}>{children}</Text>
     </View>
   );
 }
 
-export function Loading({ label = 'Loading' }: { label?: string }) {
+export function Loading() {
   const c = usePalette();
   return (
-    <View style={styles.center} accessibilityLabel={label}>
-      <ActivityIndicator color={c.brand} />
+    <View style={{ paddingVertical: space.xxxl, alignItems: 'center' }}>
+      <ActivityIndicator color={c.blue} />
     </View>
   );
 }
 
-export function Empty({
-  icon = 'inbox',
-  title,
-  body,
-}: {
-  icon?: keyof typeof Feather.glyphMap;
-  title: string;
-  body?: string;
-}) {
-  const c = usePalette();
-  return (
-    <View style={[styles.center, { gap: space.sm }]}>
-      <View style={[styles.emptyIcon, { backgroundColor: c.brandTint }]}>
-        <Feather name={icon} size={20} color={c.brandInk} />
-      </View>
-      <T v="bodyStrong" style={{ textAlign: 'center' }}>
-        {title}
-      </T>
-      {body ? (
-        <T v="small" tone="muted" style={{ textAlign: 'center', maxWidth: 300 }}>
-          {body}
-        </T>
-      ) : null}
-    </View>
-  );
-}
-
-export function Failed({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
-  const message = error instanceof Error ? error.message : 'Something went wrong.';
-  return (
-    <View style={{ gap: space.md }}>
-      <Banner tone="bad">{message}</Banner>
-      {onRetry ? <Button title="Try again" kind="secondary" icon="refresh-cw" onPress={onRetry} /> : null}
-    </View>
-  );
-}
-
-export function ListItem({
+/** A row with a tinted icon tile, a title and a line under it. */
+export function ListRow({
   icon,
+  tint = 'blue',
   title,
   sub,
   onPress,
   trailing,
+  accessibilityLabel,
 }: {
-  icon: keyof typeof Feather.glyphMap;
+  icon: IconName;
+  tint?: 'blue' | 'marigold' | 'bad' | 'ok';
   title: string;
   sub?: string;
-  onPress: () => void;
+  onPress?: () => void;
   trailing?: ReactNode;
+  accessibilityLabel?: string;
 }) {
   const c = usePalette();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => [styles.listItem, pressed && { backgroundColor: c.surfaceAlt }]}>
-      <View style={[styles.listIcon, { backgroundColor: c.brandTint }]}>
-        <Feather name={icon} size={18} color={c.brandInk} />
+  const [bg, fg] = {
+    blue: [c.blueTint, c.blueText],
+    marigold: [c.marigoldTint, c.marigoldText],
+    bad: [c.badTint, c.bad],
+    ok: [c.okTint, c.ok],
+  }[tint];
+  const body = (
+    <>
+      <View style={[styles.rowTile, { backgroundColor: bg }]}>
+        <Icon name={icon} size={22} color={fg} />
       </View>
       <View style={{ flex: 1, gap: 2 }}>
-        <T v="bodyStrong">{title}</T>
+        <T v="bodyStrong" tone={tint === 'bad' ? 'bad' : 'text'}>
+          {title}
+        </T>
         {sub ? (
-          <T v="small" tone="muted">
+          <T v="small" tone="quiet">
             {sub}
           </T>
         ) : null}
       </View>
-      {trailing ?? <Feather name="chevron-right" size={18} color={c.off} />}
+      {trailing ?? (onPress ? <Icon name="chevron-right" size={20} color={c.textFaint} /> : null)}
+    </>
+  );
+  if (!onPress) return <View style={styles.row}>{body}</View>;
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? title}
+      style={({ pressed }) => [styles.row, pressed && { backgroundColor: c.cardAlt }]}>
+      {body}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { padding: space.lg, paddingBottom: space.xxxl, gap: space.lg },
-  sectionLabel: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: space.sm,
-    marginBottom: -space.xs,
+  header: {
+    paddingHorizontal: space.xl,
+    paddingBottom: space.xxl,
+    borderBottomLeftRadius: radius.sheet,
+    borderBottomRightRadius: radius.sheet,
+    gap: space.lg,
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: space.md,
-  },
-  rowValue: { textAlign: 'right', flexShrink: 1 },
-  pill: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: space.sm + 2,
-    paddingVertical: 3,
-    borderRadius: radius.pill,
-  },
+  headerBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: -space.sm },
+  headerBack: { width: 44, height: 44, marginLeft: -10, alignItems: 'center', justifyContent: 'center' },
+  content: { paddingHorizontal: space.xl, paddingTop: space.xl, gap: space.lg },
+  footer: { paddingHorizontal: space.xl, paddingTop: space.md, gap: space.sm },
   button: {
-    minHeight: 48,
-    borderRadius: radius.sm + 2,
+    minHeight: 52,
+    borderRadius: radius.control,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -430,40 +375,15 @@ const styles = StyleSheet.create({
   },
   buttonInner: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   field: {
-    minHeight: 48,
-    borderRadius: radius.sm + 2,
+    minHeight: 52,
+    borderRadius: radius.control,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: space.md + 2,
-    gap: space.sm,
-  },
-  fieldInput: { flex: 1, fontSize: 16, paddingVertical: 12 },
-  banner: {
-    flexDirection: 'row',
-    gap: space.sm,
-    padding: space.md,
-    borderRadius: radius.sm + 2,
-  },
-  center: { alignItems: 'center', justifyContent: 'center', paddingVertical: space.xxxl },
-  emptyIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  listItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.md,
-    paddingVertical: space.md,
     paddingHorizontal: space.lg,
+    gap: space.sm,
   },
-  listIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.sm + 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  fieldInput: { flex: 1, fontSize: 16, paddingVertical: 13 },
+  banner: { flexDirection: 'row', gap: space.sm, alignItems: 'flex-start', padding: space.md, borderRadius: radius.control },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, paddingHorizontal: space.lg, minHeight: 64 },
+  rowTile: { width: 42, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
 });

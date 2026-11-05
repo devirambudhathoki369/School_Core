@@ -12,7 +12,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#037177",
+        "backgroundColor": "#142B6F",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -28,12 +28,18 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#037177",
+          "backgroundColor": "#142B6F",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "SchoolCore uses Face ID to unlock the app."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
