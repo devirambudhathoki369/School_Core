@@ -58,8 +58,9 @@ class ApiMapTests(SimpleTestCase):
         paths = [r["path"] for s in services for r in s["routes"]]
         self.assertEqual(total, len(paths))
         self.assertEqual(len(paths), len(set(paths)))
-        # /api/ answers the same as /api/v1/; only the versioned paths are listed
-        self.assertFalse([p for p in paths if re.match(r"^/(api|accounting|library|hostel|canteen|extra-billing)/(?!v\d+/)", p)])
+        # /api/ answers the same as /api/v1/; only the versioned paths are listed.
+        # The mobile app's API is versioned in its own mount, /api/mobile/v1/.
+        self.assertFalse([p for p in paths if re.match(r"^/(api|accounting|library|hostel|canteen|extra-billing)/(?!v\d+/|mobile/v\d+/)", p)])
 
     def test_server_tools_are_not_services(self):
         mounts = [s["mount"] for s in api_map()[0]]

@@ -1,7 +1,8 @@
 # SchoolCore mobile: specification
 
-Status: proposal, waiting for sign-off. Nothing here is built yet. The app in
-this folder today is the first prototype and will be replaced.
+Status: signed off 2026-11-05. Phase 1 (the backend foundation) is built in
+`backend/mobileapi/` and migrations `main/0117` and `mobileapi/0001`. The app
+in this folder today is the first prototype and will be replaced.
 
 One app for Android and iPhone with four kinds of user: **parent**,
 **student**, **staff** and **school admin**. Each signs in their own way and
@@ -111,7 +112,7 @@ A parent or guardian of one school, known by their mobile number.
 |---|---|---|
 | `id` | `bigint` | primary key |
 | `school_id` | `integer` | not null, references `main_schooladmin`, cascade |
-| `phone` | `char(10)` | not null, `CHECK (phone ~ '^9[0-9]{9}$')` (a Nepali mobile number) |
+| `phone` | `varchar(10)` | not null, `CHECK (phone ~ '^9[0-9]{9}$')`: exactly 10 digits, a Nepali mobile number |
 | `email` | `varchar(254)` null | the sign-in email; `CHECK (email = lower(email) AND email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$')` |
 | `name` | `varchar(100)` | not null, default `''` |
 | `is_active` | `boolean` | not null, default true |
@@ -162,13 +163,17 @@ One signed-in phone.
 | `created_at`, `last_seen_at` | `timestamptz` | not null |
 | `revoked_at` | `timestamptz` null | |
 | `revoke_reason` | `smallint` null | 1 signed out, 2 everywhere, 3 password changed, 4 token reused, 5 replaced, 6 account closed, 7 access removed |
+| `credential_stamp` | `varchar(64)` | a hash of the account's password hash at sign-in. A password changed anywhere (app, portal, Django admin) no longer matches and ends the session. Empty for parents. |
 
 Checks:
 - `num_nonnulls(guardian_id, student_account_id, staff_account_id, admin_account_id) = 1`.
 - The role matches its column, for example `(role = 1) = (guardian_id IS NOT NULL)`, and the same for each role.
-- `(revoked_at IS NULL) = (revoke_reason IS NULL)`.
+- `(revoked_at IS NULL) = (revoke_reason IS NULL)`. It is written with an
+  explicit `revoke_reason IS NOT NULL`, because `NULL IN (…)` is unknown and a
+  CHECK lets unknown through.
 
-Indexes: one partial index per account column `WHERE revoked_at IS NULL`.
+Indexes: the index of each account foreign key. It serves both the lookups
+per account and the cascades.
 
 ### `mobileapi_refreshtoken`
 
@@ -176,7 +181,7 @@ Indexes: one partial index per account column `WHERE revoked_at IS NULL`.
 |---|---|---|
 | `id` | `bigint` | primary key |
 | `session_id` | `uuid` | not null, references `mobileapi_session`, cascade |
-| `token_hash` | `bytea` | not null, unique, `CHECK (octet_length(token_hash) = 32)` |
+| `token_hash` | `varchar(64)` | SHA-256 in hex; not null, unique, `CHECK (token_hash ~ '^[0-9a-f]{64}$')` |
 | `created_at` | `timestamptz` | not null |
 | `expires_at` | `timestamptz` | not null, `CHECK (expires_at > created_at)` |
 | `used_at` | `timestamptz` null | |
@@ -192,7 +197,7 @@ live token per session.
 | `guardian_id` | `bigint` | not null, references `main_guardian`, cascade |
 | `email` | `varchar(254)` | not null, lower-case; the address the code went to |
 | `purpose` | `smallint` | not null; 1 sign in, 2 add this email (after a family code) |
-| `code_hash` | `bytea` | not null; HMAC of the code with a server key, because a plain hash of 6 digits can be guessed |
+| `code_hash` | `varchar(64)` | HMAC-SHA256 in hex, keyed by the server, because a plain hash of 6 digits can be guessed; same format check |
 | `created_at`, `expires_at` | `timestamptz` | not null, `CHECK (expires_at > created_at)` |
 | `attempts` | `smallint` | not null, default 0, `CHECK (attempts BETWEEN 0 AND 5)` |
 | `consumed_at` | `timestamptz` null | |
@@ -205,7 +210,7 @@ Index `(email, created_at DESC)`; the email limits count rows in it.
 |---|---|---|
 | `id` | `bigint` | primary key |
 | `guardian_id` | `bigint` | not null, references `main_guardian`, cascade |
-| `code_hash` | `bytea` | not null, unique (HMAC) |
+| `code_hash` | `varchar(64)` | HMAC-SHA256 in hex; not null, unique |
 | `issued_by_admin_id` / `issued_by_staff_id` | `integer` null | `CHECK (num_nonnulls(issued_by_admin_id, issued_by_staff_id) = 1)` |
 | `created_at`, `expires_at` | `timestamptz` | not null, `CHECK (expires_at > created_at)` |
 | `used_at`, `revoked_at` | `timestamptz` null | |
@@ -220,7 +225,10 @@ revoked_at IS NULL` allows one live code per guardian.
 ### Filling `main_guardian` from student records
 
 `manage.py link_guardians [--school ID] [--apply]` prints a report first and
-writes only with `--apply`. Running it twice does no harm.
+writes only with `--apply`. Running it twice does no harm. Without
+`--school` it covers the schools that use the app. `manage.py
+issue_family_code --school ID --phone N` makes a family code until the admin
+screens exist.
 
 1. Read each active student's `guardian_contact`. Keep digits only and drop a
    leading `977`. Numbers that are not mobile numbers are listed in the

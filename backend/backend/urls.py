@@ -25,6 +25,8 @@ urlpatterns = [
     path("", server_home, name="server_home"),
     path("admin/", admin.site.urls),
     path("auth/", include("account.urls")),
+    # the mobile app's own API (mobile/SPEC.md); before "api/" so nothing there shadows it
+    path("api/mobile/v1/", include(("mobileapi.urls", "mobileapi"), namespace="mobile")),
     path(
         "api/",
         include(

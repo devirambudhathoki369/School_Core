@@ -13,6 +13,7 @@ from django.urls import URLPattern, URLResolver, get_resolver
 # under its own path.
 SERVICES = {
     "auth/": ("Accounts and sign-in", "Sign-in, sessions and passwords for every role."),
+    "api/mobile/v1/": ("Mobile app", "The SchoolCore app's own API: sign-in for parents, students, staff and admins."),
     "api/": ("School", "Students, staff, classes, fees, exams, attendance and reports."),
     "accounting/": ("Accounting", "Ledgers, vouchers and the financial statements."),
     "library/": ("Library", "Books, issues, returns and fines."),

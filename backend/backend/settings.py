@@ -127,6 +127,7 @@ INSTALLED_APPS = [
     # (gated by the school's `canteen` grant in main.SchoolModule)
     "canteen",
     "rfid",  # rfid/biometrics attendance
+    "mobileapi",  # the mobile app's own API, /api/mobile/v1/ (mobile/SPEC.md)
     #
     "django_cleanup.apps.CleanupConfig",
 ]
@@ -474,3 +475,25 @@ REST_FRAMEWORK = {
 # Per-client caps on the two endpoints that answer WITHOUT signing in.
 PUBLIC_PROFILE_RATE = os.environ.get("PUBLIC_PROFILE_RATE") or "120/hour"
 CONTACT_SEARCH_RATE = os.environ.get("CONTACT_SEARCH_RATE") or "60/hour"
+
+# --- Mobile app (mobile/SPEC.md) -------------------------------------------
+# Signs the app's 15-minute access tokens. Set it in production; without it a
+# key is derived from SECRET_KEY, so changing either signs every phone out.
+MOBILE_TOKEN_KEY = os.environ.get("MOBILE_TOKEN_KEY", "")
+# Phones on an older app version get 426 and are asked to update.
+MOBILE_MIN_APP_VERSION = os.environ.get("MOBILE_MIN_APP_VERSION", "0.0.0")
+
+# Email, used for the parents' sign-in codes. Development prints each email in
+# the server's terminal; production sends through the SMTP account below.
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "SchoolCore <no-reply@schoolcore.local>")
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587") or 587)
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "true").lower() != "false"
+EMAIL_TIMEOUT = 15
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+    if EMAIL_HOST
+    else "django.core.mail.backends.console.EmailBackend"
+)
