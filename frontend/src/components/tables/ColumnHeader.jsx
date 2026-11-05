@@ -1,8 +1,8 @@
 import { Tooltip, Typography } from "@material-tailwind/react";
 
-function ColumnHeader({ columnName, tooltip, className, classNameTypo, hideFromPrint, rowSpan = 1, colSpan = 1 }) {
+function ColumnHeader({ columnName, tooltip, className, classNameTypo, hideFromPrint, rowSpan = 1, colSpan = 1, dataCol }) {
     return (
-        <th className={`py-3 !p-4 ${className} ${hideFromPrint ? 'hide-from-print' : ''}`} rowSpan={rowSpan} colSpan={colSpan}>
+        <th className={`py-3 !p-4 ${className} ${hideFromPrint ? 'hide-from-print' : ''}`} rowSpan={rowSpan} colSpan={colSpan} data-col={dataCol}>
             <Tooltip className={`${!tooltip ? 'hidden' : 'block'}`} content={tooltip || ''}>
                 <Typography
                     color="blue-gray"

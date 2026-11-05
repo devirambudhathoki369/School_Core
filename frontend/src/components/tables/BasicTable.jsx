@@ -1,6 +1,6 @@
-import { Card, Checkbox, Typography, Button, Dialog, DialogHeader, DialogBody, DialogFooter, IconButton } from "@material-tailwind/react";
+import { Card, Checkbox, Typography, Dialog, DialogHeader, DialogBody, DialogFooter, IconButton } from "@material-tailwind/react";
 import ColumnHeader from "./ColumnHeader";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import ActionButton from "@/components/buttons/ActionButton";
 import Cell from "./Cell";
@@ -9,7 +9,30 @@ import ReportHeader from "./ReportHeader";
 import Papa from 'papaparse';
 import FileSaver from "file-saver";
 import Loader from "../Loader";
-import { ChevronUpIcon, ChevronDownIcon, MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon, EyeIcon, XMarkIcon, ViewColumnsIcon, PrinterIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import { ArrowUpIcon, ArrowDownIcon, ChevronUpDownIcon, MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon, EyeIcon, XMarkIcon, PrinterIcon } from "@heroicons/react/24/outline";
+import { ColumnsMenu, ExportMenu, ToolButton } from "./TableTools";
+
+// A column of long text wraps past this width rather than widening the table.
+const FOLD_CAP = 280;
+// A value wider than this may wrap onto a second line before anything folds.
+const WRAP_FROM = 200;
+// The eye column a folded table gains: its padding and one 32px button.
+const VIEW_W = 64;
+// A column that holds only numbers lines up on the right, like a ledger -- but
+// not one whose numbers are names for something: a phone, a roll number, a
+// year, a code, an ID.
+const NOT_A_FIGURE = /(phone|contact|mobile|roll|code|year|date|pin|number)|(^|[\s_.-])(no|id)\.?$/i;
+const FIGURE = /^-?(\d{1,3}(,\d{2,3})+|\d+)(\.\d+)?$/;
+// Many columns are named in lower case ("father name"); a heading starts with
+// a capital. Only the first letter: "No. of days" must not become "No. Of Days".
+const labelOf = (col) => { const t = String(col?.[1] || col?.[0] || ''); return t.charAt(0).toUpperCase() + t.slice(1); };
+// "A, B and C." -- without a second full stop after "Call No."
+const listOf = (names) => { const t = names.join(', '); return /[.]$/.test(t) ? t : `${t}.`; };
+const isFigure = (v) => typeof v === 'number' || (typeof v === 'string' && FIGURE.test(v.trim()));
+// The column a row is about -- a person's or a thing's own name -- reads a step
+// darker than the rest. Not a parent's, a class's or a group's name.
+const PRIMARY = /name|title|particular/i;
+const NOT_PRIMARY = /father|mother|guardian|class|section|group|school|user|parent|spouse/i;
 
 // DataTable-style helpers — added so every BasicTable inherits search,
 // column sort, and pagination without each call site having to opt in.
@@ -114,7 +137,6 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
     // the consumer hasn't opted out. Reset whenever the column SET changes so a
     // new search/report starts with everything visible.
     const [hiddenCols, setHiddenCols] = useState({});
-    const [colMenuOpen, setColMenuOpen] = useState(false);
     const columnToggleActive = columnToggle && !editable && (columns?.length > 0);
     const allColumns = Array.isArray(columns) ? columns : [];
     const visibleColumns = columnToggleActive
@@ -136,7 +158,7 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
     // intrinsically index-sensitive (editable rows), skip filtering,
     // sorting, and pagination so the table behaves exactly like before.
     const useDataTable = dataTable && !editable;
-    const safeData = Array.isArray(data) ? data : [];
+    const safeData = useMemo(() => (Array.isArray(data) ? data : []), [data]);
     const filteredData = useMemo(() => {
         if (!useDataTable || !enableSearch || !query) return safeData;
         return safeData.filter(row => rowMatchesQuery(row, columns || [], query));
@@ -251,28 +273,9 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
     function isColumnEditable(col) {
         return editableColumns?.some(val => val[0] === col[0]) ?? false;
     }
-    // Responsive: decide which columns stay visible on small screens. Editable
-    // tables keep every column (they're forms, not read-only lists).
+    // Responsive: a read-only table folds columns it has no room for (below).
+    // Editable tables keep every column (they're forms, not read-only lists).
     const isResponsive = responsive && !editable;
-    function isPrimaryColumn(col, index) {
-        if (!isResponsive) return true;
-        if (Array.isArray(mobileColumns)) return mobileColumns.includes(col[0]);
-        return index < mobilePriorityCount;
-    }
-    const hasWideColumns = isResponsive && Array.isArray(wideColumns)
-        && gridColumns.some((col, i) => wideColumns.includes(col[0]) && !isPrimaryColumn(col, i));
-    // Only bother with the eye/modal column when something is actually hidden.
-    const hasHiddenColumns = rowView && (hasDetailColumns
-        || (isResponsive && gridColumns.some((col, i) => !isPrimaryColumn(col, i))));
-    // The eye is a phone/tablet affordance — unless some columns are never
-    // drawn (it stays), or some wait for xl (it stays until then).
-    const viewOnlyBelowLg = hasDetailColumns ? '' : (hasWideColumns ? 'xl:hidden' : 'lg:hidden');
-    // Utility classes to collapse a low-priority column below the lg breakpoint
-    // (below xl for a column that needs a wide screen).
-    const collapseCls = (col, i) => {
-        if (!isResponsive || isPrimaryColumn(col, i)) return '';
-        return (hasWideColumns && wideColumns.includes(col[0])) ? 'hidden xl:table-cell' : 'hidden lg:table-cell';
-    };
     // A column that is blank on every row -- no contact numbers recorded, no
     // e-mails -- still took its heading's width, and on a wide report four of
     // them were what pushed the table past the page. On screen such a column
@@ -284,7 +287,109 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
     const blankKeys = (editable || (extendedRows || []).length > 0 || safeData.length === 0) ? [] :
         gridColumns.filter((c) => !c?.[5] && safeData.every((row) => isBlankValue(row?.[c[0]]))).map((c) => c[0]);
     const blankCls = (col) => (blankKeys.includes(col[0]) ? ' app-col-blank' : '');
-    const blankNames = gridColumns.filter((c) => blankKeys.includes(c[0])).map((c) => c[1] || c[0]);
+    const blankNames = gridColumns.filter((c) => blankKeys.includes(c[0])).map(labelOf);
+
+    // Figures sit on the right; the row's own name reads a step darker.
+    const numKeys = editable ? [] : gridColumns.filter((c) => !c?.[5]
+        && !NOT_A_FIGURE.test(String(c[0])) && !NOT_A_FIGURE.test(String(c[1] || ''))
+        && safeData.some((row) => !isBlankValue(row?.[c[0]]))
+        && safeData.every((row) => isBlankValue(row?.[c[0]]) || isFigure(row?.[c[0]]))).map((c) => c[0]);
+    const primaryKey = editable ? null : gridColumns.find((c) => {
+        const words = `${c[0]} ${c[1] || ''}`;
+        return PRIMARY.test(words) && !NOT_PRIMARY.test(words);
+    })?.[0];
+    const cellCls = (col) => (numKeys.includes(col[0]) ? ' app-col-num' : '') + (col[0] === primaryKey ? ' app-col-primary' : '');
+
+    // ---- fit the card instead of scrolling sideways ----------------------
+    // A table wider than its card used to scroll sideways, or, below a fixed
+    // breakpoint, drop to two columns however much room there was. Now the
+    // table is measured against the width it actually has: when its columns
+    // cannot fit, the last ones fold into each row's details (the eye), one
+    // at a time, until the rest do. Widen the window and they come back. The
+    // first columns (`mobileColumns`, or the first `mobilePriorityCount`)
+    // never fold; `wideColumns` fold first. Print, the exports, the search and
+    // the column menu still have every column. A form table and one with rows
+    // written by its page (`extendedRows`, which assume every column) keep
+    // the old sideways scroll.
+    const tableRef = useRef(null);
+    const [foldCount, setFoldCount] = useState(0);
+    const foldable = isResponsive && (extendedRows || []).length === 0 && !isPrinting;
+    const keepKeys = Array.isArray(mobileColumns) ? mobileColumns : gridColumns.slice(0, mobilePriorityCount).map((c) => c[0]);
+    const foldOrder = (() => {
+        if (!foldable) return [];
+        const keys = gridColumns.map((c) => c[0]).filter((k) => !keepKeys.includes(k) && !blankKeys.includes(k));
+        const wide = Array.isArray(wideColumns) ? wideColumns : [];
+        return [...keys.filter((k) => wide.includes(k)).reverse(), ...keys.filter((k) => !wide.includes(k)).reverse()];
+    })();
+    const foldOrderKey = foldOrder.join('\u0001');
+    const foldedKeys = foldOrder.slice(0, foldCount);
+    const foldCls = (col) => (foldedKeys.includes(col[0]) ? ' app-col-folded' : '');
+    const foldedNames = gridColumns.filter((c) => foldedKeys.includes(c[0])).map(labelOf);
+
+    const measureFold = useCallback(() => {
+        const table = tableRef.current;
+        const wrap = reportRef.current;
+        if (!table || !wrap || !foldOrderKey) { setFoldCount(0); return; }
+        const avail = wrap.clientWidth;
+        if (!avail) return;
+        const cells = Array.from(table.tHead?.rows?.[0]?.cells || []);
+        // Each column's width with nothing wrapped, then with everything that
+        // can wrap wrapped. A column is given its unwrapped width up to
+        // FOLD_CAP and never less than it can shrink to, so a table judged to
+        // fit really does.
+        const read = (cls) => {
+            table.classList.add('app-fold-measure', cls);
+            const out = cells.map((th) => th.getBoundingClientRect().width);
+            table.classList.remove('app-fold-measure', cls);
+            return out;
+        };
+        const widest = read('app-fold-max');
+        const narrowest = read('app-fold-min');
+        const widths = {};
+        let total = 0;
+        cells.forEach((th, i) => {
+            if (th.classList.contains('app-col-view')) return;
+            // a long value (an address, a remark) may take two lines first
+            const easy = widest[i] > WRAP_FROM ? Math.max(WRAP_FROM, widest[i] * 0.6) : widest[i];
+            const w = Math.max(narrowest[i], Math.min(easy, FOLD_CAP));
+            if (th.dataset.col) widths[th.dataset.col] = w;
+            total += w;
+        });
+        const eyeAlways = rowView && hasDetailColumns;
+        if (eyeAlways) total += VIEW_W;
+        const order = foldOrderKey.split('\u0001');
+        let k = 0;
+        while (k < order.length && total + (!eyeAlways && rowView && k > 0 ? VIEW_W : 0) > avail + 1) {
+            total -= widths[order[k]] || 0;
+            k += 1;
+        }
+        setFoldCount(k);
+    }, [foldOrderKey, rowView, hasDetailColumns]);
+    const measureRef = useRef(measureFold);
+    measureRef.current = measureFold;
+    const hiddenKey = Object.keys(hiddenCols).filter((k) => hiddenCols[k]).join(',');
+    useLayoutEffect(() => {
+        if (!loading) measureFold();
+    }, [measureFold, loading, data, query, sort.col, sort.dir, safePage, hiddenKey]);
+    // The card's width changes with the window and with the menu opening or
+    // closing; measure again then, once per frame at most.
+    useEffect(() => {
+        const wrap = reportRef.current;
+        if (!wrap || typeof ResizeObserver === 'undefined') return undefined;
+        let frame = 0;
+        let lastWidth = wrap.clientWidth;
+        const observer = new ResizeObserver(() => {
+            if (wrap.clientWidth === lastWidth) return;
+            lastWidth = wrap.clientWidth;
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => measureRef.current());
+        });
+        observer.observe(wrap);
+        return () => { observer.disconnect(); cancelAnimationFrame(frame); };
+    }, []);
+
+    // The eye shows when some columns are never drawn, or some are folded.
+    const hasHiddenColumns = rowView && (hasDetailColumns || foldedKeys.length > 0);
     // Every column the header actually emits, so the empty-state row spans the
     // full table instead of stopping under the first few columns.
     const emptyColSpan = (showSelected ? 1 : 0) + (includeSN ? 1 : 0)
@@ -310,28 +415,25 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
     // puts the actions right after the last row. Horizontal scrolling for wide
     // tables is unaffected — that lives on the wrap, not here.
     return (
-        <Card className={`app-table-card ${scroll ? 'h-max md:max-h-screen md:overflow-hidden' : ''} mb-3 bg-transparent`}>
+        <Card className={`app-table-card app-tbl ${scroll ? 'h-max md:max-h-screen' : ''} mb-3 bg-transparent`}>
             {hasToolbar &&
-            <div className="app-toolbar flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 hide-from-print">
+            <div className="app-tbl-bar hide-from-print">
                 {/* The table's name heads its own card, beside how many rows it
-                    holds. It used to sit BELOW the search box and the export
-                    buttons, centred, so every listing opened on a toolbar and
-                    the thing you were looking at was the third line down. The
-                    in-table title stays for print (see below). */}
-                <div className="app-table-heading flex items-center gap-2 min-w-0">
-                    {name && <h3 className="app-table-name truncate">{name}</h3>}
+                    holds. The in-table title stays for print (see below). */}
+                <div className="app-tbl-heading">
+                    {name && <h3 className="app-tbl-name">{name}</h3>}
                     {!editable &&
-                        <span className="app-table-count shrink-0" aria-live="polite">
+                        <span className="app-tbl-count" aria-live="polite">
                             {query ? `${totalRows} of ${safeData.length}` : totalRows} {(query ? safeData.length : totalRows) === 1 ? 'row' : 'rows'}
                         </span>}
                 </div>
-                <div className="app-toolbar-tools flex flex-col sm:flex-row sm:items-center gap-2 min-w-0">
+                <div className="app-tbl-bar-tools">
                     {useDataTable && enableSearch && (
-                        <div className="app-table-search group flex items-center gap-2 w-full sm:w-64 xl:w-72 transition">
-                            <MagnifyingGlassIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                        <div className="app-tbl-search">
+                            <MagnifyingGlassIcon className="app-tbl-search-icon" aria-hidden="true" />
                             <input
                                 type="search"
-                                placeholder="Search in table…"
+                                placeholder="Search in table"
                                 // A placeholder is not a name: it vanishes as
                                 // soon as the field has content, and several
                                 // screen readers never announce it at all. The
@@ -340,75 +442,28 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                 aria-label={name ? `Search in ${name}` : "Search in table"}
                                 value={query}
                                 onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }}
-                                className="bg-transparent focus:outline-none text-sm w-full placeholder:text-gray-500 placeholder:font-normal text-gray-900"
                             />
                             {query && (
-                                <button
-                                    type="button"
-                                    aria-label="clear search"
-                                    onClick={() => { setQuery(''); setCurrentPage(1); }}
-                                    className="text-gray-500 hover:text-gray-800 shrink-0 leading-none text-base"
-                                >
-                                    ×
+                                <button type="button" aria-label="Clear search" className="app-tbl-search-clear"
+                                    onClick={() => { setQuery(''); setCurrentPage(1); }}>
+                                    <XMarkIcon aria-hidden="true" />
                                 </button>
                             )}
                         </div>
                     )}
-                <div className="flex flex-wrap gap-1.5">
-                    {topActions}
-                    {columnToggleActive && allColumns.length > 0 &&
-                        <div className="relative">
-                            <Button variant="outlined"
-                                aria-expanded={colMenuOpen}
-                                className="py-2 px-4 flex items-center gap-1 border-teal-400 text-gray-900"
-                                onClick={() => setColMenuOpen(o => !o)}>
-                                <ViewColumnsIcon className="h-4 w-4" aria-hidden="true" /> Columns
-                            </Button>
-                            {colMenuOpen &&
-                                <>
-                                    {/* click-away backdrop */}
-                                    <div className="fixed inset-0 z-40" onClick={() => setColMenuOpen(false)} />
-                                    <div className="absolute right-0 z-50 mt-1 w-56 max-h-72 overflow-auto rounded-lg border border-blue-gray-100 bg-white shadow-lg p-2">
-                                        <div className="flex items-center justify-between px-1 pb-1 mb-1 border-b border-blue-gray-50">
-                                            <span className="text-xs font-semibold text-blue-gray-600">Show columns</span>
-                                            <button type="button"
-                                                className="text-xs text-teal-700 font-semibold hover:underline"
-                                                onClick={() => setHiddenCols({})}>Show all</button>
-                                        </div>
-                                        {/* a column the grid never draws has nothing to show or hide */}
-                                        {allColumns.filter((col) => !detailKeys.includes(col[0])).map((col) => {
-                                            const key = col[0];
-                                            const checked = !hiddenCols[key];
-                                            return (
-                                                <label key={key}
-                                                    className="flex items-center gap-2 px-1 py-1 rounded hover:bg-teal-50 cursor-pointer">
-                                                    <input type="checkbox" checked={checked}
-                                                        onChange={() => setHiddenCols(s => ({ ...s, [key]: !s[key] }))} />
-                                                    <span className="text-sm text-blue-gray-800 capitalize">{col[1] || col[0]}</span>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
-                                </>
-                            }
-                        </div>
-                    }
-                    {print &&
-                        <Button className="py-3 px-7 bg-teal-300 text-gray-900" onClick={printReport}>
-                            <PrinterIcon className="h-4 w-4" aria-hidden="true" /> Print
-                        </Button>
-                    }
-                    {allowExport && !editable &&
-                        <>
-                            <Button className="py-2 px-7 bg-teal-300 text-gray-900" onClick={exportExcel}>
-                                <ArrowDownTrayIcon className="h-4 w-4" aria-hidden="true" /> Export Excel
-                            </Button>
-                            <Button className="py-2 px-7 bg-teal-300 text-gray-900" onClick={exportTable}>
-                                <ArrowDownTrayIcon className="h-4 w-4" aria-hidden="true" /> Export CSV
-                            </Button>
-                        </>
-                    }
-                </div>
+                    <div className="app-tbl-bar-actions">
+                        {topActions}
+                        {columnToggleActive && allColumns.length > 0 &&
+                            <ColumnsMenu
+                                // a column the grid never draws has nothing to show or hide
+                                items={allColumns.filter((col) => !detailKeys.includes(col[0]))
+                                    .map((col) => ({ key: col[0], label: labelOf(col), shown: !hiddenCols[col[0]] }))}
+                                onToggle={(key) => setHiddenCols((st) => ({ ...st, [key]: !st[key] }))}
+                                onShowAll={() => setHiddenCols({})} />
+                        }
+                        {print && <ToolButton icon={PrinterIcon} onClick={printReport}>Print</ToolButton>}
+                        {allowExport && !editable && <ExportMenu onExcel={exportExcel} onCsv={exportTable} />}
+                    </div>
                 </div>
             </div>
             }
@@ -433,12 +488,12 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                     jump. On Classic `Loader` ignores both and renders the
                     spinner it always did. */}
                 {loading ? <Loader variant="table" cols={Math.max(2, (gridColumns?.length || 4) + (includeSN ? 1 : 0))} /> :
-                    <table className={`report-table w-full text-left rounded-lg${dense ? ' report-table-dense' : ''}`}>
+                    <table ref={tableRef} className={`report-table w-full text-left${dense ? ' report-table-dense' : ''}`}>
                         {/* `cursor-pointer` was on the whole header strip, so
                             every column advertised itself as clickable even
                             when sorting was off or the column was the checkbox.
                             It belongs on the cells that actually sort. */}
-                        <thead className="uppercase bg-table-header">
+                        <thead className="bg-table-header">
                             <tr>
                                 {
                                     showSelected && <ColumnHeader columnName={''} className={'app-col-select'} />
@@ -450,11 +505,11 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                     gridColumns?.map((col, i) => {
                                         const isSortable = useDataTable && enableSort;
                                         const isSorted = isSortable && sort.col === col[0];
-                                        const hideCls = collapseCls(col, i);
+                                        const colCls = `${foldCls(col)}${blankCls(col)}${cellCls(col)}`;
                                         if (!isSortable) {
-                                            return <ColumnHeader key={i} columnName={col[1] || col[0]} tooltip={col?.[2]} className={hideCls + blankCls(col)} />;
+                                            return <ColumnHeader key={i} dataCol={col[0]} columnName={labelOf(col)} tooltip={col?.[2]} className={colCls} />;
                                         }
-                                        const label = col[1] || col[0];
+                                        const label = labelOf(col);
                                         return (
                                             // `aria-sort` is what tells a screen reader that this
                                             // column is ordered and which way; without it the sort
@@ -462,32 +517,29 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                             // <button> is what makes the control reachable at all
                                             // by keyboard — a `<th onClick>` is not focusable, so
                                             // sorting was mouse-only on all 89 tables.
-                                            <th key={i}
+                                            <th key={i} data-col={col[0]}
                                                 aria-sort={isSorted ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
-                                                className={`py-3 !p-4 select-none ${hideCls}${blankCls(col)}`}>
-                                                <button type="button"
+                                                className={`app-th-sort${isSorted ? ' is-sorted' : ''}${colCls}`}>
+                                                <button type="button" className="app-sort-btn"
                                                     onClick={() => onSortClick(col[0])}
-                                                    title={`Sort by ${label}`}
-                                                    className="inline-flex items-center gap-1 text-blue-gray-800 font-semibold text-sm opacity-80
-                                                        cursor-pointer bg-transparent border-0 p-0 uppercase text-left
-                                                        hover:opacity-100 focus-visible:outline-none focus-visible:ring-2
-                                                        focus-visible:ring-offset-1 focus-visible:ring-teal-500 rounded">
+                                                    title={`Sort by ${label}`}>
                                                     {/* No `w-max`: a heading locked on one line set its
                                                         column's width, and on a wide report sixteen such
                                                         columns pushed the table past the page. A heading
                                                         may wrap between words like a plain one. */}
-                                                    <span>{label}</span>
-                                                    {isSorted ? (
-                                                        sort.dir === 'asc'
-                                                            ? <ChevronUpIcon className="h-3 w-3" aria-hidden="true" />
-                                                            : <ChevronDownIcon className="h-3 w-3" aria-hidden="true" />
-                                                    ) : <span className="h-3 w-3 inline-block opacity-30" aria-hidden="true">↕</span>}
+                                                    <span className="app-th-label">{label}</span>
+                                                    {isSorted
+                                                        ? (sort.dir === 'asc'
+                                                            ? <ArrowUpIcon className="app-sort-icon" aria-hidden="true" />
+                                                            : <ArrowDownIcon className="app-sort-icon" aria-hidden="true" />)
+                                                        : <ChevronUpDownIcon className="app-sort-icon" aria-hidden="true" />}
                                                 </button>
                                             </th>
                                         );
                                     })
                                 }
-                                {hasHiddenColumns && <ColumnHeader hideFromPrint={true} className={`text-center ${viewOnlyBelowLg}`} columnName={"View"} />}
+                                {hasHiddenColumns &&
+                                    <th className="app-col-view hide-from-print"><span className="sr-only">Details</span></th>}
                                 {actions && <ColumnHeader hideFromPrint={true} className={'app-col-actions text-center'} columnName={"Actions"} />}
                             </tr >
                         </thead>
@@ -497,7 +549,7 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                     const isLast = ri === pagedData?.length - 1;
                                     // const classes = isLast ? `py-2.5` : `py-2.5 border-b border-blue-gray-50`;
                                     return (
-                                        <tr key={ri} className={`hover:bg-teal-200 border-b border-sky-300`}>
+                                        <tr key={ri}>
                                             {
                                                 showSelected &&
                                                 <td className="app-col-select">
@@ -518,7 +570,7 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                             {/* Serial Number */}
                                             {
                                                 (includeSN && !(isLast && highLightLast)) ?
-                                                    <td className="app-col-sn text-base">
+                                                    <td className="app-col-sn">
                                                         {paginationActive
                                                             ? (startIndex + ri + 1)
                                                             : (useDataTable ? (ri + 1) : ((page - 1) * itemsPerPage + (ri + 1)))}
@@ -533,7 +585,7 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                                     // const [key:str|int, display-name:str, tooltip:str, highlightCol:bool, layout: (vertical | horizontal), custom-component]=col;
                                                     const Comp = col?.[5] || Cell;
                                                     return (
-                                                        <td key={ci} className={`py-2.5 ${collapseCls(col, ci)}${blankCls(col)}`}>
+                                                        <td key={ci} className={`${foldCls(col)}${blankCls(col)}${cellCls(col)}`.trim() || undefined}>
                                                             {
                                                                 col ?
                                                                     <Comp
@@ -554,24 +606,21 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                                     )
                                                 })
                                             }
-                                            {/* view-all (mobile only) */}
+                                            {/* the row's every column, folded ones included */}
                                             {hasHiddenColumns &&
-                                                <td className={`${viewOnlyBelowLg} hide-from-print text-center`}>
-                                                    <IconButton
-                                                        variant="text"
-                                                        size="sm"
-                                                        aria-label="view all details"
-                                                        className="rounded-full text-teal-700 hover:bg-teal-100"
-                                                        onClick={() => setModalRow({ item, sn: (includeSN ? (paginationActive ? (startIndex + ri + 1) : (useDataTable ? (ri + 1) : ((page - 1) * itemsPerPage + (ri + 1)))) : null) })}
-                                                    >
-                                                        <EyeIcon className="h-5 w-5" />
-                                                    </IconButton>
+                                                <td className="app-col-view hide-from-print">
+                                                    <button type="button" className="app-row-action app-row-view"
+                                                        aria-label={`Details of row ${includeSN ? (paginationActive ? (startIndex + ri + 1) : (useDataTable ? (ri + 1) : ((page - 1) * itemsPerPage + (ri + 1)))) : ri + 1}`}
+                                                        title="All details"
+                                                        onClick={() => setModalRow({ item, sn: (includeSN ? (paginationActive ? (startIndex + ri + 1) : (useDataTable ? (ri + 1) : ((page - 1) * itemsPerPage + (ri + 1)))) : null) })}>
+                                                        <EyeIcon aria-hidden="true" />
+                                                    </button>
                                                 </td>
                                             }
                                             {/* action-buttons */}
                                             {actions &&
                                                 <td className="app-col-actions hide-from-print">
-                                                    <div className="flex justify-center items-start gap-x-1">
+                                                    <div className="app-row-actions">
                                                         {actions?.map((action, i) => (
                                                             <ActionButton key={i} action={action} item={item} setSelected={setSelected} onSelect={onSelect} disabled={disabled} />
                                                         ))}
@@ -597,26 +646,20 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                 of the two happened. */}
                             {pagedData?.length === 0 && (extendedRows || []).length === 0 && !editable &&
                                 <tr className="app-table-empty">
-                                    <td colSpan={emptyColSpan} className="px-4 py-10 sm:py-14 text-center">
+                                    <td colSpan={emptyColSpan}>
                                         {query
                                             ? <>
-                                                <p className="text-[0.95rem] font-semibold text-blue-gray-800">
-                                                    No rows match “{query}”
-                                                </p>
-                                                <p className="mt-1 text-[0.85rem] text-blue-gray-500">
+                                                <p className="app-empty-title">No rows match “{query}”</p>
+                                                <p className="app-empty-line">
                                                     {safeData.length} row{safeData.length === 1 ? '' : 's'} in this table, none matching your search.
                                                 </p>
-                                                <button type="button" onClick={() => setQuery('')}
-                                                    className="app-retry-btn mt-3 inline-flex items-center rounded-lg px-3 py-1.5
-                                                        text-[0.8rem] font-semibold transition">
+                                                <button type="button" onClick={() => setQuery('')} className="app-tbl-btn app-empty-action">
                                                     Clear search
                                                 </button>
                                             </>
                                             : <>
-                                                <p className="text-[0.95rem] font-semibold text-blue-gray-800">
-                                                    Nothing here yet
-                                                </p>
-                                                <p className="mt-1 text-[0.85rem] text-blue-gray-500">
+                                                <p className="app-empty-title">Nothing here yet</p>
+                                                <p className="app-empty-line">
                                                     {name ? `No ${String(name).toLowerCase()} have been recorded for the current selection.`
                                                         : 'No records have been added for the current selection.'}
                                                 </p>
@@ -632,28 +675,36 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                         </tbody>
                     </table>
                 }
-                {!loading && blankNames.length > 0 &&
-                    <p className="app-table-note hide-from-print">
-                        Not shown, empty on every row: {blankNames.join(', ')}.
-                    </p>}
+                {!loading && (foldedNames.length > 0 || blankNames.length > 0) &&
+                    <div className="app-table-note hide-from-print">
+                        {foldedNames.length > 0 &&
+                            <p>
+                                {hasHiddenColumns
+                                    ? <>To fit this width, {foldedNames.length === 1 ? 'one column is' : `${foldedNames.length} columns are`} in each row’s details (<EyeIcon className="app-note-icon" aria-label="the eye" />): </>
+                                    : <>Hidden to fit this width: </>}
+                                <span className="app-note-names">{listOf(foldedNames)}</span>
+                            </p>}
+                        {blankNames.length > 0 &&
+                            <p>Empty on every row, so not shown: <span className="app-note-names">{listOf(blankNames)}</span></p>}
+                    </div>}
                 <>
                     {footer}
                 </>
                 {paginationActive && totalRows > pageSize && (
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-2 p-2 text-sm hide-from-print">
-                        <span className="text-gray-700">
+                    <div className="app-table-pager hide-from-print">
+                        <span>
                             Showing {totalRows === 0 ? 0 : (startIndex + 1)}–{Math.min(startIndex + pageSize, totalRows)} of {totalRows}
                         </span>
-                        <div className="flex items-center gap-1">
-                            <Button size="sm" variant="text" disabled={safePage <= 1}
+                        <div className="app-table-pager-nav">
+                            <button type="button" className="app-tbl-btn app-tbl-btn-icon-only" aria-label="Previous page" disabled={safePage <= 1}
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}>
-                                <ChevronLeftIcon className="h-4 w-4" />
-                            </Button>
-                            <span className="px-2">Page {safePage} / {totalPages}</span>
-                            <Button size="sm" variant="text" disabled={safePage >= totalPages}
+                                <ChevronLeftIcon aria-hidden="true" />
+                            </button>
+                            <span>Page {safePage} of {totalPages}</span>
+                            <button type="button" className="app-tbl-btn app-tbl-btn-icon-only" aria-label="Next page" disabled={safePage >= totalPages}
                                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}>
-                                <ChevronRightIcon className="h-4 w-4" />
-                            </Button>
+                                <ChevronRightIcon aria-hidden="true" />
+                            </button>
                         </div>
                     </div>
                 )}
@@ -661,29 +712,29 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
             {/* Mobile "view all columns" modal. `handler` closes it on an
                 outside click / Escape (Material Tailwind fires the backdrop
                 click through here). */}
-            <Dialog open={!!modalRow} handler={() => setModalRow(null)} size="xs" className={viewOnlyBelowLg}>
-                <DialogHeader className="flex items-center justify-between pb-2">
-                    <Typography variant="h6" color="blue-gray">
-                        {name ? `${name} — details` : 'Details'}
-                    </Typography>
-                    <IconButton variant="text" size="sm" aria-label="close" onClick={() => setModalRow(null)}>
+            <Dialog open={!!modalRow} handler={() => setModalRow(null)} size="xs" className="app-detail-dialog">
+                <DialogHeader className="app-detail-head">
+                    <div className="min-w-0">
+                        <p className="app-detail-kicker">{name || 'Details'}{includeSN && modalRow?.sn != null ? ` · row ${modalRow.sn}` : ''}</p>
+                        <h2 className="app-detail-title">
+                            {(primaryKey && modalRow?.item?.[primaryKey] && typeof modalRow.item[primaryKey] !== 'object')
+                                ? modalRow.item[primaryKey] : 'All details'}
+                        </h2>
+                    </div>
+                    <IconButton variant="text" size="sm" aria-label="Close" onClick={() => setModalRow(null)}>
                         <XMarkIcon className="h-5 w-5" />
                     </IconButton>
                 </DialogHeader>
-                <DialogBody className="max-h-[70vh] overflow-y-auto pt-0">
-                    <div className="divide-y divide-blue-gray-50">
-                        {includeSN && modalRow?.sn != null &&
-                            <div className="flex items-start justify-between gap-4 py-2">
-                                <span className="text-sm font-semibold text-blue-gray-500 shrink-0">S.N</span>
-                                <span className="text-sm text-blue-gray-900 text-right break-words">{modalRow.sn}</span>
-                            </div>
-                        }
+                <DialogBody className="app-detail-body">
+                    <dl className="app-detail-list">
                         {visibleColumns?.map((col, ci) => {
                             const Comp = col?.[5] || Cell;
                             return (
-                                <div key={ci} className="flex items-start justify-between gap-4 py-2">
-                                    <span className="text-sm font-semibold text-blue-gray-500 shrink-0">{col[1] || col[0]}</span>
-                                    <div className="text-sm text-blue-gray-900 text-right break-words min-w-0">
+                                <div key={ci} className={`app-detail-row${foldedKeys.includes(col[0]) || detailKeys.includes(col[0]) ? ' is-folded' : ''}`}>
+                                    <dt>{labelOf(col)}</dt>
+                                    <dd>
+                                        {(!col?.[5] && isBlankValue(modalRow?.item?.[col[0]]))
+                                            ? <span className="app-detail-empty" aria-label="empty">–</span> :
                                         <Comp
                                             index={0}
                                             col={col[0]}
@@ -695,15 +746,15 @@ function BasicTable({ name, columns, hideHeader = true, editable = false, editab
                                             onChange={() => null} onBlur={() => null}
                                             onShortcut={() => null}
                                             layout={col?.[4] || "horizontal"}
-                                        />
-                                    </div>
+                                        />}
+                                    </dd>
                                 </div>
                             );
                         })}
-                    </div>
+                    </dl>
                 </DialogBody>
                 {actions && modalRow?.item &&
-                    <DialogFooter className="justify-center gap-x-1 pt-2 border-t border-blue-gray-50">
+                    <DialogFooter className="app-detail-foot">
                         {actions.map((action, i) => (
                             <ActionButton key={i} action={action} item={modalRow.item} setSelected={setSelected} onSelect={onSelect} disabled={disabled} />
                         ))}

@@ -4,6 +4,7 @@ import { ThemeProvider } from "@material-tailwind/react";
 import Notification from '@/components/Notification';
 import { ConfirmHost } from '@/components/ConfirmDialog';
 import '@/styles/globals.css';
+import '@/styles/tables.css';
 import '@/styles/loader.css';
 import customTheme from "@/configs/theme";
 import { Bricolage_Grotesque, Hanken_Grotesk, JetBrains_Mono, Mukta } from "next/font/google";

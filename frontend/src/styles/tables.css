@@ -1,0 +1,599 @@
+/* ============================================================================
+   DATA TABLES -- the one layer that decides how a BasicTable looks on screen.
+
+   Loaded after globals.css. globals.css still holds older table rules from
+   earlier passes (the tinted header band, zebra rows, uppercase labels); every
+   rule here is scoped to `.app-table-card.app-tbl`, which only BasicTable
+   sets, so it outranks them without touching the hand-drawn reports, bills
+   and marksheets. Printed pages keep their own rules (see the print block in
+   globals.css): everything here sits under `@media screen`.
+
+   The look (Ocean, 60-30-10, flat):
+   - a white card, 12px corners, a 1px line, a soft shadow;
+   - a toolbar: the table's name and row count on the left, search and three
+     quiet tools on the right;
+   - a light grey header of 12px labels in sentence case, pinned while the
+     rows scroll under it;
+   - 14px rows on a hairline, a faint grey under the pointer, no zebra;
+   - figures on the right in tabular numerals, the row's own name a step
+     darker; the brand colour only for the sorted column and focus.
+   ============================================================================ */
+
+@media screen {
+    :root {
+        --tbl-bg: #FFFFFF;
+        --tbl-head: #F9FAFB;
+        --tbl-hover: #F7F9FA;
+        --tbl-line: #E4E7EC;
+        --tbl-line-soft: #EEF0F3;
+        --tbl-ink: #101828;
+        --tbl-ink-2: #344054;
+        --tbl-ink-3: #475467;
+        --tbl-ink-4: #667085;
+        --tbl-ink-5: #98A2B3;
+        --tbl-ctl-line: #D0D5DD;
+        --tbl-shadow: 0 1px 2px rgb(16 24 40 / .05), 0 1px 3px rgb(16 24 40 / .04);
+        --tbl-ctl-shadow: 0 1px 2px rgb(16 24 40 / .05);
+        --tbl-pop-shadow: 0 12px 16px -4px rgb(16 24 40 / .08), 0 4px 6px -2px rgb(16 24 40 / .03);
+    }
+    :root[data-ui-mode="dark"] {
+        --tbl-bg: var(--d-surface);
+        --tbl-head: var(--d-surface-2);
+        --tbl-hover: var(--d-surface-2);
+        --tbl-line: var(--d-line);
+        --tbl-line-soft: var(--d-surface-3);
+        --tbl-ink: var(--d-ink);
+        --tbl-ink-2: var(--d-ink-2);
+        --tbl-ink-3: var(--d-ink-2);
+        --tbl-ink-4: var(--d-ink-3);
+        --tbl-ink-5: #7A8392;
+        --tbl-ctl-line: var(--d-line-strong);
+        --tbl-shadow: none;
+        --tbl-ctl-shadow: none;
+        --tbl-pop-shadow: 0 12px 24px rgb(0 0 0 / .45), 0 0 0 1px rgb(255 255 255 / .06);
+    }
+
+    /* ---- the card ---------------------------------------------------------- */
+    :root .app-table-card.app-tbl {
+        background: var(--tbl-bg) !important;
+        border: 1px solid var(--tbl-line) !important;
+        border-radius: 12px !important;
+        box-shadow: var(--tbl-shadow) !important;
+        /* visible, so the Columns and Export menus can open past a short table;
+           the corners are kept by the toolbar and the scroller below */
+        overflow: visible !important;
+        padding: 0 !important;
+        color: var(--tbl-ink-2);
+    }
+    :root .app-table-card.app-tbl > .report-table-wrap {
+        border-radius: 0 0 12px 12px;
+        padding: 0 !important;
+        overflow: auto;
+        overscroll-behavior-x: contain;
+        scrollbar-width: thin;
+        scrollbar-color: var(--tbl-ctl-line) transparent;
+    }
+    :root .app-table-card.app-tbl > .report-table-wrap:first-child { border-radius: 12px; }
+
+    /* ---- the toolbar ------------------------------------------------------- */
+    :root .app-table-card.app-tbl .app-tbl-bar {
+        display: flex !important;
+        flex-wrap: wrap;
+        align-items: center !important;
+        justify-content: space-between;
+        gap: 12px 16px;
+        padding: 16px 20px !important;
+        background: var(--tbl-bg) !important;
+        border: 0 !important;
+        border-bottom: 1px solid var(--tbl-line) !important;
+        border-radius: 12px 12px 0 0;
+    }
+    :root .app-table-card.app-tbl .app-tbl-heading {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+    :root .app-table-card.app-tbl .app-tbl-name,
+    :root .app-table-card.app-tbl .app-tbl-name * {
+        margin: 0;
+        font-size: 16px !important;
+        line-height: 24px !important;
+        font-weight: 650 !important;
+        letter-spacing: -0.005em;
+        color: var(--tbl-ink) !important;
+        overflow-wrap: anywhere;
+    }
+    :root .app-table-card.app-tbl .app-tbl-count {
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        height: 22px;
+        padding: 0 8px !important;
+        border-radius: 6px !important;
+        border: 1px solid var(--tbl-line);
+        background: var(--tbl-head) !important;
+        color: var(--tbl-ink-3) !important;
+        font-size: 12px !important;
+        line-height: 1 !important;
+        font-weight: 600 !important;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+    :root .app-table-card.app-tbl .app-tbl-bar-tools {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap;
+        align-items: center !important;
+        justify-content: flex-end;
+        gap: 8px !important;
+        flex: 0 1 auto;
+        min-width: 0;
+        margin-left: auto;
+    }
+    :root .app-table-card.app-tbl .app-tbl-bar-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    /* a page's own button in the toolbar ("Add school") keeps its fill and
+       takes the tools' height, corner and type */
+    :root .app-table-card.app-tbl .app-tbl-bar-actions > :is(button, a):not(.app-tbl-btn) {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 40px !important;
+        padding: 0 16px !important;
+        border-radius: 8px !important;
+        font-size: 14px !important;
+        line-height: 20px !important;
+        font-weight: 600 !important;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+        white-space: nowrap;
+    }
+    :root .app-table-card.app-tbl .app-tbl-bar-actions > :is(button, a):not(.app-tbl-btn) svg { width: 18px; height: 18px; }
+
+    /* search: one 40px field, the glass inside it */
+    :root .app-table-card.app-tbl .app-tbl-search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 280px !important;
+        max-width: 100%;
+        height: 40px;
+        min-height: 40px;
+        padding: 0 12px !important;
+        border-radius: 8px !important;
+        border: 1px solid var(--tbl-ctl-line) !important;
+        background: var(--tbl-bg) !important;
+        box-shadow: var(--tbl-ctl-shadow) !important;
+        transition: border-color .15s, box-shadow .15s;
+    }
+    :root .app-table-card.app-tbl .app-tbl-search:focus-within {
+        border-color: var(--t-brand-solid) !important;
+        box-shadow: 0 0 0 4px var(--t-ring, var(--t-brand-tint)) !important;
+    }
+    :root .app-table-card.app-tbl .app-tbl-search-icon { width: 16px; height: 16px; flex: none; color: var(--tbl-ink-4) !important; }
+    :root .app-table-card.app-tbl .app-tbl-search input {
+        flex: 1;
+        min-width: 0;
+        height: 100%;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        font-size: 14px !important;
+        color: var(--tbl-ink);
+    }
+    :root .app-table-card.app-tbl .app-tbl-search input::placeholder { color: var(--tbl-ink-4); opacity: 1; }
+    :root .app-table-card.app-tbl .app-tbl-search input::-webkit-search-cancel-button { display: none; }
+    :root .app-table-card.app-tbl .app-tbl-search-clear {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 24px; height: 24px; margin-right: -6px; border-radius: 6px;
+        color: var(--tbl-ink-4); background: transparent; border: 0;
+        padding: 0 !important; min-height: 0 !important;
+    }
+    :root .app-table-card.app-tbl .app-tbl-search-clear:hover { background: var(--tbl-head); color: var(--tbl-ink); }
+    :root .app-table-card.app-tbl .app-tbl-search-clear svg { width: 16px; height: 16px; }
+}
+
+/* ---- the quiet tool buttons (also used by ReportActionBar) ------------------ */
+@media screen {
+    :root .app-tbl-btn,
+    :root .app-tbl-bar .app-tbl-btn {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 40px;
+        min-height: 40px !important;
+        padding: 0 14px !important;
+        border-radius: 8px !important;
+        border: 1px solid var(--tbl-ctl-line) !important;
+        background: var(--tbl-bg) !important;
+        color: var(--tbl-ink-2) !important;
+        box-shadow: var(--tbl-ctl-shadow) !important;
+        font-size: 14px !important;
+        line-height: 20px;
+        font-weight: 600 !important;
+        letter-spacing: 0;
+        text-transform: none;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background-color .15s, border-color .15s, color .15s;
+    }
+    :root .app-tbl-btn:hover:not(:disabled) {
+        background: var(--tbl-head) !important;
+        color: var(--tbl-ink) !important;
+        border-color: var(--tbl-ctl-line) !important;
+    }
+    :root .app-tbl-btn:focus-visible { outline: 0; box-shadow: 0 0 0 4px var(--t-ring, var(--t-brand-tint)) !important; border-color: var(--t-brand-solid) !important; }
+    :root .app-tbl-btn:disabled { opacity: .5; cursor: not-allowed; }
+    :root .app-tbl-btn[aria-expanded="true"] { background: var(--tbl-head) !important; color: var(--tbl-ink) !important; }
+    :root .app-tbl-btn .app-tbl-btn-icon,
+    :root .app-tbl-btn > svg { width: 18px; height: 18px; flex: none; color: var(--tbl-ink-4) !important; }
+    :root .app-tbl-btn .app-tbl-caret { width: 14px; height: 14px; margin-left: -2px; color: var(--tbl-ink-4) !important; transition: transform .15s; }
+    :root .app-tbl-btn[aria-expanded="true"] .app-tbl-caret { transform: rotate(180deg); }
+    :root .app-tbl-btn.app-tbl-btn-icon-only { width: 36px; height: 36px; min-height: 36px !important; padding: 0 !important; }
+
+    /* the menu under Columns and Export */
+    .app-tbl-pop { position: relative; }
+    :root .app-tbl-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        z-index: 60;
+        max-width: calc(100vw - 32px);
+        padding: 6px;
+        border-radius: 10px;
+        border: 1px solid var(--tbl-line);
+        background: var(--tbl-bg);
+        box-shadow: var(--tbl-pop-shadow);
+        text-align: left;
+    }
+    :root .app-tbl-menu-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 8px 8px;
+        margin-bottom: 4px;
+        border-bottom: 1px solid var(--tbl-line-soft);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--tbl-ink-4);
+    }
+    :root .app-tbl-menu-head button {
+        border: 0; background: transparent; padding: 0;
+        font-size: 12px; font-weight: 600; color: var(--t-brand-ink);
+        cursor: pointer;
+    }
+    :root .app-tbl-menu-head button:hover { text-decoration: underline; text-underline-offset: 2px; }
+    :root .app-tbl-menu-list { max-height: 296px; overflow-y: auto; display: flex; flex-direction: column; gap: 1px; }
+    :root .app-tbl-menu-check,
+    :root .app-tbl-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        min-height: 36px;
+        padding: 6px 8px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 500;
+        color: var(--tbl-ink-2);
+        text-align: left;
+        cursor: pointer;
+    }
+    :root .app-tbl-menu-check:hover,
+    :root .app-tbl-menu-item:hover,
+    :root .app-tbl-menu-item:focus-visible { background: var(--tbl-head); color: var(--tbl-ink); outline: 0; }
+    :root .app-tbl-menu-check input {
+        width: 16px; height: 16px; flex: none; margin: 0;
+        accent-color: var(--t-brand-solid);
+        cursor: pointer;
+    }
+    :root .app-tbl-menu-check span { overflow-wrap: anywhere; }
+    :root .app-tbl-menu-hint { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--tbl-ink-5); font-family: var(--font-mono, ui-monospace), ui-monospace, monospace; }
+}
+
+/* ---- the header row ---------------------------------------------------------- */
+@media screen {
+    :root .app-table-card.app-tbl .report-table { border-collapse: separate; border-spacing: 0; width: 100%; }
+    :root .app-table-card.app-tbl .report-table thead,
+    :root .app-table-card.app-tbl .report-table thead.bg-table-header { background: transparent !important; }
+    :root .app-table-card.app-tbl .report-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        padding: 12px 16px !important;
+        background: var(--tbl-head) !important;
+        border: 0 !important;
+        border-bottom: 1px solid var(--tbl-line) !important;
+        box-shadow: none !important;
+        text-align: left;
+        vertical-align: middle;
+        white-space: normal;
+        overflow-wrap: normal;
+        word-break: normal;
+    }
+    :root .app-table-card.app-tbl .report-table thead th,
+    :root .app-table-card.app-tbl .report-table thead th :is(p, span, button, div) {
+        font-size: 12px !important;
+        line-height: 18px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        color: var(--tbl-ink-3) !important;
+        opacity: 1 !important;
+    }
+    /* sortable: the whole label is the button; the mark is faint until hovered */
+    :root .app-table-card.app-tbl .app-sort-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin: -4px -6px;
+        padding: 4px 6px !important;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+    }
+    :root .app-table-card.app-tbl .app-sort-btn:hover { background: var(--tbl-line-soft); }
+    :root .app-table-card.app-tbl .app-sort-btn:hover .app-th-label { color: var(--tbl-ink) !important; }
+    :root .app-table-card.app-tbl .app-sort-btn:focus-visible { outline: 2px solid var(--t-brand-solid); outline-offset: 0; }
+    :root .app-table-card.app-tbl .app-sort-icon { width: 14px; height: 14px; flex: none; color: var(--tbl-ink-5); opacity: .7; }
+    :root .app-table-card.app-tbl .app-sort-btn:hover .app-sort-icon { opacity: 1; color: var(--tbl-ink-3); }
+    :root .app-table-card.app-tbl th.is-sorted .app-th-label { color: var(--tbl-ink) !important; }
+    :root .app-table-card.app-tbl th.is-sorted .app-sort-icon { color: var(--t-brand-solid); opacity: 1; }
+
+    /* ---- the rows ------------------------------------------------------------ */
+    :root .app-table-card.app-tbl .report-table tbody tr {
+        background: transparent !important;
+        border: 0 !important;
+        transition: background-color .12s;
+    }
+    :root .app-table-card.app-tbl .report-table tbody td {
+        padding: 13px 16px !important;
+        border: 0 !important;
+        border-bottom: 1px solid var(--tbl-line-soft) !important;
+        vertical-align: middle !important;
+        font-size: 14px !important;
+        line-height: 20px !important;
+        color: var(--tbl-ink-2);
+        background: transparent;
+    }
+    /* The cells carry the row's ground, so the older zebra and tinted-hover
+       rules on the <tr> (globals.css, some of them dark-mode only) are covered
+       rather than fought. A row with a fill of its own (a totals row's
+       bg-* class) keeps it. */
+    :root .app-table-card.app-tbl .report-table tbody tr:not([class*="bg-"]) td { background: var(--tbl-bg) !important; }
+    :root .app-table-card.app-tbl .report-table tbody tr:last-child td { border-bottom: 0 !important; }
+    :root .app-table-card.app-tbl .report-table tbody tr:not(.app-table-empty):hover td { background: var(--tbl-hover) !important; }
+    :root .app-table-card.app-tbl .report-table tbody td .app-cell-text {
+        padding: 0 !important;
+        font-size: inherit !important;
+        line-height: inherit !important;
+        color: inherit;
+    }
+    /* a row's own colour (Cell's `color`) still wins: it is set inline */
+    :root .app-table-card.app-tbl .report-table tbody td.app-col-primary,
+    :root .app-table-card.app-tbl .report-table tbody td.app-col-primary .app-cell-text { color: var(--tbl-ink); font-weight: 500; }
+    :root .app-table-card.app-tbl .report-table :is(th, td).app-col-num { text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    :root .app-table-card.app-tbl .report-table th.app-col-num .app-sort-btn { flex-direction: row-reverse; margin-left: auto; }
+    :root .app-table-card.app-tbl .report-table td.app-col-num .app-cell-text { white-space: nowrap !important; }
+
+    /* the tick, the row number, the eye and the row's buttons take what they need */
+    :root .app-table-card.app-tbl .report-table :is(th, td).app-col-select { width: 1%; padding-right: 0 !important; }
+    :root .app-table-card.app-tbl .report-table :is(th, td).app-col-sn {
+        width: 1%;
+        white-space: nowrap;
+        text-align: left;
+        font-variant-numeric: tabular-nums;
+    }
+    :root .app-table-card.app-tbl .report-table td.app-col-sn { color: var(--tbl-ink-4) !important; font-size: 13px !important; }
+    :root .app-table-card.app-tbl .report-table :is(th, td).app-col-view { width: 1%; padding-left: 8px !important; padding-right: 8px !important; text-align: center; white-space: nowrap; }
+    /* a 32px button must not make the row taller than its text */
+    :root .app-table-card.app-tbl .report-table tbody td:is(.app-col-view, .app-col-actions) { padding-top: 6px !important; padding-bottom: 6px !important; }
+    :root .app-table-card.app-tbl .report-table :is(th, td).app-col-actions { width: 1%; white-space: nowrap; text-align: right !important; }
+    :root .app-table-card.app-tbl .app-row-actions { display: flex; justify-content: flex-end; align-items: center; gap: 4px; }
+
+    /* row buttons: a quiet 32px square; the icon says what it does */
+    :root .app-table-card.app-tbl .app-row-action {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px !important;
+        width: auto;
+        height: 32px !important;
+        min-height: 32px !important;
+        padding: 0 8px !important;
+        border-radius: 8px !important;
+        border: 1px solid transparent !important;
+        background: transparent !important;
+        color: var(--tbl-ink-4) !important;
+        box-shadow: none !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        text-transform: none !important;
+        cursor: pointer;
+    }
+    :root .app-table-card.app-tbl .app-row-action svg { width: 18px !important; height: 18px !important; color: inherit !important; }
+    :root .app-table-card.app-tbl .app-row-action:hover:not(:disabled) {
+        background: var(--t-brand-tint) !important;
+        border-color: var(--t-brand-line) !important;
+        color: var(--t-brand-ink) !important;
+    }
+    :root .app-table-card.app-tbl .app-row-action-danger:hover:not(:disabled) {
+        background: #FEF3F2 !important;
+        border-color: #FECDCA !important;
+        color: #B42318 !important;
+    }
+    :root[data-ui-mode="dark"] .app-table-card.app-tbl .app-row-action-danger:hover:not(:disabled) {
+        background: #2E1614 !important; border-color: #5A2721 !important; color: #F2806F !important;
+    }
+
+    /* a cell holding several values: small grey tags that wrap */
+    :root .app-table-card.app-tbl .report-table td > span.flex { flex-wrap: wrap; gap: 4px !important; }
+    :root .app-table-card.app-tbl .report-table td > span.flex > span {
+        margin: 0 !important;
+        padding: 1px 8px !important;
+        border-radius: 6px !important;
+        background: var(--tbl-head) !important;
+        border: 1px solid var(--tbl-line);
+        color: var(--tbl-ink-2) !important;
+        font-size: 12px;
+        line-height: 18px;
+    }
+
+    /* ---- nothing to show ------------------------------------------------------ */
+    :root .app-table-card.app-tbl .report-table tr.app-table-empty td {
+        padding: 48px 24px !important;
+        text-align: center !important;
+        background: transparent !important;
+    }
+    :root .app-table-card.app-tbl .app-empty-title { margin: 0; font-size: 15px; line-height: 22px; font-weight: 600; color: var(--tbl-ink); }
+    :root .app-table-card.app-tbl .app-empty-line { margin: 4px auto 0; max-width: 46ch; font-size: 14px; line-height: 20px; color: var(--tbl-ink-4); }
+    :root .app-table-card.app-tbl .app-empty-action { margin-top: 16px; }
+
+    /* ---- under the table ------------------------------------------------------ */
+    :root .app-table-card.app-tbl .app-table-note {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px 20px;
+        border-top: 1px solid var(--tbl-line);
+        background: var(--tbl-head);
+        font-size: 13px;
+        line-height: 20px;
+        color: var(--tbl-ink-4);
+    }
+    :root .app-table-card.app-tbl .app-table-note p { margin: 0; }
+    :root .app-table-card.app-tbl .app-note-names { color: var(--tbl-ink-2); font-weight: 500; }
+    :root .app-table-card.app-tbl .app-note-icon { display: inline; width: 16px; height: 16px; margin: -3px 1px 0; vertical-align: middle; color: var(--tbl-ink-3); }
+    :root .app-table-card.app-tbl .app-table-pager {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 20px;
+        border-top: 1px solid var(--tbl-line);
+        font-size: 14px;
+        color: var(--tbl-ink-3);
+        font-variant-numeric: tabular-nums;
+    }
+    :root .app-table-card.app-tbl .app-table-pager-nav { display: flex; align-items: center; gap: 12px; }
+
+    /* ---- fitting the card ------------------------------------------------------
+       A folded column is drawn only in the row's details. The table is
+       measured twice with every column shown: unwrapped, and wrapped as
+       tightly as it goes (BasicTable reads both, then folds). */
+    :root .app-table-card.app-tbl .report-table :is(th, td).app-col-folded { display: none !important; }
+    :root .app-table-card.app-tbl .report-table.app-fold-measure :is(th, td).app-col-folded { display: table-cell !important; }
+    :root .app-table-card.app-tbl .report-table.app-fold-measure.app-fold-max { width: max-content !important; }
+    :root .app-table-card.app-tbl .report-table.app-fold-measure.app-fold-max :is(th, td),
+    :root .app-table-card.app-tbl .report-table.app-fold-measure.app-fold-max :is(th, td) * { white-space: nowrap !important; }
+    :root .app-table-card.app-tbl .report-table.app-fold-measure.app-fold-min { width: 1px !important; }
+
+    /* the more columns a table has, the tighter it sets */
+    :root .app-table-card.app-tbl .report-table:has(thead th:nth-child(8)) :is(thead th, tbody td) { padding-left: 12px !important; padding-right: 12px !important; }
+    :root .app-table-card.app-tbl .report-table:has(thead th:nth-child(8)) tbody td { padding-top: 12px !important; padding-bottom: 12px !important; font-size: 13.5px !important; }
+    :root .app-table-card.app-tbl .report-table:has(thead th:nth-child(12)) :is(thead th, tbody td) { padding-left: 10px !important; padding-right: 10px !important; }
+    :root .app-table-card.app-tbl .report-table:has(thead th:nth-child(12)) tbody td { font-size: 13px !important; }
+    :root .app-table-card.app-tbl .report-table :is(thead th, tbody td):first-child { padding-left: 20px !important; }
+    :root .app-table-card.app-tbl .report-table :is(thead th, tbody td):last-child { padding-right: 20px !important; }
+    :root .app-table-card.app-tbl .report-table.report-table-dense :is(thead th, tbody td) { padding-left: 10px !important; padding-right: 10px !important; }
+    :root .app-table-card.app-tbl .report-table.report-table-dense tbody td { padding-top: 10px !important; padding-bottom: 10px !important; }
+    :root .app-table-card.app-tbl .report-table.report-table-dense :is(thead th, tbody td):first-child { padding-left: 16px !important; }
+
+    /* a column empty on every row steps aside (see the note under the table) */
+    :root .app-table-card.app-tbl .app-col-blank { display: none !important; }
+
+    /* ---- narrow screens ----------------------------------------------------- */
+    @media (max-width: 719px) {
+        :root .app-table-card.app-tbl .app-tbl-bar { padding: 14px 16px !important; }
+        :root .app-table-card.app-tbl .app-tbl-bar-tools { width: 100%; justify-content: stretch; margin-left: 0; }
+        :root .app-table-card.app-tbl .app-tbl-search { width: 100% !important; flex: 1 1 100%; }
+        :root .app-table-card.app-tbl .app-tbl-bar-actions { width: 100%; flex-wrap: nowrap; }
+        /* the tools share one row in equal parts */
+        :root .app-table-card.app-tbl .app-tbl-bar-actions > * { flex: 1 1 0; min-width: 0; }
+        :root .app-table-card.app-tbl .app-tbl-bar-actions .app-tbl-btn { width: 100%; padding: 0 8px !important; }
+        :root .app-table-card.app-tbl .app-tbl-bar-actions .app-tbl-caret { display: none; }
+        /* a menu opens across the whole row, not off the side of the screen */
+        :root .app-table-card.app-tbl .app-tbl-bar-actions { position: relative; }
+        :root .app-table-card.app-tbl .app-tbl-bar-actions .app-tbl-pop { position: static; }
+        :root .app-table-card.app-tbl .app-tbl-bar-actions .app-tbl-menu { left: 0; right: 0; width: auto !important; }
+        :root .app-table-card.app-tbl .report-table :is(thead th, tbody td) { padding-left: 10px !important; padding-right: 10px !important; }
+        :root .app-table-card.app-tbl .report-table :is(thead th, tbody td):first-child { padding-left: 16px !important; }
+        :root .app-table-card.app-tbl .report-table :is(thead th, tbody td):last-child { padding-right: 16px !important; }
+        :root .app-table-card.app-tbl .app-table-note,
+        :root .app-table-card.app-tbl .app-table-pager { padding-left: 16px; padding-right: 16px; }
+    }
+}
+
+/* the folded columns print: paper has its own width */
+@media print {
+    .report-table :is(th, td).app-col-folded { display: table-cell !important; }
+    .app-table-note, .app-table-pager { display: none !important; }
+}
+
+/* ---- the row's details -------------------------------------------------------- */
+@media screen {
+    :root .app-detail-dialog { border-radius: 12px !important; overflow: hidden; background: var(--tbl-bg) !important; }
+    :root .app-detail-head {
+        display: flex !important;
+        align-items: flex-start !important;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 20px 20px 16px 24px !important;
+        border-bottom: 1px solid var(--tbl-line);
+    }
+    :root .app-detail-kicker { margin: 0 0 2px; font-size: 13px; line-height: 18px; font-weight: 500; color: var(--tbl-ink-4); }
+    :root .app-detail-title { margin: 0; font-size: 18px; line-height: 26px; font-weight: 650; color: var(--tbl-ink); overflow-wrap: anywhere; }
+    :root .app-detail-body { max-height: 70vh; overflow-y: auto; padding: 4px 24px 8px !important; }
+    :root .app-detail-list { margin: 0; }
+    :root .app-detail-row {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        align-items: baseline;
+        gap: 16px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--tbl-line-soft);
+    }
+    :root .app-detail-row:last-child { border-bottom: 0; }
+    :root .app-detail-row dt { font-size: 13px; line-height: 20px; font-weight: 500; color: var(--tbl-ink-4); }
+    :root .app-detail-row dd { margin: 0; font-size: 14px; line-height: 20px; color: var(--tbl-ink); overflow-wrap: anywhere; min-width: 0; }
+    :root .app-detail-row dd .app-cell-text { padding: 0 !important; white-space: normal !important; font-size: 14px !important; line-height: 20px !important; color: var(--tbl-ink) !important; }
+    :root .app-detail-empty { color: var(--tbl-ink-5); }
+    :root .app-detail-foot { justify-content: flex-end !important; gap: 4px; padding: 12px 20px !important; border-top: 1px solid var(--tbl-line); }
+}
+
+/* ---- the actions bar over a hand-drawn report (ReportActionBar) ------------- */
+@media screen {
+    :root .app-report-bar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 8px;
+        margin-bottom: 12px;
+        background: var(--tbl-bg);
+        border: 1px solid var(--tbl-line);
+        border-radius: 12px;
+        box-shadow: var(--tbl-shadow);
+    }
+}

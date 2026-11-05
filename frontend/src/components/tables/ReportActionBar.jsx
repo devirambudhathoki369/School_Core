@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { Button } from "@material-tailwind/react";
-import { PrinterIcon, ViewColumnsIcon } from "@heroicons/react/24/outline";
+import { PrinterIcon } from "@heroicons/react/24/outline";
 import useReportTableTools from "./reportTableTools";
+import { ColumnsMenu, ExportMenu, ToolButton } from "./TableTools";
 
 /**
  * Consistent, responsive actions bar for report / results views.
@@ -26,81 +25,22 @@ export default function ReportActionBar({
     children,
     className = "",
 }) {
-    const [colMenuOpen, setColMenuOpen] = useState(false);
     const { columns, hidden, toggle, showAll, exportExcel, exportCSV } =
         useReportTableTools(reportRef, { name: exportName, titles: exportTitles });
     const hasTools = !!reportRef && columns.length > 0;
 
+    // The same Columns / Print / Export as every BasicTable (TableTools.jsx).
     return (
-        <div
-            className={`hide-from-print sticky top-0 z-20 flex flex-wrap items-center justify-end gap-2 py-2 mb-2
-                bg-white rounded-md ${className}`}
-        >
+        <div className={`app-report-bar hide-from-print ${className}`}>
             {children}
             {hasTools && (
-                <div className="relative">
-                    <Button
-                        size="sm"
-                        variant="outlined"
-                        onClick={() => setColMenuOpen(open => !open)}
-                        className="flex items-center gap-2 py-2 px-4 border-teal-400 text-gray-900 normal-case"
-                    >
-                        <ViewColumnsIcon className="h-4 w-4" />
-                        Columns
-                    </Button>
-                    {colMenuOpen && (
-                        <>
-                            {/* click-away backdrop */}
-                            <div className="fixed inset-0 z-40" onClick={() => setColMenuOpen(false)} />
-                            <div className="absolute right-0 z-50 mt-1 w-60 max-h-72 overflow-auto rounded-lg border border-blue-gray-100 bg-white shadow-lg p-2">
-                                <div className="flex items-center justify-between px-1 pb-1 mb-1 border-b border-blue-gray-50">
-                                    <span className="text-xs font-semibold text-blue-gray-600">Show columns</span>
-                                    <button type="button"
-                                        className="text-xs text-teal-700 font-semibold hover:underline"
-                                        onClick={showAll}>Show all</button>
-                                </div>
-                                {columns.map((label, index) => (
-                                    <label key={index}
-                                        className="flex items-center gap-2 px-1 py-1 rounded hover:bg-teal-50 cursor-pointer">
-                                        <input type="checkbox"
-                                            checked={!hidden.includes(index)}
-                                            onChange={() => toggle(index)} />
-                                        <span className="text-sm text-blue-gray-800 capitalize">{label}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </>
-                    )}
-                </div>
+                <ColumnsMenu
+                    items={columns.map((label, index) => ({ key: index, label, shown: !hidden.includes(index) }))}
+                    onToggle={toggle}
+                    onShowAll={showAll} />
             )}
-            {hasTools && (
-                <>
-                    <Button
-                        size="sm"
-                        onClick={exportExcel}
-                        className="py-2 px-5 bg-teal-300 text-gray-900 normal-case shadow-sm hover:shadow-md"
-                    >
-                        Export Excel
-                    </Button>
-                    <Button
-                        size="sm"
-                        onClick={exportCSV}
-                        className="py-2 px-5 bg-teal-300 text-gray-900 normal-case shadow-sm hover:shadow-md"
-                    >
-                        Export CSV
-                    </Button>
-                </>
-            )}
-            {onPrint && (
-                <Button
-                    size="sm"
-                    onClick={onPrint}
-                    className="flex items-center gap-2 py-2 px-5 bg-teal-400 text-gray-900 normal-case shadow-sm hover:shadow-md"
-                >
-                    <PrinterIcon className="h-4 w-4" />
-                    {printLabel}
-                </Button>
-            )}
+            {hasTools && <ExportMenu onExcel={exportExcel} onCsv={exportCSV} />}
+            {onPrint && <ToolButton icon={PrinterIcon} onClick={onPrint}>{printLabel}</ToolButton>}
         </div>
     );
 }
