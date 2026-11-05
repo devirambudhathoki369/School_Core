@@ -420,51 +420,7 @@ class SchoolAttendanceTodayView(SecuredAPIView):
         school_id = request.query_params.get("school")
         if not school_id:
             return self.RESPONSE__INVALID_REQUEST
-        today = ndt_today()
-
-        students_total = Student.objects.filter(
-            class_info__school__id=school_id,
-            status=self.STATUS_RUNNING,
-            is_active=True,
-        ).count()
-        present_rows = StudentAttendance.objects.filter(
-            class_attendance__school__id=school_id,
-            class_attendance__date=today,
-            status=True,
-            is_active=True,
-            student__is_active=True,
-            student__status=self.STATUS_RUNNING,
-        )
-        students_present = present_rows.values("student").distinct().count()
-        classes = self._by_class(school_id, present_rows)
-
-        staff_total = Staff.objects.filter(
-            school__id=school_id,
-            status=self.STATUS_EMPLOYED,
-            is_active=True,
-        ).count()
-        staff_present = (
-            StaffAttendance.objects.filter(
-                school__id=school_id,
-                date=today,
-                status=True,
-                is_active=True,
-                staff__is_active=True,
-                staff__status=self.STATUS_EMPLOYED,
-            )
-            .values("staff")
-            .distinct()
-            .count()
-        )
-
-        return Response(
-            {
-                "date": today,
-                "students": _attendance_block(students_total, students_present),
-                "staff": _attendance_block(staff_total, staff_present),
-                "classes": classes,
-            }
-        )
+        return Response(school_attendance_on(school_id, ndt_today()))
 
     def _by_class(self, school_id, present_rows):
         """The roster and today's present count per class, in school order.
@@ -495,3 +451,53 @@ class SchoolAttendanceTodayView(SecuredAPIView):
             }
             for r in rows
         ]
+
+
+STUDENT_RUNNING = 1
+STAFF_EMPLOYED = 1
+
+
+def school_attendance_on(school_id, date):
+    """Students and staff present on one BS date, and the students by class.
+    Shared by the dashboard (today) and the mobile app's admin dashboard (any
+    day), so both count a present member the same way."""
+    students_total = Student.objects.filter(
+        class_info__school__id=school_id,
+        status=STUDENT_RUNNING,
+        is_active=True,
+    ).count()
+    present_rows = StudentAttendance.objects.filter(
+        class_attendance__school__id=school_id,
+        class_attendance__date=date,
+        status=True,
+        is_active=True,
+        student__is_active=True,
+        student__status=STUDENT_RUNNING,
+    )
+    students_present = present_rows.values("student").distinct().count()
+    classes = SchoolAttendanceTodayView()._by_class(school_id, present_rows)
+
+    staff_total = Staff.objects.filter(
+        school__id=school_id,
+        status=STAFF_EMPLOYED,
+        is_active=True,
+    ).count()
+    staff_present = (
+        StaffAttendance.objects.filter(
+            school__id=school_id,
+            date=date,
+            status=True,
+            is_active=True,
+            staff__is_active=True,
+            staff__status=STAFF_EMPLOYED,
+        )
+        .values("staff")
+        .distinct()
+        .count()
+    )
+    return {
+        "date": date,
+        "students": _attendance_block(students_total, students_present),
+        "staff": _attendance_block(staff_total, staff_present),
+        "classes": classes,
+    }

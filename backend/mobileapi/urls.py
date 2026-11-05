@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .schema import MobileSchemaView
-from .views import school, staff, students
+from .views import admin, school, staff, students
 from .views.auth import (
     FamilyCodeView,
     ParentCodeView,
@@ -52,4 +52,16 @@ urlpatterns = [
     path("staff/homework/<int:homework_id>/hand-ins/<int:hand_in_id>", staff.HandInDetailView.as_view(),
          name="staff-hand-in"),
     path("staff/me/attendance", staff.StaffOwnAttendanceView.as_view(), name="staff-own-attendance"),
+    # school admin (phase 5)
+    path("admin/dashboard", admin.AdminDashboardView.as_view(), name="admin-dashboard"),
+    path("admin/students", admin.AdminStudentsView.as_view(), name="admin-students"),
+    path("admin/students/<int:student_id>", admin.AdminStudentView.as_view(), name="admin-student"),
+    path("admin/fees/dues", admin.AdminDuesView.as_view(), name="admin-dues"),
+    path("admin/fees/collections", admin.AdminCollectionsView.as_view(), name="admin-collections"),
+    path("admin/staff", admin.AdminStaffView.as_view(), name="admin-staff"),
+    path("admin/staff/attendance", admin.AdminStaffAttendanceView.as_view(), name="admin-staff-attendance"),
+    path("admin/guardian-links", admin.GuardianLinksView.as_view(), name="admin-links"),
+    path("admin/guardian-links/<int:link_id>/decide", admin.GuardianLinkDecideView.as_view(), name="admin-link-decide"),
+    path("admin/guardians/<int:guardian_id>/family-code", admin.GuardianFamilyCodeView.as_view(),
+         name="admin-family-code"),
 ]
