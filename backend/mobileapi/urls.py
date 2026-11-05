@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .schema import MobileSchemaView
+from .views import school, students
 from .views.auth import (
     FamilyCodeView,
     ParentCodeView,
@@ -26,4 +27,20 @@ urlpatterns = [
     path("me/sessions", SessionsView.as_view(), name="sessions"),
     path("me/sessions/<uuid:session_id>", SessionDetailView.as_view(), name="session"),
     path("me/close-account", CloseAccountView.as_view(), name="close-account"),
+    # parents and students (phase 3)
+    path("students/<int:student_id>/home", students.StudentHomeView.as_view(), name="student-home"),
+    path("students/<int:student_id>/attendance", students.StudentAttendanceView.as_view(), name="student-attendance"),
+    path("students/<int:student_id>/fees", students.StudentFeesView.as_view(), name="student-fees"),
+    path("students/<int:student_id>/fees/history", students.StudentFeeHistoryView.as_view(), name="student-fee-history"),
+    path("students/<int:student_id>/receipts/<int:receipt_id>", students.StudentReceiptView.as_view(),
+         name="student-receipt"),
+    path("students/<int:student_id>/homework", students.StudentHomeworkView.as_view(), name="student-homework"),
+    path("students/<int:student_id>/homework/<int:homework_id>/hand-in", students.StudentHandInView.as_view(),
+         name="student-hand-in"),
+    path("students/<int:student_id>/results", students.StudentResultsView.as_view(), name="student-results"),
+    path("students/<int:student_id>/results/<int:exam_id>", students.StudentExamResultView.as_view(),
+         name="student-result"),
+    path("students/<int:student_id>/timetable", students.StudentTimetableView.as_view(), name="student-timetable"),
+    path("notices", school.NoticesView.as_view(), name="notices"),
+    path("calendar", school.CalendarView.as_view(), name="calendar"),
 ]
