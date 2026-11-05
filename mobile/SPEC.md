@@ -1,11 +1,11 @@
 # SchoolCore mobile: specification
 
-Status: signed off 2026-11-05. Phase 1 (the backend foundation) is built in
-`backend/mobileapi/` and migrations `main/0117` and `mobileapi/0001`. Phase 2
-(the app foundation) is built in this folder: the look, school code, all four
-sign-ins, the app lock, several accounts on one phone and the offline cache.
-The app's types are still written by hand; they move to the generated OpenAPI
-types when Phase 3 adds the first data endpoints.
+Status: signed off 2026-11-05. Phases 1 to 5 are built: the backend in
+`backend/mobileapi/` (migrations `main/0117` and `mobileapi/0001`) and the
+app in this folder, with every role's screens. The app's types are
+generated from the API's OpenAPI schema (`src/api/README.md`). Phase 6
+(push notifications and the store listings) waits on the Firebase, Play
+Console and Apple accounts.
 
 One app for Android and iPhone with four kinds of user: **parent**,
 **student**, **staff** and **school admin**. Each signs in their own way and
@@ -422,6 +422,8 @@ Made on 2026-11-05:
 
 Still open:
 
-1. Sign-off on the tables in section 4.
-2. An email account for sending codes in production.
-3. App lock required for staff and admins.
+1. An email account for sending codes in production.
+2. App lock required for staff and admins: built as required. Say if it
+   should be optional instead.
+3. Family codes are made by the school admin only. Staff can make them too
+   once a portal permission id is chosen for it.
