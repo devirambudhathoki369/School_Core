@@ -26,11 +26,11 @@ const STATUS_FILTER_OPTIONS = [{ name: 'All statuses', value: 0 }, ...STUDENT_ST
 function sumTotals(rows) {
     // Decimals can arrive as JSON strings; coerce before summing so the
     // total adds up instead of concatenating.
-    return (rows || []).reduce((acc, item) => acc + (Number(item?.total) || 0), 0);
+    return (Array.isArray(rows) ? rows : []).reduce((acc, item) => acc + (Number(item?.total) || 0), 0);
 }
 
 function OpeningBalanceReport() {
-    const { user: { user }, fiscalYear: { years, getNameFromAcademicYear } } = useAppContext();
+    const { user: { user }, fiscalYear: { years, getNameFromAcademicYear }, notification: { updateNotification } } = useAppContext();
     const schoolId = user?.profile?.school || user?.profile?.id;
     searchSchema["school"] = schoolId;
     //
@@ -52,21 +52,30 @@ function OpeningBalanceReport() {
 
     async function searchReport(e) {
         e.preventDefault();
+        // The report is per year. Without one the server used to answer with a
+        // different list altogether, which the page then broke on.
+        if (!searchInput?.academic_year) {
+            updateNotification(400, 'Choose the academic year first.');
+            return;
+        }
         statusHandler.toggleSearching();
         const [_data, _waived] = await Promise.all([
             getOpeningBalanceReport(schoolId, searchInput.academic_year, searchInput.status, searchInput.include_zero),
             getWaivedOpeningBalances(schoolId, searchInput.academic_year),
         ]);
-        if (_data) {
+        // Only a list is the report; anything else is the server saying no.
+        if (Array.isArray(_data)) {
             setData(state => ({ ...state, [cacheKey]: _data }));
             setSummary(state => ({
                 ...state, [cacheKey]: { total: sumTotals(_data), count: _data.length }
             }));
+        } else {
+            updateNotification(400, _data?.message || 'The report could not be loaded. Try again.');
         }
         // A waived list is legitimately empty for most schools; store whatever
         // came back (including []) so the header can say "none" rather than
         // fall back to a previous year's figure.
-        setWaived(state => ({ ...state, [yearKey]: _waived || [] }));
+        setWaived(state => ({ ...state, [yearKey]: Array.isArray(_waived) ? _waived : [] }));
         statusHandler.toggleSearching();
     }
 

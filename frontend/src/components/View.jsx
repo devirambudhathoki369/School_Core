@@ -232,9 +232,11 @@ function View({ type, children, selectedMenu }) {
                                                     <MapPinIcon className="shrink-0" aria-hidden="true" />
                                                     <span className="truncate">{user?.profile?.location || user?.profile?.address}</span>
                                                 </span>
-                                                <span className="flex items-center gap-1 shrink-0">
+                                                {/* shortens with an ellipsis rather than running
+                                                    under the date when the bar is narrow */}
+                                                <span className="flex items-center gap-1 min-w-0">
                                                     <PhoneIcon className="shrink-0" aria-hidden="true" />
-                                                    <span className="whitespace-nowrap">
+                                                    <span className="truncate">
                                                         {user.profile?.contact || user.profile?.primary_contact || ''}
                                                         {
                                                             ((user.profile?.contact && user.profile?.telephone) ||

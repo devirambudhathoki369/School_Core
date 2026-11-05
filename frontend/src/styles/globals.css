@@ -2708,6 +2708,10 @@ button.bg-teal-500 {
 .app-clock .app-clock-date * { font-size: .8rem !important; line-height: 1.15rem; font-weight: 600; color: var(--ink-600); }
 .app-clock .app-clock-date .app-clock-weekday { font-weight: 700; color: var(--ink-900); }
 .app-clock .app-clock-time { font-size: .76rem !important; line-height: 1.05rem; font-weight: 500; color: var(--ink-500); }
+/* A narrow desktop (a 1024px laptop with the menu open) keeps the date leaf and
+   gives the weekday and time's room to the school's name, which was cut to its
+   first letter while the phone number ran under the date. */
+@media (max-width: 1199.98px) { .app-topbar .app-clock-text { display: none; } }
 /* Between a tablet and a small laptop the school's name needs the room more
    than the date needs saying twice: the leaf and the weekday step aside and
    the date and the clock stay. */

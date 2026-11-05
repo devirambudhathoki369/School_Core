@@ -766,6 +766,11 @@ class LedgerView(SecuredAPIView):
                     request.query_params.get("include_zero"),
                 )
                 return Response(data)
+            elif opening_balance_report:
+                # The report without a year fell through to the paged list of
+                # postings below, and the page summed that as the report and
+                # broke. Same rule as posted_months: fail, do not borrow.
+                return self.RESPONSE__INVALID_REQUEST
             elif class_id and acay:
                 """remainder bills"""
                 data = []

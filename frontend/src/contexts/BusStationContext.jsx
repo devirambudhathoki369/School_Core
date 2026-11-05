@@ -84,7 +84,7 @@ export default function BusStationProvider({ children }) {
         }
     }
     function extractLocations(stations) {
-        return (stations || []).reduce((acc, station) => {
+        return (Array.isArray(stations) ? stations : []).reduce((acc, station) => {
             const { latitude, longitude, station: name } = station;
             const lat = parseFloat(latitude), lng = parseFloat(longitude);
             if (Number.isFinite(lat) && Number.isFinite(lng)) {
@@ -100,9 +100,14 @@ export default function BusStationProvider({ children }) {
     // 
     useEffect(() => {
         (async () => {
-            const stations = await fetchBusStations(user?.profile?.school || user?.profile?.id);
-            const _locations = extractLocations(stations);
-            setLocations(_locations);
+            const result = await fetchBusStations(user?.profile?.school || user?.profile?.id);
+            // A failed request hands back the server's error body, not a list;
+            // the page used to break on it. Show an empty list and say why.
+            const stations = Array.isArray(result) ? result : [];
+            if (!Array.isArray(result)) {
+                updateNotification(500, result?.message || 'Bus stations could not be loaded. Reload the page to try again.');
+            }
+            setLocations(extractLocations(stations));
             setStations(stations);
         })();
     }, []);
