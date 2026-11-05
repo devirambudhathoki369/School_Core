@@ -1,3 +1,12 @@
+# Never log OTP contacts, push keys, or signed document credentials.
+map $uri $security_log_uri {
+    ~^/api/(v1/)?documents/ /api/documents/[redacted];
+    default $uri;
+}
+log_format schoolcore '$remote_addr [$time_local] "$request_method $security_log_uri $server_protocol" $status $body_bytes_sent';
+# Each server sets it: at this level the image's own `main` log, with the
+# full query string, would still be written beside it.
+
 # Docker DNS re-resolves recreated services without restarting this proxy.
 resolver 127.0.0.11 valid=10s ipv6=off;
 server_tokens off;
@@ -13,6 +22,7 @@ proxy_read_timeout 180s;
 
 server {
     listen 8080;
+    access_log /var/log/nginx/access.log schoolcore;
     server_name _;
     location = /proxy-health {
         access_log off;
@@ -27,6 +37,7 @@ server {
 
 server {
     listen 8081;
+    access_log /var/log/nginx/access.log schoolcore;
     server_name _;
     location /static/ {
         alias /srv/static/;

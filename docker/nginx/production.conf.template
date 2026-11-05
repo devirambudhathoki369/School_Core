@@ -1,3 +1,12 @@
+# Never log OTP contacts, push keys, or signed document credentials.
+map $uri $security_log_uri {
+    ~^/api/(v1/)?documents/ /api/documents/[redacted];
+    default $uri;
+}
+log_format schoolcore '$remote_addr [$time_local] "$request_method $security_log_uri $server_protocol" $status $body_bytes_sent';
+# Each server sets it: at this level the image's own `main` log, with the
+# full query string, would still be written beside it.
+
 resolver 127.0.0.11 valid=10s ipv6=off;
 server_tokens off;
 client_max_body_size 25m;
@@ -15,6 +24,7 @@ ssl_certificate_key /etc/nginx/tls/privkey.pem;
 
 server {
     listen 8080;
+    access_log /var/log/nginx/access.log schoolcore;
     server_name _;
     location = /proxy-health {
         access_log off;
@@ -25,16 +35,19 @@ server {
 }
 server {
     listen 80;
+    access_log /var/log/nginx/access.log schoolcore;
     server_name ${WEB_HOST};
     return 301 https://${WEB_HOST}$request_uri;
 }
 server {
     listen 80;
+    access_log /var/log/nginx/access.log schoolcore;
     server_name ${API_HOST};
     return 301 https://${API_HOST}$request_uri;
 }
 server {
     listen 443 ssl;
+    access_log /var/log/nginx/access.log schoolcore;
     server_name ${WEB_HOST};
     location / {
         set $frontend frontend:3000;
@@ -43,6 +56,7 @@ server {
 }
 server {
     listen 443 ssl;
+    access_log /var/log/nginx/access.log schoolcore;
     server_name ${API_HOST};
     location /static/ {
         alias /srv/static/;
