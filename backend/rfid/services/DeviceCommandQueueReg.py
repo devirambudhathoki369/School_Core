@@ -60,7 +60,7 @@ class CommandQueue:
     MAX_RETURN_INFO = 4000
 
     @staticmethod
-    def mark_done(cmd_id, return_code, raw_line):
+    def mark_done(cmd_id, return_code, raw_line, *, device):
         if return_code >= 0:
             new_status = DeviceCommand.STATUS_DONE
         else:
@@ -74,7 +74,7 @@ class CommandQueue:
         # line wiping out the reconciliation that says WHO those 31 are. So
         # append instead, and keep it idempotent so a re-sent upload doesn't
         # stack duplicates.
-        cmd = DeviceCommand.objects.filter(cmd_id=cmd_id).first()
+        cmd = DeviceCommand.objects.filter(cmd_id=cmd_id, device=device).first()
         if cmd is None:
             return
         raw_line = raw_line or ""
@@ -86,7 +86,7 @@ class CommandQueue:
         else:
             info = existing
 
-        DeviceCommand.objects.filter(cmd_id=cmd_id).update(
+        DeviceCommand.objects.filter(pk=cmd.pk, device=device).update(
             status=new_status,
             return_code=return_code,
             return_info=info[: CommandQueue.MAX_RETURN_INFO],

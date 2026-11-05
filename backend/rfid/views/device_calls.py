@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbid
 import hashlib
 import hmac
 import json
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.utils import timezone
@@ -27,35 +28,26 @@ NEPAL_TZ = ZoneInfo("Asia/Kathmandu")
 
 
 def _check_push_key(request):
-    # Per-device comm key, opt-in: a device only has to present ?pushcommkey=
-    # once its own row carries one. Every live reader's key is blank, so they
-    # are unaffected until someone deliberately sets one.
-    #
-    # This replaces a global settings.PUSH_COMM_KEY check that was dead code —
-    # .env defines PUSH_COMM_KEY but settings.py never reads it, so it always
-    # resolved to None. Worse, it was all-or-nothing: defining that setting
-    # would have locked out the entire fleet in one step.
-    #
-    # Until a device has a key, its serial is all that identifies it -- and
-    # whoever knows it can read the enrolment commands queued for it (card
-    # numbers, PINs) and post punches as it. ICLOCK_REQUIRE_PUSH_KEY closes
-    # that once every reader is keyed: a keyless device is then refused.
+    # Register devices through the authenticated management API. Unknown
+    # serial numbers must never create rows or reach the command queue.
     sn = request.GET.get("SN")
-    if not sn:
-        return None
+    if not sn or len(sn) > 32:
+        return HttpResponseBadRequest("invalid SN")
 
-    expected = (
+    device = (
         Device.objects.filter(serial_number=sn)
-        .values_list("push_comm_key", flat=True)
+        .values("push_comm_key")
         .first()
-        or ""
     )
+    if device is None:
+        return HttpResponseForbidden("device not registered")
+    expected = device["push_comm_key"] or ""
     if not expected:
-        if getattr(settings, "ICLOCK_REQUIRE_PUSH_KEY", False):
+        if getattr(settings, "ICLOCK_REQUIRE_PUSH_KEY", True):
             return HttpResponseForbidden("device has no pushcommkey")
         return None
 
-    given = request.GET.get("pushcommkey", "") or ""
+    given = request.headers.get("X-Reader-Key") or request.GET.get("pushcommkey", "") or ""
     if not hmac.compare_digest(given.encode(), expected.encode()):
         return HttpResponseForbidden("invalid pushcommkey")
     return None
@@ -128,7 +120,7 @@ def devicecmd(request):
     sn = request.GET.get("SN")
     if not sn:
         return HttpResponseBadRequest("missing SN")
-    DeviceRegistry.touch(sn, request)
+    device = DeviceRegistry.touch(sn, request)
 
     for raw in request.body.decode("utf-8", errors="replace").splitlines():
         line = raw.strip()
@@ -143,7 +135,7 @@ def devicecmd(request):
         ret = params.get("Return")
         if cmd_id and ret is not None:
             try:
-                CommandQueue.mark_done(cmd_id, int(ret), line)
+                CommandQueue.mark_done(cmd_id, int(ret), line, device=device)
             except ValueError:
                 pass
     return HttpResponse("OK", content_type="text/plain")
@@ -256,10 +248,11 @@ def querydata(request):
         except (TypeError, ValueError):
             packcnt = packidx = 1
         if packidx >= packcnt:
-            info = request.META.get("QUERY_STRING", "")
+            info = urlencode([(k, v) for k, values in request.GET.lists()
+                              if k.lower() not in {"pushcommkey", "token"} for v in values])
             if summary:
                 info = f"{info}\n{json.dumps(summary)}"
-            CommandQueue.mark_done(cmd_id, 0, info)
+            CommandQueue.mark_done(cmd_id, 0, info, device=device)
 
     # The acknowledgement has to echo "<tablename>=<count>" back. A plain "OK"
     # is not recognised as one, and the panel simply re-uploads the same packet
@@ -295,6 +288,9 @@ def push(request):
 # ping
 @require_GET
 def ping(request):
+    forbidden = _check_push_key(request)
+    if forbidden is not None:
+        return forbidden
     sn = request.GET.get("SN")
     if sn:
         DeviceRegistry.touch(sn, request)
