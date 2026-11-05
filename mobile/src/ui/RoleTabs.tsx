@@ -29,9 +29,11 @@ function TabGlyph({ name, color, focused }: { name: IconName; color?: string; fo
   );
 }
 
+export type TabSpec = { name: string; title: string; icon: IconName };
+
 /** The bottom bar of a role's screens. Sized from the safe area, so the
  *  labels are never clipped under the home indicator. */
-export default function RoleTabs() {
+export default function RoleTabs({ tabs }: { tabs: TabSpec[] }) {
   const c = usePalette();
   const insets = useSafeAreaInsets();
   return (
@@ -49,8 +51,9 @@ export default function RoleTabs() {
         },
         tabBarLabelStyle: { fontFamily: font.semibold, fontSize: 11, lineHeight: 14 },
       }}>
-      <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: tabIcon('home') }} />
-      <Tabs.Screen name="more" options={{ title: 'Account', tabBarIcon: tabIcon('grid') }} />
+      {tabs.map((tab) => (
+        <Tabs.Screen key={tab.name} name={tab.name} options={{ title: tab.title, tabBarIcon: tabIcon(tab.icon) }} />
+      ))}
     </Tabs>
   );
 }

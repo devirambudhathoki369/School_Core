@@ -2,12 +2,13 @@ import { router } from 'expo-router';
 import { Alert, Platform, Switch, View } from 'react-native';
 
 import { accountLine, useAccounts, useActive } from '@/accounts/store';
-import { APP_VERSION } from '@/api/client';
+import { api, APP_VERSION } from '@/api/client';
 import { useMe } from '@/api/hooks';
 import { useLock } from '@/lock/store';
 import { space, usePalette } from '@/theme';
-import { Icon } from '@/ui/Icon';
+import { Icon, type IconName } from '@/ui/Icon';
 import { Card, Divider, Header, ListRow, Screen, SectionLabel, T } from '@/ui/kit';
+import { useGo } from './nav';
 
 function confirm(title: string, body: string, action: string, run: () => void) {
   if (Platform.OS === 'web') {
@@ -20,9 +21,36 @@ function confirm(title: string, body: string, action: string, run: () => void) {
   ]);
 }
 
+const LINKS: Record<string, [IconName, string, string][]> = {
+  parent: [
+    ['award', 'Results', '/results'],
+    ['clock', 'Timetable', '/timetable'],
+    ['receipt', 'Bills and payments', '/fees-history'],
+    ['bell', 'Notices', '/notices'],
+    ['sun', 'School calendar', '/calendar'],
+  ],
+  student: [
+    ['wallet', 'Fees', '/fees'],
+    ['clock', 'Timetable', '/timetable'],
+    ['bell', 'Notices', '/notices'],
+    ['sun', 'School calendar', '/calendar'],
+  ],
+  staff: [
+    ['calendar', 'My attendance', '/my-attendance'],
+    ['sun', 'School calendar', '/calendar'],
+  ],
+  admin: [
+    ['parent', 'Parents to review', '/parents'],
+    ['wallet', 'Money received', '/collections'],
+    ['bell', 'Notices', '/notices'],
+    ['sun', 'School calendar', '/calendar'],
+  ],
+};
+
 export function MoreScreen() {
   const c = usePalette();
   const account = useActive();
+  const go = useGo();
   const { accounts, switchTo, setAdding, signOut, signOutEverywhere } = useAccounts();
   const lock = useLock();
   const me = useMe().data;
@@ -47,6 +75,15 @@ export function MoreScreen() {
           </View>
         </Header>
       }>
+      <Card padded={false}>
+        {LINKS[account.role].map(([icon, title, path], i) => (
+          <View key={path}>
+            {i ? <Divider inset={70} /> : null}
+            <ListRow icon={icon} title={title} onPress={() => go(path)} />
+          </View>
+        ))}
+      </Card>
+
       <SectionLabel>Accounts on this phone</SectionLabel>
       <Card padded={false}>
         {accounts.map((other, i) => (
@@ -115,6 +152,29 @@ export function MoreScreen() {
           }
         />
       </Card>
+      {account.role !== 'admin' ? (
+        <Card padded={false}>
+          <ListRow
+            icon="x"
+            tint="bad"
+            title="Close my account"
+            sub="Stops sign-in for good. The school keeps its records."
+            onPress={() =>
+              confirm(
+                'Close your account?',
+                account.role === 'parent'
+                  ? 'You will be signed out on every phone. To come back, ask the school for a family code.'
+                  : 'Your sign-in stops working on every phone and in the portal. The school office can open it again.',
+                'Close account',
+                () =>
+                  void api(account.id, 'me/close-account', { method: 'POST', body: { confirm: true } })
+                    .then(() => signOut(account.id))
+                    .catch(() => undefined),
+              )
+            }
+          />
+        </Card>
+      ) : null}
       <T v="small" tone="quiet" center>
         {`SchoolCore ${APP_VERSION}`}
       </T>

@@ -7,6 +7,7 @@ import { bsLong, bsToday, bsWeekday } from '@/lib/format';
 import { font, space, usePalette } from '@/theme';
 import { Banner, Header, T } from '@/ui/kit';
 import { initials } from '@/ui/SchoolCard';
+import { back as goBack } from './nav';
 
 const WEEKDAY: Record<string, string> = {
   Sun: 'Sunday', Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday',
@@ -70,5 +71,29 @@ export function Freshness({ updatedAt, error }: { updatedAt: number; error: unkn
     <T v="small" tone="quiet">
       {`Updated ${clock(updatedAt)}`}
     </T>
+  );
+}
+
+/** The navy header of an inner screen: back, a title and a line under it. */
+export function PageHeader({
+  title,
+  sub,
+  onBack,
+  right,
+}: {
+  title: string;
+  sub?: string;
+  onBack?: (() => void) | null;
+  right?: React.ReactNode;
+}) {
+  return (
+    <Header onBack={onBack === null ? undefined : (onBack ?? goBack)} right={right}>
+      <View style={{ gap: space.xs }}>
+        <T v="title" tone="onHeader">
+          {title}
+        </T>
+        {sub ? <T tone="onHeaderSoft">{sub}</T> : null}
+      </View>
+    </Header>
   );
 }

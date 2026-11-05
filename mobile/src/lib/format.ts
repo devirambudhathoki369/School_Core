@@ -135,3 +135,40 @@ export function clock(value: string | null | undefined): string {
 export function titleCase(text: string | null | undefined): string {
   return (text ?? '').replace(/\s+/g, ' ').trim().replace(/\b\w/g, (ch) => ch.toUpperCase());
 }
+
+/** "75.00" → "75", "62.50" → "62.5"; anything else as it is. */
+export function trimNumber(value: string | null | undefined): string {
+  if (value === null || value === undefined) return '-';
+  return /^-?\d+\.\d+$/.test(value) ? value.replace(/\.?0+$/, '') : value;
+}
+
+/** Rs from whole paisa, as the server sends money. */
+export function rupees(paisa: number | null | undefined): string {
+  return money((paisa ?? 0) / 100);
+}
+
+/** "Due today", "Due tomorrow", "Due in 3 days", "Was due 2 days ago". */
+export function dueLabel(due: string, today: string): string {
+  const days = daysBetween(today, due);
+  if (days === null) return `Due ${bsShort(due)}`;
+  if (days === 0) return 'Due today';
+  if (days === 1) return 'Due tomorrow';
+  if (days > 1) return `Due in ${days} days`;
+  return days === -1 ? 'Was due yesterday' : `Was due ${-days} days ago`;
+}
+
+/** A BS date `days` after `from`. */
+export function bsAddDays(from: string, days: number): string {
+  const d = NepaliDate.parse(from).toJsDate();
+  d.setDate(d.getDate() + days);
+  return new NepaliDate(d).format('YYYY-MM-DD');
+}
+
+/** "27 Kartik 2083" from an ISO timestamp, by the phone's clock. */
+export function bsFromIso(iso: string): string {
+  try {
+    return bsLong(new NepaliDate(new Date(iso)).format('YYYY-MM-DD'));
+  } catch {
+    return '';
+  }
+}
