@@ -8,6 +8,7 @@ from django.contrib.auth.hashers import make_password
 from django.db import IntegrityError, transaction
 from django.db.models import F
 from django.utils import timezone
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -21,6 +22,7 @@ from ..guardians import normalize_family_code
 from ..mail import CODE_MINUTES, send_code
 from ..models import AppSession, EmailCode, FamilyCode
 from ..profiles import me_payload, school_payload
+from ..schema import CodeSentOut, ErrorOut, RefreshedOut, SchoolLookupOut, SignedInOut
 from ..serializers import (
     PLATFORMS,
     FamilyCodeSerializer,
@@ -64,6 +66,8 @@ def _signed_in(request, role, account, school, device, status_code=status.HTTP_2
 class SchoolLookupView(PublicMobileView):
     throttle_classes = (SchoolLookupThrottle,)
 
+    @extend_schema(parameters=[OpenApiParameter("code", str, OpenApiParameter.PATH)],
+                   responses={200: SchoolLookupOut, 404: ErrorOut})
     def get(self, request, code):
         school = school_for_code(str(code).strip().upper()[:8])
         return Response({
@@ -75,6 +79,7 @@ class SchoolLookupView(PublicMobileView):
 class PasswordSignInView(PublicMobileView):
     throttle_classes = (PasswordSignInThrottle,)
 
+    @extend_schema(request=PasswordSignInSerializer, responses={200: SignedInOut, 401: ErrorOut})
     def post(self, request):
         data = PasswordSignInSerializer(data=request.data)
         data.is_valid(raise_exception=True)
@@ -122,6 +127,7 @@ class ParentCodeView(PublicMobileView):
 
     throttle_classes = (EmailCodeThrottle,)
 
+    @extend_schema(request=ParentCodeSerializer, responses={202: CodeSentOut})
     def post(self, request):
         data = ParentCodeSerializer(data=request.data)
         data.is_valid(raise_exception=True)
@@ -140,6 +146,7 @@ class FamilyCodeView(PublicMobileView):
 
     throttle_classes = (FamilyCodeThrottle,)
 
+    @extend_schema(request=FamilyCodeSerializer, responses={202: CodeSentOut, 400: ErrorOut, 409: ErrorOut})
     def post(self, request):
         data = FamilyCodeSerializer(data=request.data)
         data.is_valid(raise_exception=True)
@@ -174,6 +181,7 @@ class FamilyCodeView(PublicMobileView):
 class ParentVerifyView(PublicMobileView):
     throttle_classes = (CodeVerifyThrottle,)
 
+    @extend_schema(request=ParentVerifySerializer, responses={200: SignedInOut, 201: SignedInOut, 400: ErrorOut})
     def post(self, request):
         data = ParentVerifySerializer(data=request.data)
         data.is_valid(raise_exception=True)
@@ -229,6 +237,7 @@ class ParentVerifyView(PublicMobileView):
 class RefreshView(PublicMobileView):
     throttle_classes = (RefreshThrottle,)
 
+    @extend_schema(request=RefreshSerializer, responses={200: RefreshedOut, 401: ErrorOut})
     def post(self, request):
         data = RefreshSerializer(data=request.data)
         data.is_valid(raise_exception=True)

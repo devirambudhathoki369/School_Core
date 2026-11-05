@@ -1154,6 +1154,44 @@ class DeviceTokenView(SecuredAPIView):
 
 # ---
 # ACCOUNT DELETION VIEW
+def close_account(user, user_role):
+    """Close a student's or staff member's own account, keeping the school's
+    records: login is disabled two ways, the personal auth data is scrubbed,
+    the device leaves its push topics and every portal token is deleted.
+    Shared by the portal (AccountDeletionView) and the mobile app's
+    `/me/close-account`, which also ends its own sessions."""
+    old_token = user.app_device_token
+
+    with transaction.atomic():
+        # drop the device off its school topic before clearing the token.
+        if old_token and user_role == UserRoles.ROLE_STUDENT:
+            from main.methods.push import unsubscribe_student_from_school
+
+            try:
+                unsubscribe_student_from_school(user, old_token)
+            except Exception:
+                # push cleanup is best-effort; never block the deletion on it.
+                pass
+
+        # disable login two independent ways (verified gate + unusable pw)
+        user.verified = False
+        user.set_unusable_password()
+        # scrub personal auth data
+        user.secret = None
+        user.otp = None
+        user.app_device_token = None
+        user.deletion_requested_at = timezone.now()
+        user.save()
+
+        # force logout everywhere by removing the auth token(s).
+        Token = (
+            StudentAuthToken
+            if user_role == UserRoles.ROLE_STUDENT
+            else StaffAuthToken
+        )
+        Token.objects.filter(user=user).delete()
+
+
 class AccountDeletionView(SecuredAPIView):
     """
     Delete the authenticated student's/staff's mobile account (Google Play
@@ -1202,36 +1240,7 @@ class AccountDeletionView(SecuredAPIView):
         if user is None:
             return self.RESPONSE__INVALID_REQUEST
 
-        old_token = user.app_device_token
-
-        with transaction.atomic():
-            # drop the device off its school topic before clearing the token.
-            if old_token and user_role == UserRoles.ROLE_STUDENT:
-                from main.methods.push import unsubscribe_student_from_school
-
-                try:
-                    unsubscribe_student_from_school(user, old_token)
-                except Exception:
-                    # push cleanup is best-effort; never block the deletion on it.
-                    pass
-
-            # disable login two independent ways (verified gate + unusable pw)
-            user.verified = False
-            user.set_unusable_password()
-            # scrub personal auth data
-            user.secret = None
-            user.otp = None
-            user.app_device_token = None
-            user.deletion_requested_at = timezone.now()
-            user.save()
-
-            # force logout everywhere by removing the auth token(s).
-            Token = (
-                StudentAuthToken
-                if user_role == UserRoles.ROLE_STUDENT
-                else StaffAuthToken
-            )
-            Token.objects.filter(user=user).delete()
+        close_account(user, user_role)
 
         res = Response(
             {

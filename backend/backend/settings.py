@@ -470,6 +470,9 @@ ENFORCE_ORIGIN_CHECK = (
 REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "main.views.errors.api_exception_handler",
     "NUM_PROXIES": int(os.environ.get("NUM_PROXIES", "2") or 0),
+    # The mobile API's OpenAPI 3 schema (mobileapi/schema.py). The portal's
+    # docs come from drf-yasg, which does not read this setting.
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # Per-client caps on the two endpoints that answer WITHOUT signing in.

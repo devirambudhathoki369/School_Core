@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .schema import MobileSchemaView
 from .views.auth import (
     FamilyCodeView,
     ParentCodeView,
@@ -8,9 +9,11 @@ from .views.auth import (
     RefreshView,
     SchoolLookupView,
 )
-from .views.me import MeView, SessionDetailView, SessionsView, SignOutEverywhereView, SignOutView
+from .views.me import CloseAccountView, MeView, SessionDetailView, SessionsView, SignOutEverywhereView, SignOutView
 
 urlpatterns = [
+    path("schema", MobileSchemaView.as_view(), name="schema"),
+    # sign-in (phase 1)
     path("schools/<str:code>", SchoolLookupView.as_view(), name="school"),
     path("auth/signin", PasswordSignInView.as_view(), name="signin"),
     path("auth/parent/code", ParentCodeView.as_view(), name="parent-code"),
@@ -22,4 +25,5 @@ urlpatterns = [
     path("me", MeView.as_view(), name="me"),
     path("me/sessions", SessionsView.as_view(), name="sessions"),
     path("me/sessions/<uuid:session_id>", SessionDetailView.as_view(), name="session"),
+    path("me/close-account", CloseAccountView.as_view(), name="close-account"),
 ]

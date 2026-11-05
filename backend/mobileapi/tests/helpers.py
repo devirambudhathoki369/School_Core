@@ -94,3 +94,26 @@ class MobileTestMixin:
 
     def error(self, response):
         return response.json()["error"]["code"]
+
+
+def session_token(role, account, school):
+    """An access token for one account, without going through a sign-in."""
+    from mobileapi.models import AppSession
+    from mobileapi.tokens import start_session
+
+    _, tokens = start_session(role=role, account=account, school=school, platform=AppSession.ANDROID,
+                              device_label="Test phone", app_version="1.0.0")
+    return tokens["access_token"]
+
+
+class WriteMixin:
+    """Signed-in writes carry an Idempotency-Key, as the app sends them."""
+
+    key_counter = 0
+
+    def write(self, method, path, body=None, token=None, key=None, fmt="json"):
+        if key is None:
+            WriteMixin.key_counter += 1
+            key = f"test-key-{WriteMixin.key_counter:06d}"
+        client = self.api(token, HTTP_IDEMPOTENCY_KEY=key) if key else self.api(token)
+        return getattr(client, method)(f"/api/mobile/v1/{path}", body, format=fmt)
