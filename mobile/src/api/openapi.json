@@ -1,0 +1,4446 @@
+{
+  "components": {
+    "schemas": {
+      "AdminStudentOut": {
+        "properties": {
+          "attendance": {
+            "$ref": "#/components/schemas/MonthTotalsOut"
+          },
+          "dues": {
+            "$ref": "#/components/schemas/FeesDueOut"
+          },
+          "guardians": {
+            "items": {
+              "$ref": "#/components/schemas/GuardianLinkBriefOut"
+            },
+            "type": "array"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/StudentProfileOut"
+          },
+          "student": {
+            "$ref": "#/components/schemas/ChildOut"
+          }
+        },
+        "required": [
+          "attendance",
+          "dues",
+          "guardians",
+          "profile",
+          "student"
+        ],
+        "type": "object"
+      },
+      "AttendanceMonthOut": {
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/DayMarkOut"
+            },
+            "type": "array"
+          },
+          "month": {
+            "$ref": "#/components/schemas/MonthOut"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/AttendanceTotalsOut"
+          }
+        },
+        "required": [
+          "days",
+          "month",
+          "totals"
+        ],
+        "type": "object"
+      },
+      "AttendanceTotalsOut": {
+        "properties": {
+          "absent": {
+            "type": "integer"
+          },
+          "present": {
+            "type": "integer"
+          },
+          "taken": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "absent",
+          "present",
+          "taken"
+        ],
+        "type": "object"
+      },
+      "CalendarEventOut": {
+        "properties": {
+          "end_date": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "start_date": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TypeEnum"
+          }
+        },
+        "required": [
+          "end_date",
+          "id",
+          "start_date",
+          "title",
+          "type"
+        ],
+        "type": "object"
+      },
+      "CalendarOut": {
+        "properties": {
+          "end": {
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventOut"
+            },
+            "type": "array"
+          },
+          "start": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "end",
+          "items",
+          "start"
+        ],
+        "type": "object"
+      },
+      "ChildOut": {
+        "properties": {
+          "class_name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "photo_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "roll_no": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "class_name",
+          "id",
+          "name",
+          "photo_url",
+          "roll_no"
+        ],
+        "type": "object"
+      },
+      "ClassDayInRequest": {
+        "properties": {
+          "marks": {
+            "items": {
+              "$ref": "#/components/schemas/MarkInRequest"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "marks"
+        ],
+        "type": "object"
+      },
+      "ClassDayOut": {
+        "properties": {
+          "can_save": {
+            "description": "This staff member may save this day now",
+            "type": "boolean"
+          },
+          "class_id": {
+            "type": "integer"
+          },
+          "class_name": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "students": {
+            "items": {
+              "$ref": "#/components/schemas/RosterRowOut"
+            },
+            "type": "array"
+          },
+          "taken": {
+            "type": "boolean"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/RosterTotalsOut"
+          }
+        },
+        "required": [
+          "can_save",
+          "class_id",
+          "class_name",
+          "date",
+          "students",
+          "taken",
+          "totals"
+        ],
+        "type": "object"
+      },
+      "ClassDuesOut": {
+        "properties": {
+          "class_id": {
+            "type": "integer"
+          },
+          "class_name": {
+            "type": "string"
+          },
+          "due_paisa": {
+            "type": "integer"
+          },
+          "owing": {
+            "description": "Students who owe something",
+            "type": "integer"
+          },
+          "students": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "class_id",
+          "class_name",
+          "due_paisa",
+          "owing",
+          "students"
+        ],
+        "type": "object"
+      },
+      "ClassHeadcountOut": {
+        "properties": {
+          "absent": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "present": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "absent",
+          "name",
+          "present",
+          "total"
+        ],
+        "type": "object"
+      },
+      "CloseAccountInRequest": {
+        "properties": {
+          "confirm": {
+            "description": "Must be true",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "confirm"
+        ],
+        "type": "object"
+      },
+      "ClosedOut": {
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "type": "object"
+      },
+      "CodeSentOut": {
+        "properties": {
+          "expires_in": {
+            "description": "Seconds",
+            "type": "integer"
+          },
+          "resend_after": {
+            "description": "Seconds",
+            "type": "integer"
+          },
+          "sent_to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "expires_in",
+          "resend_after",
+          "sent_to"
+        ],
+        "type": "object"
+      },
+      "CollectedOut": {
+        "properties": {
+          "amount_paisa": {
+            "type": "integer"
+          },
+          "by_mode": {
+            "items": {
+              "$ref": "#/components/schemas/ModeAmountOut"
+            },
+            "type": "array"
+          },
+          "receipts": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "amount_paisa",
+          "by_mode",
+          "receipts"
+        ],
+        "type": "object"
+      },
+      "CollectionsOut": {
+        "properties": {
+          "by_mode": {
+            "items": {
+              "$ref": "#/components/schemas/ModeAmountOut"
+            },
+            "type": "array"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/DayAmountOut"
+            },
+            "type": "array"
+          },
+          "end": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string"
+          },
+          "total_paisa": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "by_mode",
+          "days",
+          "end",
+          "start",
+          "total_paisa"
+        ],
+        "type": "object"
+      },
+      "DashboardOut": {
+        "properties": {
+          "classes": {
+            "items": {
+              "$ref": "#/components/schemas/ClassHeadcountOut"
+            },
+            "type": "array"
+          },
+          "collected": {
+            "$ref": "#/components/schemas/CollectedOut"
+          },
+          "collected_month_paisa": {
+            "type": "integer"
+          },
+          "date": {
+            "type": "string"
+          },
+          "dues_paisa": {
+            "type": "integer"
+          },
+          "links_to_review": {
+            "type": "integer"
+          },
+          "month_label": {
+            "type": "string"
+          },
+          "staff": {
+            "$ref": "#/components/schemas/HeadcountOut"
+          },
+          "students": {
+            "$ref": "#/components/schemas/HeadcountOut"
+          }
+        },
+        "required": [
+          "classes",
+          "collected",
+          "collected_month_paisa",
+          "date",
+          "dues_paisa",
+          "links_to_review",
+          "month_label",
+          "staff",
+          "students"
+        ],
+        "type": "object"
+      },
+      "DayAmountOut": {
+        "properties": {
+          "amount_paisa": {
+            "type": "integer"
+          },
+          "date": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount_paisa",
+          "date"
+        ],
+        "type": "object"
+      },
+      "DayMarkOut": {
+        "properties": {
+          "checked_in_at": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "checked_out_at": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DayStatusEnum"
+          }
+        },
+        "required": [
+          "checked_in_at",
+          "checked_out_at",
+          "date",
+          "status"
+        ],
+        "type": "object"
+      },
+      "DayStatusEnum": {
+        "description": "* `present` - present\n* `absent` - absent\n* `not_taken` - not_taken",
+        "enum": [
+          "present",
+          "absent",
+          "not_taken"
+        ],
+        "type": "string"
+      },
+      "DecisionEnum": {
+        "description": "* `confirm` - confirm\n* `reject` - reject",
+        "enum": [
+          "confirm",
+          "reject"
+        ],
+        "type": "string"
+      },
+      "DecisionInRequest": {
+        "properties": {
+          "decision": {
+            "$ref": "#/components/schemas/DecisionEnum"
+          }
+        },
+        "required": [
+          "decision"
+        ],
+        "type": "object"
+      },
+      "DeviceRequest": {
+        "properties": {
+          "app_version": {
+            "maxLength": 20,
+            "minLength": 1,
+            "type": "string"
+          },
+          "label": {
+            "default": "",
+            "maxLength": 80,
+            "type": "string"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/PlatformEnum"
+          }
+        },
+        "required": [
+          "app_version",
+          "platform"
+        ],
+        "type": "object"
+      },
+      "DuesOut": {
+        "properties": {
+          "classes": {
+            "items": {
+              "$ref": "#/components/schemas/ClassDuesOut"
+            },
+            "type": "array"
+          },
+          "students": {
+            "description": "Only when one class is asked for",
+            "items": {
+              "$ref": "#/components/schemas/StudentDueOut"
+            },
+            "type": "array"
+          },
+          "total_paisa": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "classes",
+          "students",
+          "total_paisa"
+        ],
+        "type": "object"
+      },
+      "ErrorBodyOut": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "fields": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          },
+          "retry_after": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      },
+      "ErrorOut": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBodyOut"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
+      "EventOut": {
+        "properties": {
+          "end_date": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "start_date": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TypeEnum"
+          }
+        },
+        "required": [
+          "end_date",
+          "id",
+          "start_date",
+          "title",
+          "type"
+        ],
+        "type": "object"
+      },
+      "ExamListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ExamOut"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "ExamOut": {
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "published_date": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "published_date"
+        ],
+        "type": "object"
+      },
+      "ExamResultOut": {
+        "properties": {
+          "attendance": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "attendance_total": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "class_name": {
+            "type": "string"
+          },
+          "exam": {
+            "$ref": "#/components/schemas/ExamOut"
+          },
+          "full_marks": {
+            "type": "string"
+          },
+          "gpa": {
+            "nullable": true,
+            "type": "string"
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "percentage": {
+            "nullable": true,
+            "type": "string"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectMarkOut"
+            },
+            "type": "array"
+          },
+          "total": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "attendance",
+          "attendance_total",
+          "class_name",
+          "exam",
+          "full_marks",
+          "gpa",
+          "passed",
+          "percentage",
+          "subjects",
+          "total"
+        ],
+        "type": "object"
+      },
+      "FamilyCodeOut": {
+        "properties": {
+          "code": {
+            "description": "Shown once; only its hash is kept",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "guardian": {
+            "$ref": "#/components/schemas/LinkGuardianOut"
+          }
+        },
+        "required": [
+          "code",
+          "expires_at",
+          "guardian"
+        ],
+        "type": "object"
+      },
+      "FamilyCodeRequest": {
+        "properties": {
+          "email": {
+            "maxLength": 254,
+            "minLength": 1,
+            "type": "string"
+          },
+          "family_code": {
+            "maxLength": 20,
+            "minLength": 1,
+            "type": "string"
+          },
+          "school_code": {
+            "maxLength": 8,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "family_code",
+          "school_code"
+        ],
+        "type": "object"
+      },
+      "FeeEntryOut": {
+        "properties": {
+          "amount_paisa": {
+            "type": "integer"
+          },
+          "date": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/KindEnum"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/FeeLineOut"
+            },
+            "type": "array"
+          },
+          "mode": {
+            "nullable": true,
+            "type": "string"
+          },
+          "months": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "receipt_id": {
+            "description": "Open it at receipts/{receipt_id}",
+            "nullable": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "amount_paisa",
+          "date",
+          "id",
+          "kind",
+          "lines",
+          "mode",
+          "months",
+          "receipt_id"
+        ],
+        "type": "object"
+      },
+      "FeeHistoryOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/FeeEntryOut"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "FeeLineOut": {
+        "properties": {
+          "amount_paisa": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount_paisa",
+          "title"
+        ],
+        "type": "object"
+      },
+      "FeesDueOut": {
+        "properties": {
+          "academic_year": {
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/FeeLineOut"
+            },
+            "type": "array"
+          },
+          "total_paisa": {
+            "description": "Owed now; below zero is money paid ahead",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "academic_year",
+          "items",
+          "total_paisa"
+        ],
+        "type": "object"
+      },
+      "FileOut": {
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "url"
+        ],
+        "type": "object"
+      },
+      "GuardianLinkBriefOut": {
+        "properties": {
+          "email": {
+            "nullable": true,
+            "type": "string"
+          },
+          "guardian_id": {
+            "type": "integer"
+          },
+          "link_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "on_app": {
+            "type": "boolean"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "relation": {
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/StateEnum"
+          }
+        },
+        "required": [
+          "email",
+          "guardian_id",
+          "link_id",
+          "name",
+          "on_app",
+          "phone",
+          "relation",
+          "state"
+        ],
+        "type": "object"
+      },
+      "HandInCountsOut": {
+        "properties": {
+          "checked": {
+            "type": "integer"
+          },
+          "received": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "checked",
+          "received"
+        ],
+        "type": "object"
+      },
+      "HandInInRequest": {
+        "properties": {
+          "files": {
+            "items": {
+              "format": "binary",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "files"
+        ],
+        "type": "object"
+      },
+      "HandInOut": {
+        "properties": {
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/FileOut"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "remarks": {
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/HandInStatusEnum"
+          },
+          "submitted_date": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "files",
+          "id",
+          "remarks",
+          "status",
+          "submitted_date"
+        ],
+        "type": "object"
+      },
+      "HandInStatusEnum": {
+        "description": "* `checked` - checked\n* `received` - received",
+        "enum": [
+          "checked",
+          "received"
+        ],
+        "type": "string"
+      },
+      "HandInsOut": {
+        "properties": {
+          "homework": {
+            "$ref": "#/components/schemas/StaffHomeworkOut"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StaffHandInOut"
+            },
+            "type": "array"
+          },
+          "missing": {
+            "items": {
+              "$ref": "#/components/schemas/MissingOut"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "homework",
+          "items",
+          "missing"
+        ],
+        "type": "object"
+      },
+      "HeadcountOut": {
+        "properties": {
+          "absent": {
+            "type": "integer"
+          },
+          "present": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "absent",
+          "present",
+          "total"
+        ],
+        "type": "object"
+      },
+      "HomeworkBriefOut": {
+        "properties": {
+          "due_date": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "due_date",
+          "id",
+          "subject",
+          "title"
+        ],
+        "type": "object"
+      },
+      "HomeworkInRequest": {
+        "properties": {
+          "class_id": {
+            "type": "integer"
+          },
+          "description": {
+            "maxLength": 5000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "due_date": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "files": {
+            "items": {
+              "format": "binary",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "type": "array"
+          },
+          "subject_id": {
+            "type": "integer"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 5,
+            "type": "string"
+          }
+        },
+        "required": [
+          "class_id",
+          "description",
+          "due_date",
+          "subject_id",
+          "title"
+        ],
+        "type": "object"
+      },
+      "HomeworkListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/HomeworkOut"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "HomeworkOut": {
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "due_date": {
+            "type": "string"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/FileOut"
+            },
+            "type": "array"
+          },
+          "hand_in": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/HandInOut"
+              }
+            ],
+            "nullable": true
+          },
+          "id": {
+            "type": "integer"
+          },
+          "open": {
+            "description": "Hand-ins are taken until the end of the due date",
+            "type": "boolean"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "teacher": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "description",
+          "due_date",
+          "files",
+          "hand_in",
+          "id",
+          "open",
+          "subject",
+          "teacher",
+          "title"
+        ],
+        "type": "object"
+      },
+      "KindEnum": {
+        "description": "* `bill` - bill\n* `payment` - payment",
+        "enum": [
+          "bill",
+          "payment"
+        ],
+        "type": "string"
+      },
+      "LinkGuardianOut": {
+        "properties": {
+          "email": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "id",
+          "name",
+          "phone"
+        ],
+        "type": "object"
+      },
+      "LinkListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/LinkOut"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "LinkOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "guardian": {
+            "$ref": "#/components/schemas/LinkGuardianOut"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "relation": {
+            "type": "string"
+          },
+          "shared_with": {
+            "description": "Other children on this number",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/StateEnum"
+          },
+          "student": {
+            "$ref": "#/components/schemas/StudentRowOut"
+          }
+        },
+        "required": [
+          "created_at",
+          "guardian",
+          "id",
+          "relation",
+          "shared_with",
+          "state",
+          "student"
+        ],
+        "type": "object"
+      },
+      "MarkInRequest": {
+        "properties": {
+          "present": {
+            "type": "boolean"
+          },
+          "reason": {
+            "default": "",
+            "maxLength": 50,
+            "type": "string"
+          },
+          "student": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "present",
+          "student"
+        ],
+        "type": "object"
+      },
+      "MarkStatusEnum": {
+        "description": "* `present` - present\n* `absent` - absent",
+        "enum": [
+          "present",
+          "absent"
+        ],
+        "type": "string"
+      },
+      "MeChildOut": {
+        "properties": {
+          "class_name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "photo_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "roll_no": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "class_name",
+          "id",
+          "name",
+          "photo_url",
+          "roll_no"
+        ],
+        "type": "object"
+      },
+      "MeOut": {
+        "properties": {
+          "children": {
+            "description": "Parents only",
+            "items": {
+              "$ref": "#/components/schemas/MeChildOut"
+            },
+            "type": "array"
+          },
+          "permissions": {
+            "description": "Staff only",
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/ProfileOut"
+          },
+          "role": {
+            "$ref": "#/components/schemas/RoleEnum"
+          },
+          "school": {
+            "$ref": "#/components/schemas/SchoolOut"
+          },
+          "session_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile",
+          "role",
+          "school",
+          "session_id"
+        ],
+        "type": "object"
+      },
+      "MissingOut": {
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "roll_no": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "roll_no"
+        ],
+        "type": "object"
+      },
+      "ModeAmountOut": {
+        "properties": {
+          "amount_paisa": {
+            "type": "integer"
+          },
+          "label": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "amount_paisa",
+          "label",
+          "mode"
+        ],
+        "type": "object"
+      },
+      "MonthOut": {
+        "properties": {
+          "days": {
+            "type": "integer"
+          },
+          "end": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "month": {
+            "type": "string"
+          },
+          "next": {
+            "type": "string"
+          },
+          "previous": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string"
+          },
+          "starts_on": {
+            "description": "Weekday of the 1st, 0 = Sunday",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "days",
+          "end",
+          "label",
+          "month",
+          "next",
+          "previous",
+          "start",
+          "starts_on"
+        ],
+        "type": "object"
+      },
+      "MonthTotalsOut": {
+        "properties": {
+          "absent": {
+            "type": "integer"
+          },
+          "label": {
+            "type": "string"
+          },
+          "present": {
+            "type": "integer"
+          },
+          "taken": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "absent",
+          "label",
+          "present",
+          "taken"
+        ],
+        "type": "object"
+      },
+      "NoticeInRequest": {
+        "properties": {
+          "body": {
+            "maxLength": 5000,
+            "minLength": 2,
+            "type": "string"
+          },
+          "image": {
+            "format": "binary",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 50,
+            "minLength": 2,
+            "type": "string"
+          }
+        },
+        "required": [
+          "body",
+          "title"
+        ],
+        "type": "object"
+      },
+      "NoticeListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NoticeOut"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "NoticeOut": {
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "image_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "body",
+          "date",
+          "id",
+          "image_url",
+          "title"
+        ],
+        "type": "object"
+      },
+      "NullEnum": {
+        "enum": [
+          null
+        ]
+      },
+      "ParentCodeRequest": {
+        "properties": {
+          "email": {
+            "maxLength": 254,
+            "minLength": 1,
+            "type": "string"
+          },
+          "school_code": {
+            "maxLength": 8,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "school_code"
+        ],
+        "type": "object"
+      },
+      "ParentVerifyRequest": {
+        "properties": {
+          "code": {
+            "minLength": 1,
+            "pattern": "^\\d{6}$",
+            "type": "string"
+          },
+          "device": {
+            "$ref": "#/components/schemas/DeviceRequest"
+          },
+          "email": {
+            "maxLength": 254,
+            "minLength": 1,
+            "type": "string"
+          },
+          "school_code": {
+            "maxLength": 8,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "device",
+          "email",
+          "school_code"
+        ],
+        "type": "object"
+      },
+      "PasswordRoleEnum": {
+        "description": "* `student` - student\n* `staff` - staff\n* `admin` - admin",
+        "enum": [
+          "student",
+          "staff",
+          "admin"
+        ],
+        "type": "string"
+      },
+      "PasswordSignInRequest": {
+        "properties": {
+          "device": {
+            "$ref": "#/components/schemas/DeviceRequest"
+          },
+          "password": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/PasswordRoleEnum"
+          },
+          "school_code": {
+            "maxLength": 8,
+            "minLength": 1,
+            "type": "string"
+          },
+          "username": {
+            "maxLength": 150,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "device",
+          "password",
+          "role",
+          "school_code",
+          "username"
+        ],
+        "type": "object"
+      },
+      "PatchedHandInPatchInRequest": {
+        "properties": {
+          "remarks": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/HandInStatusEnum"
+          }
+        },
+        "type": "object"
+      },
+      "PeriodOut": {
+        "properties": {
+          "period": {
+            "type": "integer"
+          },
+          "subject": {
+            "nullable": true,
+            "type": "string"
+          },
+          "teacher": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "period",
+          "subject",
+          "teacher"
+        ],
+        "type": "object"
+      },
+      "PhoneListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PhoneSessionOut"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "PhoneSessionOut": {
+        "properties": {
+          "app_version": {
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "current": {
+            "type": "boolean"
+          },
+          "device_label": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "last_seen_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "platform": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PlatformEnum"
+              },
+              {
+                "$ref": "#/components/schemas/NullEnum"
+              }
+            ]
+          }
+        },
+        "required": [
+          "app_version",
+          "created_at",
+          "current",
+          "device_label",
+          "id",
+          "last_seen_at",
+          "platform"
+        ],
+        "type": "object"
+      },
+      "PlatformEnum": {
+        "description": "* `android` - android\n* `ios` - ios",
+        "enum": [
+          "android",
+          "ios"
+        ],
+        "type": "string"
+      },
+      "ProfileOut": {
+        "properties": {
+          "class_name": {
+            "type": "string"
+          },
+          "designation": {
+            "type": "string"
+          },
+          "email": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phone_last_digits": {
+            "type": "string"
+          },
+          "photo_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "roll_no": {
+            "nullable": true,
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "ReceiptLineOut": {
+        "properties": {
+          "discount_paisa": {
+            "type": "integer"
+          },
+          "due_paisa": {
+            "type": "integer"
+          },
+          "paid_paisa": {
+            "type": "integer"
+          },
+          "rate_paisa": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "discount_paisa",
+          "due_paisa",
+          "paid_paisa",
+          "rate_paisa",
+          "title"
+        ],
+        "type": "object"
+      },
+      "ReceiptOut": {
+        "properties": {
+          "cashier": {
+            "nullable": true,
+            "type": "string"
+          },
+          "class_name": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ReceiptLineOut"
+            },
+            "type": "array"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "months": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "receipt_no": {
+            "type": "integer"
+          },
+          "remarks": {
+            "nullable": true,
+            "type": "string"
+          },
+          "student_name": {
+            "type": "string"
+          },
+          "total_discount_paisa": {
+            "type": "integer"
+          },
+          "total_due_paisa": {
+            "type": "integer"
+          },
+          "total_paid_paisa": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cashier",
+          "class_name",
+          "date",
+          "id",
+          "lines",
+          "mode",
+          "months",
+          "receipt_no",
+          "remarks",
+          "student_name",
+          "total_discount_paisa",
+          "total_due_paisa",
+          "total_paid_paisa"
+        ],
+        "type": "object"
+      },
+      "RefreshRequest": {
+        "properties": {
+          "refresh_token": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "refresh_token"
+        ],
+        "type": "object"
+      },
+      "RefreshedOut": {
+        "properties": {
+          "tokens": {
+            "$ref": "#/components/schemas/TokensOut"
+          }
+        },
+        "required": [
+          "tokens"
+        ],
+        "type": "object"
+      },
+      "RoleEnum": {
+        "description": "* `parent` - parent\n* `student` - student\n* `staff` - staff\n* `admin` - admin",
+        "enum": [
+          "parent",
+          "student",
+          "staff",
+          "admin"
+        ],
+        "type": "string"
+      },
+      "RosterRowOut": {
+        "properties": {
+          "checked_in_at": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "photo_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "roll_no": {
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MarkStatusEnum"
+              },
+              {
+                "$ref": "#/components/schemas/NullEnum"
+              }
+            ]
+          }
+        },
+        "required": [
+          "checked_in_at",
+          "id",
+          "name",
+          "photo_url",
+          "reason",
+          "roll_no",
+          "status"
+        ],
+        "type": "object"
+      },
+      "RosterTotalsOut": {
+        "properties": {
+          "absent": {
+            "type": "integer"
+          },
+          "present": {
+            "type": "integer"
+          },
+          "unmarked": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "absent",
+          "present",
+          "unmarked"
+        ],
+        "type": "object"
+      },
+      "SchoolLookupOut": {
+        "properties": {
+          "school": {
+            "$ref": "#/components/schemas/SchoolOut"
+          },
+          "sign_in": {
+            "$ref": "#/components/schemas/SignInMethodsOut"
+          }
+        },
+        "required": [
+          "school",
+          "sign_in"
+        ],
+        "type": "object"
+      },
+      "SchoolOut": {
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "logo_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "address",
+          "code",
+          "id",
+          "logo_url",
+          "name"
+        ],
+        "type": "object"
+      },
+      "SignInMethodsOut": {
+        "properties": {
+          "admin": {
+            "description": "password",
+            "type": "string"
+          },
+          "parent": {
+            "description": "email_code",
+            "type": "string"
+          },
+          "staff": {
+            "description": "password",
+            "type": "string"
+          },
+          "student": {
+            "description": "password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "admin",
+          "parent",
+          "staff",
+          "student"
+        ],
+        "type": "object"
+      },
+      "SignedInOut": {
+        "properties": {
+          "me": {
+            "$ref": "#/components/schemas/MeOut"
+          },
+          "tokens": {
+            "$ref": "#/components/schemas/TokensOut"
+          }
+        },
+        "required": [
+          "me",
+          "tokens"
+        ],
+        "type": "object"
+      },
+      "StaffClassOut": {
+        "properties": {
+          "attendance_taken": {
+            "description": "Today's attendance is saved",
+            "type": "boolean"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "in_timetable": {
+            "description": "The staff member teaches a period of it",
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "periods": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "students": {
+            "type": "integer"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectOut"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "attendance_taken",
+          "id",
+          "in_timetable",
+          "name",
+          "periods",
+          "students",
+          "subjects"
+        ],
+        "type": "object"
+      },
+      "StaffClassesOut": {
+        "properties": {
+          "can_change_attendance": {
+            "type": "boolean"
+          },
+          "can_see_attendance": {
+            "type": "boolean"
+          },
+          "can_take_attendance": {
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StaffClassOut"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "can_change_attendance",
+          "can_see_attendance",
+          "can_take_attendance",
+          "items"
+        ],
+        "type": "object"
+      },
+      "StaffDayOut": {
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StaffRowOut"
+            },
+            "type": "array"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/HeadcountOut"
+          }
+        },
+        "required": [
+          "date",
+          "items",
+          "totals"
+        ],
+        "type": "object"
+      },
+      "StaffHandInOut": {
+        "properties": {
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/FileOut"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "photo_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "remarks": {
+            "nullable": true,
+            "type": "string"
+          },
+          "roll_no": {
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/HandInStatusEnum"
+          },
+          "student_id": {
+            "type": "integer"
+          },
+          "student_name": {
+            "type": "string"
+          },
+          "submitted_date": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "files",
+          "id",
+          "photo_url",
+          "remarks",
+          "roll_no",
+          "status",
+          "student_id",
+          "student_name",
+          "submitted_date"
+        ],
+        "type": "object"
+      },
+      "StaffHomeworkListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StaffHomeworkOut"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "StaffHomeworkOut": {
+        "properties": {
+          "class_id": {
+            "type": "integer"
+          },
+          "class_name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "due_date": {
+            "type": "string"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/FileOut"
+            },
+            "type": "array"
+          },
+          "hand_ins": {
+            "$ref": "#/components/schemas/HandInCountsOut"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "open": {
+            "type": "boolean"
+          },
+          "students": {
+            "type": "integer"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "class_id",
+          "class_name",
+          "description",
+          "due_date",
+          "files",
+          "hand_ins",
+          "id",
+          "open",
+          "students",
+          "subject",
+          "title"
+        ],
+        "type": "object"
+      },
+      "StaffRowOut": {
+        "properties": {
+          "checked_in_at": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "checked_out_at": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "designation": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "nullable": true,
+            "type": "string"
+          },
+          "photo_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DayStatusEnum"
+          }
+        },
+        "required": [
+          "checked_in_at",
+          "checked_out_at",
+          "designation",
+          "id",
+          "name",
+          "phone",
+          "photo_url",
+          "status"
+        ],
+        "type": "object"
+      },
+      "StaffTodayOut": {
+        "properties": {
+          "attendance": {
+            "items": {
+              "$ref": "#/components/schemas/ToTakeOut"
+            },
+            "type": "array"
+          },
+          "check_in": {
+            "$ref": "#/components/schemas/DayMarkOut"
+          },
+          "date": {
+            "type": "string"
+          },
+          "hand_ins_to_check": {
+            "type": "integer"
+          },
+          "periods": {
+            "items": {
+              "$ref": "#/components/schemas/TodayPeriodOut"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "attendance",
+          "check_in",
+          "date",
+          "hand_ins_to_check",
+          "periods"
+        ],
+        "type": "object"
+      },
+      "StateEnum": {
+        "description": "* `linked` - linked\n* `rejected` - rejected\n* `review` - review",
+        "enum": [
+          "linked",
+          "rejected",
+          "review"
+        ],
+        "type": "string"
+      },
+      "StudentDueOut": {
+        "properties": {
+          "due_paisa": {
+            "type": "integer"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "roll_no": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "due_paisa",
+          "id",
+          "name",
+          "roll_no"
+        ],
+        "type": "object"
+      },
+      "StudentHomeOut": {
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/EventOut"
+            },
+            "type": "array"
+          },
+          "fees_due_paisa": {
+            "type": "integer"
+          },
+          "homework": {
+            "items": {
+              "$ref": "#/components/schemas/HomeworkBriefOut"
+            },
+            "type": "array"
+          },
+          "homework_open": {
+            "type": "integer"
+          },
+          "notice": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/NoticeOut"
+              }
+            ],
+            "nullable": true
+          },
+          "student": {
+            "$ref": "#/components/schemas/ChildOut"
+          },
+          "today": {
+            "$ref": "#/components/schemas/DayMarkOut"
+          }
+        },
+        "required": [
+          "events",
+          "fees_due_paisa",
+          "homework",
+          "homework_open",
+          "notice",
+          "student",
+          "today"
+        ],
+        "type": "object"
+      },
+      "StudentListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StudentRowOut"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "StudentProfileOut": {
+        "properties": {
+          "address": {
+            "nullable": true,
+            "type": "string"
+          },
+          "birth_date": {
+            "nullable": true,
+            "type": "string"
+          },
+          "contact": {
+            "nullable": true,
+            "type": "string"
+          },
+          "father_name": {
+            "nullable": true,
+            "type": "string"
+          },
+          "gender": {
+            "nullable": true,
+            "type": "string"
+          },
+          "guardian_contact": {
+            "nullable": true,
+            "type": "string"
+          },
+          "guardian_name": {
+            "nullable": true,
+            "type": "string"
+          },
+          "mother_name": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "address",
+          "birth_date",
+          "contact",
+          "father_name",
+          "gender",
+          "guardian_contact",
+          "guardian_name",
+          "mother_name"
+        ],
+        "type": "object"
+      },
+      "StudentRowOut": {
+        "properties": {
+          "class_name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "photo_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "roll_no": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "class_name",
+          "id",
+          "name",
+          "photo_url",
+          "roll_no"
+        ],
+        "type": "object"
+      },
+      "SubjectMarkOut": {
+        "properties": {
+          "absent": {
+            "type": "boolean"
+          },
+          "full_marks": {
+            "type": "string"
+          },
+          "grade": {
+            "nullable": true,
+            "type": "string"
+          },
+          "grade_point": {
+            "nullable": true,
+            "type": "string"
+          },
+          "pass_marks": {
+            "type": "string"
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "practical": {
+            "nullable": true,
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "theory": {
+            "nullable": true,
+            "type": "string"
+          },
+          "total": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "absent",
+          "full_marks",
+          "grade",
+          "grade_point",
+          "pass_marks",
+          "passed",
+          "practical",
+          "subject",
+          "theory",
+          "total"
+        ],
+        "type": "object"
+      },
+      "SubjectOut": {
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object"
+      },
+      "TimetableOut": {
+        "properties": {
+          "class_name": {
+            "type": "string"
+          },
+          "periods": {
+            "items": {
+              "$ref": "#/components/schemas/PeriodOut"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "class_name",
+          "periods"
+        ],
+        "type": "object"
+      },
+      "ToTakeOut": {
+        "properties": {
+          "class_id": {
+            "type": "integer"
+          },
+          "class_name": {
+            "type": "string"
+          },
+          "taken": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "class_id",
+          "class_name",
+          "taken"
+        ],
+        "type": "object"
+      },
+      "TodayPeriodOut": {
+        "properties": {
+          "class_id": {
+            "type": "integer"
+          },
+          "class_name": {
+            "type": "string"
+          },
+          "period": {
+            "type": "integer"
+          },
+          "subject": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "class_id",
+          "class_name",
+          "period",
+          "subject"
+        ],
+        "type": "object"
+      },
+      "TokenTypeEnum": {
+        "description": "* `Bearer` - Bearer",
+        "enum": [
+          "Bearer"
+        ],
+        "type": "string"
+      },
+      "TokensOut": {
+        "properties": {
+          "access_expires_at": {
+            "description": "Unix seconds",
+            "type": "integer"
+          },
+          "access_token": {
+            "type": "string"
+          },
+          "refresh_token": {
+            "type": "string"
+          },
+          "token_type": {
+            "$ref": "#/components/schemas/TokenTypeEnum"
+          }
+        },
+        "required": [
+          "access_expires_at",
+          "access_token",
+          "refresh_token",
+          "token_type"
+        ],
+        "type": "object"
+      },
+      "TypeEnum": {
+        "description": "* `event` - event\n* `exam` - exam\n* `holiday` - holiday\n* `result` - result\n* `vacation` - vacation",
+        "enum": [
+          "event",
+          "exam",
+          "holiday",
+          "result",
+          "vacation"
+        ],
+        "type": "string"
+      }
+    },
+    "securitySchemes": {
+      "MobileBearer": {
+        "bearerFormat": "mv1.<session>.<expiry>.<signature>",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "The SchoolCore app's own API. See mobile/SPEC.md.",
+    "title": "SchoolCore mobile API",
+    "version": "1"
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/admin/dashboard": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "admin_dashboard_retrieve",
+        "parameters": [
+          {
+            "description": "BS YYYY-MM-DD; today when left out",
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/fees/collections": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "admin_fees_collections_retrieve",
+        "parameters": [
+          {
+            "description": "BS date; the 1st of this month when left out",
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BS date; today when left out",
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionsOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/fees/dues": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "admin_fees_dues_retrieve",
+        "parameters": [
+          {
+            "description": "One class's students",
+            "in": "query",
+            "name": "class",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DuesOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/guardian-links": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "admin_guardian_links_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "2, to review, when left out",
+            "in": "query",
+            "name": "state",
+            "schema": {
+              "enum": [
+                1,
+                2,
+                3
+              ],
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkListOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/guardian-links/{link_id}/decide": {
+      "post": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "admin_guardian_links_decide_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "link_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionInRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionInRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/guardians/{guardian_id}/family-code": {
+      "post": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "admin_guardians_family_code_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "guardian_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FamilyCodeOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/staff": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "admin_staff_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffDayOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/staff/attendance": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "admin_staff_attendance_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffDayOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/students": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "admin_students_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "class",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Name, roll or registration number",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentListOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/students/{student_id}": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "admin_student",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminStudentOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/auth/parent/code": {
+      "post": {
+        "description": "Email a sign-in code. The answer is the same whether or not the\nschool has the address, so it cannot be used to look parents up.",
+        "operationId": "auth_parent_code_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParentCodeRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/ParentCodeRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ParentCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CodeSentOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/parent/family-code": {
+      "post": {
+        "description": "A parent whose email the school does not have: the family code from\nthe school, then a code to the email to prove it is theirs.",
+        "operationId": "auth_parent_family_code_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FamilyCodeRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/FamilyCodeRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/FamilyCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CodeSentOut"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": ""
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/parent/verify": {
+      "post": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "auth_parent_verify_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParentVerifyRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/ParentVerifyRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ParentVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedInOut"
+                }
+              }
+            },
+            "description": ""
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedInOut"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "auth_refresh_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshedOut"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/signin": {
+      "post": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "auth_signin_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordSignInRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordSignInRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordSignInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedInOut"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/signout": {
+      "post": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "auth_signout_create",
+        "responses": {
+          "204": {
+            "description": "No response body"
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/signout-all": {
+      "post": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "auth_signout_all_create",
+        "responses": {
+          "204": {
+            "description": "No response body"
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/calendar": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "calendar_retrieve",
+        "parameters": [
+          {
+            "description": "BS YYYY-MM-DD; the 1st of this month when left out",
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BS YYYY-MM-DD; three months on when left out",
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "calendar"
+        ]
+      }
+    },
+    "/me": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "me_retrieve",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/me/close-account": {
+      "post": {
+        "description": "Close the account, as the portal does (mobile/SPEC.md §5).\n\nStudents and staff: the portal's own closing (`account.views.close_account`)\ndisables the login and scrubs its personal data; the school's records stay.\nParents: the email comes off their record and any family code is\ncancelled, so they can no longer sign in; the links to their children stay\nwith the school, which can give them a new family code to come back.\nEvery phone signed in to the account is signed out.",
+        "operationId": "me_close_account_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseAccountInRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseAccountInRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseAccountInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClosedOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/me/sessions": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "me_sessions_retrieve",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneListOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/me/sessions/{session_id}": {
+      "delete": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "me_sessions_destroy",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No response body"
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/notices": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "notices_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoticeListOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "notices"
+        ]
+      },
+      "post": {
+        "description": "Publish a notice: the school admin, or staff allowed to (1651).",
+        "operationId": "notices_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoticeInRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/NoticeInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoticeOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "notices"
+        ]
+      }
+    },
+    "/schools/{code}": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "schools_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchoolLookupOut"
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {}
+        ],
+        "tags": [
+          "schools"
+        ]
+      }
+    },
+    "/staff/classes": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "staff_classes_retrieve",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffClassesOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/staff/classes/{class_id}/attendance": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "staff_classes_attendance_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "class_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "BS YYYY-MM-DD; today when left out",
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClassDayOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "staff"
+        ]
+      },
+      "put": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "staff_classes_attendance_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "class_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "BS YYYY-MM-DD; today when left out",
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassDayInRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassDayInRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassDayInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClassDayOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/staff/homework": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "staff_homework_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffHomeworkListOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "staff"
+        ]
+      },
+      "post": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "staff_homework_create",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/HomeworkInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffHomeworkOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/staff/homework/{homework_id}/hand-ins": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "staff_homework_hand_ins_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "homework_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandInsOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/staff/homework/{homework_id}/hand-ins/{hand_in_id}": {
+      "patch": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "staff_homework_hand_ins_partial_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "hand_in_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "homework_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedHandInPatchInRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedHandInPatchInRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedHandInPatchInRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffHandInOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/staff/me/attendance": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "staff_me_attendance_retrieve",
+        "parameters": [
+          {
+            "description": "BS YYYY-MM",
+            "in": "query",
+            "name": "month",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceMonthOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/staff/today": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "staff_today_retrieve",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffTodayOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/students/{student_id}/attendance": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "students_attendance_retrieve",
+        "parameters": [
+          {
+            "description": "BS YYYY-MM; this month when left out",
+            "in": "query",
+            "name": "month",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceMonthOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/students/{student_id}/fees": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "students_fees_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeesDueOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/students/{student_id}/fees/history": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "students_fees_history_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeeHistoryOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/students/{student_id}/home": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "students_home_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentHomeOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/students/{student_id}/homework": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "students_homework_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "schema": {
+              "enum": [
+                "open",
+                "past"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeworkListOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/students/{student_id}/homework/{homework_id}/hand-in": {
+      "post": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "students_homework_hand_in_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "homework_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/HandInInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeworkOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/students/{student_id}/receipts/{receipt_id}": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "students_receipts_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "receipt_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/students/{student_id}/results": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "students_results_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamListOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/students/{student_id}/results/{exam_id}": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "students_exam_result",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "exam_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamResultOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/students/{student_id}/timetable": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "students_timetable_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "students"
+        ]
+      }
+    }
+  }
+}

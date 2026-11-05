@@ -5,6 +5,7 @@ import { Platform } from 'react-native';
 
 import { accountEnded, api, APP_VERSION, forgetTokens, rememberTokens } from '@/api/client';
 import type { Me, Role, School, SignedIn } from '@/api/types';
+import { dropAccount } from '@/offline/queue';
 import { readSecret, writeSecret } from './secure';
 
 /** One signed-in account on this phone. Its id is the server's session id. */
@@ -109,6 +110,7 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
   const drop = useCallback(
     async (id: string, message?: string) => {
       await forgetTokens(id);
+      dropAccount(id);
       queryClient.removeQueries({ queryKey: [id] });
       setSaved((current) => {
         const gone = current.accounts.find((a) => a.id === id);
@@ -165,6 +167,7 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
         for (const account of saved.accounts) {
           await api(account.id, 'auth/signout', { method: 'POST', body: {} }).catch(() => undefined);
           await forgetTokens(account.id);
+          dropAccount(account.id);
         }
         queryClient.clear();
         persist({ accounts: [], activeId: null });

@@ -19,6 +19,7 @@ import { AppState, Platform, StyleSheet, View } from 'react-native';
 import { AccountsProvider, useAccounts } from '@/accounts/store';
 import { ApiError, APP_VERSION, updateRequired } from '@/api/client';
 import { LockProvider, useLock } from '@/lock/store';
+import { QueueRunner } from '@/offline/QueueRunner';
 import { LockScreen } from '@/screens/LockScreen';
 import { UpdateRequired } from '@/screens/UpdateRequired';
 import { usePalette } from '@/theme';
@@ -59,6 +60,7 @@ export default function RootLayout() {
       persistOptions={{ persister, maxAge: WEEK, buster: APP_VERSION }}>
       <AccountsProvider>
         <LockProvider>
+          <QueueRunner />
           <RootNavigator fontsReady={fontsLoaded || !!fontError} />
         </LockProvider>
       </AccountsProvider>

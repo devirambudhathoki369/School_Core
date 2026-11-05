@@ -1,65 +1,63 @@
-// Shapes of /api/mobile/v1/ (backend/mobileapi). Dates are Bikram Sambat
-// "YYYY-MM-DD"; timestamps are ISO 8601.
+// The shapes of /api/mobile/v1/, named for the app. They come from
+// `schema.d.ts`, which is generated from the server's OpenAPI schema
+// (`npm run api-types`; see src/api/README.md), so a change on the server
+// shows up here as a type error instead of a broken screen.
+import type { components } from './schema';
 
-export type Role = 'parent' | 'student' | 'staff' | 'admin';
+type S = components['schemas'];
 
-export type School = {
-  id: number;
-  code: string;
-  name: string;
-  address: string;
-  logo_url: string | null;
-};
+export type Role = S['RoleEnum'];
+export type School = S['SchoolOut'];
+export type SchoolLookup = S['SchoolLookupOut'];
+export type Tokens = S['TokensOut'];
+export type Me = S['MeOut'];
+export type Child = S['MeChildOut'];
+export type SignedIn = S['SignedInOut'];
+export type CodeSent = S['CodeSentOut'];
+export type PhoneSession = S['PhoneSessionOut'];
+export type PhoneList = S['PhoneListOut'];
 
-export type SchoolLookup = {
-  school: School;
-  sign_in: Record<Role, 'password' | 'email_code'>;
-};
+// a child's screens (parents and students)
+export type StudentHome = S['StudentHomeOut'];
+export type DayMark = S['DayMarkOut'];
+export type AttendanceMonth = S['AttendanceMonthOut'];
+export type FeesDue = S['FeesDueOut'];
+export type FeeHistory = S['FeeHistoryOut'];
+export type FeeEntry = S['FeeEntryOut'];
+export type Receipt = S['ReceiptOut'];
+export type Homework = S['HomeworkOut'];
+export type HomeworkList = S['HomeworkListOut'];
+export type ExamList = S['ExamListOut'];
+export type ExamResult = S['ExamResultOut'];
+export type Timetable = S['TimetableOut'];
+export type Notice = S['NoticeOut'];
+export type NoticeList = S['NoticeListOut'];
+export type Calendar = S['CalendarOut'];
+export type CalendarEvent = S['CalendarEventOut'];
+export type FileLink = S['FileOut'];
 
-export type Tokens = {
-  access_token: string;
-  access_expires_at: number;
-  refresh_token: string;
-  token_type: 'Bearer';
-};
+// staff
+export type StaffToday = S['StaffTodayOut'];
+export type StaffClasses = S['StaffClassesOut'];
+export type StaffClass = S['StaffClassOut'];
+export type ClassDay = S['ClassDayOut'];
+export type RosterRow = S['RosterRowOut'];
+export type StaffHomework = S['StaffHomeworkOut'];
+export type StaffHomeworkList = S['StaffHomeworkListOut'];
+export type HandIns = S['HandInsOut'];
+export type StaffHandIn = S['StaffHandInOut'];
 
-export type Child = {
-  id: number;
-  name: string;
-  class_name: string;
-  roll_no: string | null;
-  photo_url: string | null;
-};
+// school admin
+export type Dashboard = S['DashboardOut'];
+export type StudentList = S['StudentListOut'];
+export type StudentRow = S['StudentRowOut'];
+export type AdminStudent = S['AdminStudentOut'];
+export type Dues = S['DuesOut'];
+export type Collections = S['CollectionsOut'];
+export type StaffDay = S['StaffDayOut'];
+export type LinkList = S['LinkListOut'];
+export type Link = S['LinkOut'];
+export type FamilyCode = S['FamilyCodeOut'];
 
-export type Me = {
-  role: Role;
-  session_id: string;
-  school: School;
-  profile: {
-    id?: number;
-    name: string;
-    username?: string;
-    email?: string | null;
-    phone_last_digits?: string;
-    class_name?: string;
-    roll_no?: string | null;
-    designation?: string;
-    photo_url?: string | null;
-  };
-  children?: Child[];
-  permissions?: number[];
-};
-
-export type SignedIn = { tokens: Tokens; me: Me };
-
-export type CodeSent = { sent_to: string; resend_after: number; expires_in: number };
-
-export type PhoneSession = {
-  id: string;
-  platform: 'android' | 'ios' | null;
-  device_label: string;
-  app_version: string;
-  created_at: string;
-  last_seen_at: string;
-  current: boolean;
-};
+/** Every list answer: one page and where the next starts. */
+export type Page<T> = { items: T[]; next_cursor: string | null };

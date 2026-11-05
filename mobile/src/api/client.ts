@@ -17,6 +17,7 @@ const ORIGIN = (process.env.EXPO_PUBLIC_API_URL ?? 'http://127.0.0.1:8000').repl
 export const API_BASE = `${ORIGIN}/api/mobile/v1/`;
 export const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 const TIMEOUT_MS = 20_000;
+const UPLOAD_TIMEOUT_MS = 120_000;
 
 export class ApiError extends Error {
   status: number;
@@ -50,25 +51,36 @@ export const updateRequired = signal<string>();
 export const accountEnded = signal<string>();
 
 // --- requests ---------------------------------------------------------------
-type Options = { method?: 'GET' | 'POST' | 'DELETE'; body?: unknown; token?: string };
+export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+type Options = {
+  method?: Method;
+  /** JSON, or a FormData for file uploads. */
+  body?: unknown;
+  token?: string;
+  /** Sent with every write; the same key on a retry gets the first answer. */
+  idempotencyKey?: string;
+};
 
-async function request<T>(path: string, { method = 'GET', body, token }: Options = {}): Promise<T> {
+async function request<T>(path: string, { method = 'GET', body, token, idempotencyKey }: Options = {}): Promise<T> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'X-App-Version': APP_VERSION,
     'X-Platform': Platform.OS,
   };
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  const form = typeof FormData !== 'undefined' && body instanceof FormData;
+  if (body !== undefined && !form) headers['Content-Type'] = 'application/json';
   if (token) headers.Authorization = `Bearer ${token}`;
+  if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey;
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  // files on slow mobile data take longer than a page of JSON
+  const timer = setTimeout(() => controller.abort(), form ? UPLOAD_TIMEOUT_MS : TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(API_BASE + path, {
       method,
       headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: body === undefined ? undefined : form ? (body as FormData) : JSON.stringify(body),
       credentials: 'omit',
       signal: controller.signal,
     });

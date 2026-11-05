@@ -22,7 +22,7 @@ export default function Sessions() {
 
   async function signOutPhone(id: string) {
     await api(account.id, `me/sessions/${id}`, { method: 'DELETE' }).catch(() => undefined);
-    await queryClient.invalidateQueries({ queryKey: [account.id, 'sessions'] });
+    await queryClient.invalidateQueries({ queryKey: [account.id, 'me/sessions'] });
   }
 
   const items = phones.data?.items ?? [];
