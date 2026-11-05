@@ -2,3 +2,5 @@
 .link:hover { filter:brightness(.97); }
 .link:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
 @media(max-width:767px) { .link { height:36px; width:36px; padding:7px; } }
+/* Night: a raised dark surface, so its light words stay readable */
+:global(:root[data-ui-mode="dark"]) .link { background: var(--d-surface-2, #1B212B); border-color: var(--d-line-strong, #3A4250); color: var(--d-ink, #E6E9EE); }

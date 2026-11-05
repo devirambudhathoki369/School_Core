@@ -7477,3 +7477,11 @@ button.app-att-day { cursor: pointer; }
         gap: 8px;
     }
 }
+/* Night: the year button was set plain white for light mode and kept it in the
+   dark, under light lettering */
+:root[data-ui-mode="dark"] .app-tool-btn.app-year-chip.is-ok {
+    background: var(--d-surface-2) !important;
+    border-color: var(--d-line-strong) !important;
+    color: var(--d-ink) !important;
+}
+:root[data-ui-mode="dark"] .app-tool-btn.app-year-chip.is-ok :is(span, svg) { color: var(--d-ink) !important; }
