@@ -14,7 +14,8 @@ its API are not changed by it.
 | Decision | Why |
 |---|---|
 | Parents get real accounts (`Guardian`), one per school and phone, linked to each of their children | One sign-in shows every child at that school, siblings included |
-| Parents sign in by SMS code **or** by a family code the school gives them | Works at schools with no SMS credit; the school vouching for a parent also settles shared phone numbers |
+| Parents sign in with a code sent to their email; a parent whose email the school does not have uses a family code from the school once | Email costs nothing and works at every school; the school vouching for each new email also settles shared phone numbers |
+| Everyone else signs in with their username and password | Students, staff and admins already have these accounts |
 | Short access token (15 min) plus a 60-day refresh token that changes on every use | Stays signed in for months; a stolen token is caught the moment both copies are used |
 | Staff and admins must unlock the app with a PIN or fingerprint | A lost phone does not open school records |
 | One request per screen, sized for slow mobile data | Screens open fast on 3G; less data used |
@@ -31,7 +32,7 @@ shows the school's name and logo, then asks who they are.
 
 | Role | Proves who they are with | Account |
 |---|---|---|
-| Parent | Phone number + 6-digit SMS code, or phone number + 8-character family code from the school | `main_guardian` (new) |
+| Parent | Email address + 6-digit code sent to that email | `main_guardian` (new) |
 | Student | Username + password | `account_studentaccount` (existing) |
 | Staff | Username + password | `account_staffaccount` (existing) |
 | School admin | Username + password | `account_adminaccount` (existing) |
@@ -45,16 +46,27 @@ Rules:
   is the same "wrong username or password" as a bad password.
 - Password sign-ins reuse the portal's password check and its lock-out after
   repeated failures.
-- **SMS code:** asking for a code always gets the same answer, so it never
-  reveals whether a number is on record. An SMS goes out only when the number
-  belongs to a parent with at least one linked, active child and the school
-  has SMS. The code lasts 5 minutes and allows 5 tries. Each phone gets at
-  most 1 code a minute and 5 an hour, and each address 30 requests an hour.
+- **Email code:** asking for a code always gets the same answer, so it never
+  reveals whether an email is on record. An email goes out only when the
+  address belongs to a parent at that school with at least one linked,
+  active child. The code is 6 digits, lasts 10 minutes and allows 5 tries.
+  Each email address gets at most 1 code a minute and 5 an hour, and each
+  network address 30 requests an hour.
+- **First sign-in when the school does not have the email:** the parent
+  enters the family code from the school and their email. A code goes to
+  that email, and once it is entered, the email is saved on that parent's
+  record and they are signed in. From then on the email alone works. A code
+  is sent to an unknown address only after a valid family code, so the form
+  cannot be used to send email to strangers.
 - **Family code:** a school admin, or staff with permission, makes one for a
   parent in the admin screens of the app (later also in the portal). It is 8
   characters from an alphabet with no look-alike letters, single use, and
   valid for 7 days. It is shown once and stored only as a hash. Making a new
-  one cancels the old one. It works only with that parent's phone number.
+  one cancels the old one.
+- **Sending email:** the backend sends no email today. In development the
+  email is printed in the server's terminal. Production needs an email
+  account, set with `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`,
+  `EMAIL_HOST_PASSWORD` and `DEFAULT_FROM_EMAIL`.
 - One account may be signed in on at most 5 phones. A sixth sign-in signs out
   the oldest.
 
@@ -100,11 +112,14 @@ A parent or guardian of one school, known by their mobile number.
 | `id` | `bigint` | primary key |
 | `school_id` | `integer` | not null, references `main_schooladmin`, cascade |
 | `phone` | `char(10)` | not null, `CHECK (phone ~ '^9[0-9]{9}$')` (a Nepali mobile number) |
+| `email` | `varchar(254)` null | the sign-in email; `CHECK (email = lower(email) AND email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$')` |
 | `name` | `varchar(100)` | not null, default `''` |
 | `is_active` | `boolean` | not null, default true |
 | `created_at`, `updated_at` | `timestamptz` | not null |
 
-`UNIQUE (school_id, phone)`. Multiplicity: school 1 — 0..* guardian.
+`UNIQUE (school_id, phone)`, and a partial unique index on `(school_id,
+email) WHERE email IS NOT NULL`, so an email signs in to one parent per
+school. Multiplicity: school 1 — 0..* guardian.
 
 ### `main_studentguardian`
 
@@ -169,19 +184,20 @@ Indexes: one partial index per account column `WHERE revoked_at IS NULL`.
 A partial unique index on `(session_id) WHERE used_at IS NULL` allows one
 live token per session.
 
-### `mobileapi_otpchallenge`
+### `mobileapi_emailcode`
 
 | Column | Type | Rules |
 |---|---|---|
 | `id` | `bigint` | primary key |
-| `school_id` | `integer` | not null, references `main_schooladmin`, cascade |
-| `phone` | `char(10)` | not null, same check as `main_guardian.phone` |
+| `guardian_id` | `bigint` | not null, references `main_guardian`, cascade |
+| `email` | `varchar(254)` | not null, lower-case; the address the code went to |
+| `purpose` | `smallint` | not null; 1 sign in, 2 add this email (after a family code) |
 | `code_hash` | `bytea` | not null; HMAC of the code with a server key, because a plain hash of 6 digits can be guessed |
 | `created_at`, `expires_at` | `timestamptz` | not null, `CHECK (expires_at > created_at)` |
 | `attempts` | `smallint` | not null, default 0, `CHECK (attempts BETWEEN 0 AND 5)` |
 | `consumed_at` | `timestamptz` null | |
 
-Index `(school_id, phone, created_at DESC)`; the SMS limits count rows in it.
+Index `(email, created_at DESC)`; the email limits count rows in it.
 
 ### `mobileapi_familycode`
 
@@ -210,7 +226,10 @@ writes only with `--apply`. Running it twice does no harm.
    leading `977`. Numbers that are not mobile numbers are listed in the
    report and skipped.
 2. Make one guardian per school and number. The name comes from
-   `guardian_name`, else the father's name, else the mother's.
+   `guardian_name`, else the father's name, else the mother's. The email
+   comes from `guardian_email` when the record has one, in lower case. An
+   email found with several numbers stays on the guardian with the most
+   students, and the others are listed.
 3. If every student sharing the number has the same family name, link them
    (state 1, primary, relation "guardian"). If not, the links wait for review
    (state 2): the number may be the school's own or a relative's. The
@@ -245,9 +264,9 @@ Base `/api/mobile/v1/`. These conventions hold everywhere:
 | Method and path | Who | What |
 |---|---|---|
 | `GET /schools/{code}` | anyone | School name, logo, and which sign-ins it offers |
-| `POST /auth/parent/code` | anyone | Send an SMS code (same answer every time) |
-| `POST /auth/parent/verify` | anyone | Phone + SMS code → tokens |
-| `POST /auth/parent/family-code` | anyone | Phone + family code → tokens |
+| `POST /auth/parent/code` | anyone | Email a sign-in code (same answer every time) |
+| `POST /auth/parent/verify` | anyone | Email + code → tokens |
+| `POST /auth/parent/family-code` | anyone | Family code + email → a code goes to that email; `verify` then saves the email and signs in |
 | `POST /auth/signin` | anyone | Role + username + password → tokens |
 | `POST /auth/refresh` | anyone | Refresh token → new pair |
 | `POST /auth/signout` · `POST /auth/signout-all` | signed in | End this session / every session of the account |
@@ -312,6 +331,21 @@ screens on one canvas: the school-code screen, a parent's home and a
 teacher's attendance screen in each. You pick one, and the app is built in
 it. Flat colour, no gradients, light and dark.
 
+Rules every look keeps:
+
+- **Colour has one meaning each.**
+  - Green: present, paid, done.
+  - Orange-red: absent or overdue, and it is never the brand colour, so a
+    warning never looks like a button.
+  - Amber: due soon, or offline.
+  - The brand colour: actions and the current tab, nothing else.
+- **Fees owed** are shown in the warm accent, not in red, so a parent reads
+  "to pay" rather than "trouble".
+- **Text contrast** is at least 4.5:1, including small grey labels.
+- **Icons:** one outline set at 2 px, with a soft fill of the same colour on
+  the main shape, set in a tinted tile. The current tab's icon fills in. No
+  emoji.
+
 ## 8. How it is checked
 
 - **Backend tests for every endpoint:**
@@ -320,7 +354,7 @@ it. Flat colour, no gradients, light and dark.
   - Refuses another family's child (parent) and another student's record (student).
   - Refuses a staff token without the permission.
 - **Token tests:** refresh rotation, reuse ending the session, the 5-phone
-  limit, and the SMS limits.
+  limit, and the email-code limits.
 - **Database tests:** each `CHECK`, unique index and the same-school trigger
   refuses bad rows.
 - **Backfill:** the report is run on a copy of the real data before
@@ -334,16 +368,24 @@ it. Flat colour, no gradients, light and dark.
 
 | Phase | Delivers | Done when |
 |---|---|---|
-| 1. Backend foundation | The tables, the school code, the four sign-ins, tokens, SMS and family codes, `link_guardians` and the sync signal, `/me`, sessions | The tests above pass; the backfill report is read on a copy of the data |
+| 1. Backend foundation | The tables, the school code, the four sign-ins, tokens, email and family codes, `link_guardians` and the sync signal, `/me`, sessions | The tests above pass; the backfill report is read on a copy of the data |
 | 2. App foundation | The chosen look; school code, role choice and sign-ins for all four roles; app lock; account switching; offline cache | All four demo users sign in on a phone |
 | 3. Parents and students | Their endpoints and screens, homework hand-in included | Every screen works on a phone with demo data |
 | 4. Staff | Today, classes, attendance with the offline queue, homework, notices | A teacher takes a class's attendance offline and it syncs |
 | 5. School admin | Dashboard, students, fees, staff, parents, notices | An admin confirms a shared number and issues a family code |
 | 6. Notifications and stores | Push (gate tap-in, absence, fees due, notices, homework), store listings and builds | Needs your Firebase, Play Console and Apple accounts |
 
-## 10. Decisions needed
+## 10. Decisions
+
+Made on 2026-11-05:
+
+- Parents sign in with a code sent to their email.
+- Students, staff and admins sign in with their username and password.
+- Four looks are drawn to choose from.
+
+Still open:
 
 1. Sign-off on the tables in section 4.
-2. Parents: SMS code plus family code, as above.
-3. App lock required for staff and admins.
-4. Four looks to choose from (section 7).
+2. Which of the four looks.
+3. An email account for sending codes in production.
+4. App lock required for staff and admins.
