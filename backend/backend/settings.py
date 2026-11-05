@@ -50,11 +50,10 @@ SECRET_KEY = (
     else os.environ.get("SECRET_KEY")
 )
 
-ALLOWED_HOSTS = (
-    ("127.0.0.1", "localhost")
-    if DEBUG
-    else tuple(url for url in os.environ.get("ALLOWED_HOSTS", "").split(",") if url)
-)
+_NAMED_HOSTS = tuple(url for url in os.environ.get("ALLOWED_HOSTS", "").split(",") if url)
+# Development also answers the hosts named in ALLOWED_HOSTS, so a phone on the
+# same Wi-Fi can reach this machine by its address (the mobile app, mobile/).
+ALLOWED_HOSTS = ("127.0.0.1", "localhost") + _NAMED_HOSTS if DEBUG else _NAMED_HOSTS
 if DEBUG:
     print("\t>>", ALLOWED_HOSTS)
 
