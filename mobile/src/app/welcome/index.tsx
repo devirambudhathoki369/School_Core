@@ -117,18 +117,18 @@ export default function Welcome() {
           <SectionLabel>I am a</SectionLabel>
           <Card padded={false}>
             <ListRow
-              icon="parent"
-              title="Parent"
-              sub="We email you a sign-in code"
-              onPress={() => go('/welcome/parent')}
-            />
-            <Divider inset={70} />
-            <ListRow
               icon="student"
-              tint="marigold"
               title="Student"
               sub="Username and password"
               onPress={() => go('/welcome/sign-in', 'student')}
+            />
+            <Divider inset={70} />
+            <ListRow
+              icon="parent"
+              tint="marigold"
+              title="Parent"
+              sub="We email you a sign-in code"
+              onPress={() => go('/welcome/parent')}
             />
             <Divider inset={70} />
             <ListRow

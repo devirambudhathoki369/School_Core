@@ -3,15 +3,17 @@
 Everything the code can do is done. What is left needs your accounts or a
 decision of yours. Do the steps in this order.
 
+**The app is for students.** It is one app, on one store listing, that the
+students of every school install and open with their school's code. It is
+not the school's app, and there is no build per school as the old app had
+(`com.centit.<school>.app`). Parents use it to follow their children. Staff
+and the school office use it to serve their students.
+
 ## 1. Decide
 
-1. **One app or one per school.** The old app shipped one Play build per school
-   (`com.centit.<school>.app`, see the superadmin's app listings). The new app
-   is one app for every school: the school code picks the school. One listing
-   is simpler to keep. Choose its package name, for example
-   `com.centit.schoolcore.app`, and set it in `app.json` as
-   `android.package` and `ios.bundleIdentifier`. It cannot change after the
-   first upload.
+1. **The package name** of the one app, for example
+   `com.centit.schoolcore.app`. Set it in `app.json` as `android.package` and
+   `ios.bundleIdentifier`. It cannot change after the first upload.
 2. **The email account** that sends parents their sign-in codes (step 3).
 
 ## 2. Accounts (once)
@@ -71,23 +73,22 @@ push notifications, because Expo Go cannot receive them.
 ## 5. Store listing
 
 - **Name:** SchoolCore
-- **Short description (80):** Attendance, fees, homework and results from your school, in one app.
+- **Short description (80):** Your homework, results, attendance and fees, in one app for students.
 - **Full description:**
 
-  > SchoolCore brings your school to your phone.
+  > SchoolCore is the app for students.
   >
-  > Parents see each child's attendance, fees to pay, receipts, homework,
-  > results, timetable, notices and the school calendar. Sign in with the
-  > school's code and your email: no password to remember.
+  > See today's homework and hand it in with a photo of your work. Check your
+  > results with every subject's marks and grade, your attendance for the
+  > month, your timetable, your fees, and your school's notices and calendar.
+  > Sign in with your school's code and the username your school gives you.
   >
-  > Students hand in homework with a photo, and check results and attendance.
+  > Parents follow their children in the same app: attendance, fees and
+  > receipts, homework, results and notices for each child. They sign in with
+  > the school's code and their email, with no password to remember.
   >
-  > Teachers take a class's attendance in a few taps, even with no signal: it
-  > is sent when the phone is back online. They set homework and check
-  > hand-ins.
-  >
-  > School admins see the day at a glance: who is in, money received, fees
-  > still to collect, and parents waiting for review.
+  > Teachers and the school office sign in too, to take attendance (even with
+  > no signal), set homework and check it, and publish notices.
   >
   > Your school must use SchoolCore. Ask the school office for its code.
 
@@ -98,8 +99,9 @@ push notifications, because Expo Go cannot receive them.
 - **Account deletion:** in the app under Account → Close my account. For the
   web form Play also asks for, link the privacy policy's section 11 ("How
   can you review, update, or delete the data we collect from you?").
-- **Screenshots** (phone, 1080×2400): a parent's home, attendance calendar,
-  fees, a result, a teacher taking attendance, and the admin's day.
+- **Screenshots** (phone, 1080×2400), students first: a student's home,
+  homework with a hand-in, a result, the attendance calendar, then a
+  parent's view of a child, and a teacher taking attendance.
 
 ### Data safety answers
 

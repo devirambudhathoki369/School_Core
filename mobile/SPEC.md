@@ -5,12 +5,17 @@ the backend in `backend/mobileapi/` (migrations `main/0117`, `mobileapi/0001`
 and `0002`), and the app in this folder with every role's screens, push
 notifications, its icons and its build profiles. The app's types are
 generated from the API's OpenAPI schema (`src/api/README.md`). What is left
-needs your Expo, Firebase, Apple and Play accounts and two decisions: see
+needs your Expo, Firebase, Apple and Play accounts and a package name: see
 `RELEASE.md`.
 
-One app for Android and iPhone with four kinds of user: **parent**,
-**student**, **staff** and **school admin**. Each signs in their own way and
-sees their own screens. The app has its own versioned API,
+**The app is for students.** It is one app for Android and iPhone that the
+students of every SchoolCore school install and open with their school's
+code. It is not the school's app and not a build per school. Everything it
+shows is about a student: their attendance, homework, results, fees and
+school news. Their **parents** follow them in it. **Staff** and the **school
+admin** sign in too, to serve the students: to take attendance, set
+homework, publish notices and help parents get in. Each of the four signs in
+their own way and sees their own screens. The app has its own versioned API,
 `/api/mobile/v1/`, on the existing backend and database. The web portal and
 its API are not changed by it.
 
@@ -415,7 +420,10 @@ Rules every look keeps:
 
 ## 10. Decisions
 
-Made on 2026-11-05:
+Made on 2026-11-05 and 2026-11-06:
+
+- The app is for students: one app for every school's students, not a
+  build per school.
 
 - Parents sign in with a code sent to their email.
 - Students, staff and admins sign in with their username and password.
@@ -427,6 +435,5 @@ Still open:
 1. An email account for sending codes in production.
 2. App lock required for staff and admins: built as required. Say if it
    should be optional instead.
-3. One app for every school, or one build per school as the old app was,
-   and its package name (`RELEASE.md` §1).
+3. The package name (`RELEASE.md` §1).
 
