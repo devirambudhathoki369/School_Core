@@ -1,10 +1,11 @@
 import { router } from 'expo-router';
-import { Alert, Platform, Switch, View } from 'react-native';
+import { Alert, Linking, Platform, Switch, View } from 'react-native';
 
 import { accountLine, useAccounts, useActive } from '@/accounts/store';
 import { api, APP_VERSION } from '@/api/client';
 import { useMe } from '@/api/hooks';
 import { useLock } from '@/lock/store';
+import { setPushFor, usePush } from '@/push/push';
 import { space, usePalette } from '@/theme';
 import { Icon, type IconName } from '@/ui/Icon';
 import { Card, Divider, Header, ListRow, Screen, SectionLabel, T } from '@/ui/kit';
@@ -56,6 +57,15 @@ export function MoreScreen() {
   const { accounts, switchTo, setAdding, signOut, signOutEverywhere } = useAccounts();
   const lock = useLock();
   const me = useMe().data;
+  const push = usePush();
+  const allIds = accounts.map((a) => a.id);
+  const pushOn = push.status === 'granted' && !push.off[account.id];
+  const pushLine = {
+    granted: pushOn ? 'On: notices, homework, attendance and fees' : 'Off for this account',
+    denied: 'Turned off in the phone’s settings. Tap to open them.',
+    undetermined: 'Tap to turn on',
+    unavailable: 'Not available in this version of the app',
+  }[push.status];
 
   const lockLine = lock.hasPin
     ? lock.biometricsOn
@@ -131,6 +141,29 @@ export function MoreScreen() {
             />
           </>
         ) : null}
+        <Divider inset={70} />
+        <ListRow
+          icon="bell"
+          title="Notifications"
+          sub={pushLine}
+          onPress={
+            push.status === 'denied'
+              ? () => void Linking.openSettings()
+              : push.status === 'undetermined'
+                ? () => void setPushFor(account.id, true, allIds)
+                : undefined
+          }
+          trailing={
+            push.status === 'granted' ? (
+              <Switch
+                value={pushOn}
+                onValueChange={(on) => void setPushFor(account.id, on, allIds)}
+                trackColor={{ true: c.blue, false: c.lineStrong }}
+                accessibilityLabel="Notifications for this account"
+              />
+            ) : undefined
+          }
+        />
         <Divider inset={70} />
         <ListRow icon="phone" title="Phones signed in" sub="See them, and sign one out" onPress={() => router.push('/sessions')} />
       </Card>

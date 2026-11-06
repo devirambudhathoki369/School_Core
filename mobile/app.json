@@ -8,7 +8,8 @@
     "scheme": "schoolcore",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "supportsTablet": false,
+      "icon": "./assets/images/icon.png"
     },
     "android": {
       "adaptiveIcon": {
@@ -39,11 +40,30 @@
         {
           "faceIDPermission": "SchoolCore uses Face ID to unlock the app."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#142B6F",
+          "defaultChannel": "school"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "SchoolCore uses the camera to photograph homework for handing in.",
+          "photosPermission": "SchoolCore opens your photos so you can hand in a picture of your homework.",
+          "microphonePermission": false
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }

@@ -14,21 +14,37 @@ type ChildChoice = {
 
 const Context = createContext<ChildChoice | null>(null);
 
+const storageKey = (accountId: string) => `schoolcore.child.${accountId}`;
+const requests = new Set<(accountId: string, studentId: number) => void>();
+
+/** Show this child (a tapped notification about them). */
+export function requestChild(accountId: string, studentId: number) {
+  void AsyncStorage.setItem(storageKey(accountId), String(studentId)).catch(() => undefined);
+  requests.forEach((r) => r(accountId, studentId));
+}
+
 /** For parents: which of their children the screens show, remembered per
  *  account. For students: always themself. */
 export function ChildProvider({ children: content }: { children: ReactNode }) {
   const account = useActive();
   const me = useMe().data;
   const [chosen, setChosen] = useState<number | null>(null);
-  const storageKey = `schoolcore.child.${account.id}`;
+  const key = storageKey(account.id);
 
   useEffect(() => {
-    AsyncStorage.getItem(storageKey)
+    AsyncStorage.getItem(key)
       .then((saved) => {
         if (saved) setChosen(Number(saved));
       })
       .catch(() => undefined);
-  }, [storageKey]);
+    const request = (accountId: string, studentId: number) => {
+      if (accountId === account.id) setChosen(studentId);
+    };
+    requests.add(request);
+    return () => {
+      requests.delete(request);
+    };
+  }, [key, account.id]);
 
   const value = useMemo<ChildChoice>(() => {
     const list: Child[] =
@@ -50,10 +66,10 @@ export function ChildProvider({ children: content }: { children: ReactNode }) {
       children: list,
       choose: (id) => {
         setChosen(id);
-        void AsyncStorage.setItem(storageKey, String(id)).catch(() => undefined);
+        void AsyncStorage.setItem(key, String(id)).catch(() => undefined);
       },
     };
-  }, [account.role, me, chosen, storageKey]);
+  }, [account.role, me, chosen, key]);
 
   return <Context value={value}>{content}</Context>;
 }

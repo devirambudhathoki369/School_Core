@@ -20,6 +20,7 @@ import { AccountsProvider, useAccounts } from '@/accounts/store';
 import { ApiError, APP_VERSION, updateRequired } from '@/api/client';
 import { LockProvider, useLock } from '@/lock/store';
 import { QueueRunner } from '@/offline/QueueRunner';
+import { PushRunner, PushTaps } from '@/push/PushRunner';
 import { LockScreen } from '@/screens/LockScreen';
 import { UpdateRequired } from '@/screens/UpdateRequired';
 import { usePalette } from '@/theme';
@@ -61,6 +62,7 @@ export default function RootLayout() {
       <AccountsProvider>
         <LockProvider>
           <QueueRunner />
+          {Platform.OS !== 'web' ? <PushRunner /> : null}
           <RootNavigator fontsReady={fontsLoaded || !!fontError} />
         </LockProvider>
       </AccountsProvider>
@@ -119,6 +121,7 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
           </Stack.Protected>
         </Stack>
       </View>
+      {Platform.OS !== 'web' ? <PushTaps /> : null}
       {locked ? (
         <View style={StyleSheet.absoluteFill}>
           <LockScreen />
