@@ -26,7 +26,7 @@ from main.models.Student import Student
 from main.views.school.SchoolDashView import collected_on, school_attendance_on
 
 from ..access import (
-    bs_date, bs_month, not_found, page_by_offset, paisa, require_role,
+    TAKE_PAYMENTS, UPDATE_STUDENTS, forbidden, staff_of, staff_permissions, bs_date, bs_month, not_found, page_by_offset, paisa, require_role,
 )
 from ..auth import STAFF_EMPLOYED, STUDENT_RUNNING
 from ..errors import MobileError
@@ -124,7 +124,7 @@ class AdminStudentOut(serializers.Serializer):
     student = ChildOut()
     profile = StudentProfileOut()
     guardians = GuardianLinkBriefOut(many=True)
-    dues = FeesDueOut()
+    dues = FeesDueOut(allow_null=True, help_text="Left out for staff without the payments permission (103)")
     attendance = MonthTotalsOut()
 
 
@@ -216,6 +216,17 @@ class FamilyCodeOut(serializers.Serializer):
 def _admin(request):
     require_role(request, AppSession.ADMIN)
     return request.auth.school_id
+
+
+def _admin_or_staff(request, permission) -> tuple[int, set]:
+    """The school, and the caller's permissions ("admin" for the school admin)."""
+    if request.auth.role == AppSession.ADMIN:
+        return request.auth.school_id, {"admin"}
+    if request.auth.role == AppSession.STAFF:
+        perms = staff_permissions(staff_of(request))
+        if permission in perms:
+            return request.auth.school_id, perms
+    raise forbidden()
 
 
 def running_students(school_id):
@@ -328,7 +339,7 @@ class AdminStudentsView(MobileAPIView):
         responses=StudentListOut,
     )
     def get(self, request):
-        school_id = _admin(request)
+        school_id, _ = _admin_or_staff(request, UPDATE_STUDENTS)
         students = running_students(school_id)
         klass = request.query_params.get("class")
         if klass:
@@ -352,7 +363,8 @@ class AdminStudentView(MobileAPIView):
     @extend_schema(operation_id="admin_student", parameters=[OpenApiParameter("student_id", int, OpenApiParameter.PATH)],
                    responses=AdminStudentOut)
     def get(self, request, student_id):
-        school_id = _admin(request)
+        school_id, perms = _admin_or_staff(request, UPDATE_STUDENTS)
+        sees_dues = "admin" in perms or TAKE_PAYMENTS in perms
         student = (
             running_students(school_id)
             .select_related("class_info__school", "class_info__section", "class_info__course", "guardian_info",
@@ -396,7 +408,10 @@ class AdminStudentView(MobileAPIView):
                 }
                 for link in links
             ],
-            "dues": {**dues(student), "academic_year": student.academic_year.name if student.academic_year_id else ""},
+            "dues": (
+                {**dues(student), "academic_year": student.academic_year.name if student.academic_year_id else ""}
+                if sees_dues else None
+            ),
             "attendance": {"label": month["label"], "present": present, "absent": len(days) - present,
                            "taken": len(days)},
         }
@@ -565,13 +580,17 @@ class GuardianFamilyCodeView(MobileAPIView):
     @extend_schema(parameters=[OpenApiParameter("guardian_id", int, OpenApiParameter.PATH)], request=None,
                    responses={201: FamilyCodeOut})
     def post(self, request, guardian_id):
+        """The school admin, or staff who may update student records (102)."""
         # Not replayed by its Idempotency-Key: that would keep the code itself
         # in the cache. A retry simply makes a new code, which cancels the old.
-        school_id = _admin(request)
+        school_id, perms = _admin_or_staff(request, UPDATE_STUDENTS)
         guardian = Guardian.objects.filter(pk=guardian_id, school=school_id, is_active=True).first()
         if guardian is None:
             raise not_found("That parent was not found.")
-        code = issue_family_code(guardian, admin=request.auth.account)
+        if "admin" in perms:
+            code = issue_family_code(guardian, admin=request.auth.account)
+        else:
+            code = issue_family_code(guardian, staff=request.auth.account)
         body = {
             "code": code,
             "expires_at": timezone.now() + timedelta(days=FAMILY_CODE_DAYS),

@@ -139,3 +139,35 @@ class ParentLinkTests(AdminFixtures, TestCase):
         far_guardian = Guardian.objects.create(school=self.other, phone="9855555555")
         self.assertEqual(self.write("post", f"admin/guardians/{far_guardian.id}/family-code", {},
                                     self.admin_token).status_code, 404)
+
+
+class StaffFamilyCodeTests(AdminFixtures, TestCase):
+    """Staff who may update student records (102) vouch for parents too."""
+
+    def allow(self, *perms):
+        self.staff.permissions = list(perms)
+        self.staff.save(update_fields=["permissions"])
+
+    def test_staff_without_102_cannot(self):
+        self.assertEqual(self.get("admin/students?q=asha", self.staff_token).status_code, 403)
+        self.assertEqual(self.write("post", f"admin/guardians/{self.guardian.id}/family-code", {},
+                                    self.staff_token).status_code, 403)
+
+    def test_staff_with_102_find_the_student_and_make_a_code(self):
+        self.allow(102)
+        items = self.get("admin/students?q=asha", self.staff_token).json()["items"]
+        self.assertEqual([i["id"] for i in items], [self.student.id])
+        detail = self.get(f"admin/students/{self.student.id}", self.staff_token).json()
+        self.assertIsNone(detail["dues"])  # dues stay with the payments permission
+        self.assertEqual([g["guardian_id"] for g in detail["guardians"]], [self.guardian.id])
+        answer = self.write("post", f"admin/guardians/{self.guardian.id}/family-code", {}, self.staff_token)
+        self.assertEqual(answer.status_code, 201, answer.content)
+        entry = FamilyCode.objects.get(guardian=self.guardian, revoked_at__isnull=True)
+        self.assertEqual((entry.issued_by_staff_id, entry.issued_by_admin_id), (self.staff_account.id, None))
+        # the rest of the admin's screens stay the admin's
+        self.assertEqual(self.get("admin/dashboard", self.staff_token).status_code, 403)
+
+    def test_staff_with_103_as_well_see_the_dues(self):
+        self.allow(102, 103)
+        detail = self.get(f"admin/students/{self.student.id}", self.staff_token).json()
+        self.assertEqual(detail["dues"]["total_paisa"], 90000)

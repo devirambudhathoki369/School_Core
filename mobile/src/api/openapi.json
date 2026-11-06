@@ -7,7 +7,13 @@
             "$ref": "#/components/schemas/MonthTotalsOut"
           },
           "dues": {
-            "$ref": "#/components/schemas/FeesDueOut"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FeesDueOut"
+              }
+            ],
+            "description": "Left out for staff without the payments permission (103)",
+            "nullable": true
           },
           "guardians": {
             "items": {
@@ -2863,7 +2869,7 @@
     },
     "/admin/guardians/{guardian_id}/family-code": {
       "post": {
-        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "description": "The school admin, or staff who may update student records (102).",
         "operationId": "admin_guardians_family_code_create",
         "parameters": [
           {

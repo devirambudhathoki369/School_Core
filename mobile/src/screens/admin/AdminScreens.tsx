@@ -106,7 +106,7 @@ export function AdminDashboardScreen() {
   );
 }
 
-export function AdminStudentsScreen() {
+export function AdminStudentsScreen({ root = true }: { root?: boolean }) {
   const go = useGo();
   const [typed, setTyped] = useState('');
   const [query, setQuery] = useState('');
@@ -115,7 +115,7 @@ export function AdminStudentsScreen() {
     <Screen
       onRefresh={() => void students.refetch()}
       refreshing={students.isRefetching}
-      header={<PageHeader title="Students" sub="Find a student by name or roll number" onBack={null} />}>
+      header={<PageHeader title="Students" sub="Find a student by name or roll number" onBack={root ? null : undefined} />}>
       <Field
         label="Search"
         value={typed}
@@ -180,7 +180,9 @@ export function AdminStudentScreen() {
         {(d) => (
           <>
             <Row>
-              <Tile label="Fees to pay" tone={d.dues.total_paisa > 0 ? 'warn' : 'ok'} value={rupees(d.dues.total_paisa)} />
+              {d.dues ? (
+                <Tile label="Fees to pay" tone={d.dues.total_paisa > 0 ? 'warn' : 'ok'} value={rupees(d.dues.total_paisa)} />
+              ) : null}
               <Tile
                 label={`Present in ${d.attendance.label.split(' ')[0]}`}
                 tone={d.attendance.absent ? 'quiet' : 'ok'}
@@ -228,7 +230,7 @@ export function AdminStudentScreen() {
               {d.profile.address ? <Line label="Address" value={d.profile.address} /> : null}
               {d.profile.birth_date ? <Line label="Born" value={bsLong(d.profile.birth_date)} /> : null}
             </Card>
-            {d.dues.items.length ? (
+            {d.dues?.items.length ? (
               <>
                 <SectionLabel>Fees to pay</SectionLabel>
                 <Card>

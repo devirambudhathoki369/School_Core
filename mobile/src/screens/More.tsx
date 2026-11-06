@@ -21,6 +21,8 @@ function confirm(title: string, body: string, action: string, run: () => void) {
   ]);
 }
 
+const UPDATE_STUDENTS = 102;
+
 const LINKS: Record<string, [IconName, string, string][]> = {
   parent: [
     ['award', 'Results', '/results'],
@@ -76,7 +78,12 @@ export function MoreScreen() {
         </Header>
       }>
       <Card padded={false}>
-        {LINKS[account.role].map(([icon, title, path], i) => (
+        {[
+          ...LINKS[account.role],
+          ...(account.role === 'staff' && me?.permissions?.includes(UPDATE_STUDENTS)
+            ? ([['key', 'Parents and family codes', '/students']] as [IconName, string, string][])
+            : []),
+        ].map(([icon, title, path], i) => (
           <View key={path}>
             {i ? <Divider inset={70} /> : null}
             <ListRow icon={icon} title={title} onPress={() => go(path)} />

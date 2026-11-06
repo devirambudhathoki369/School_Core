@@ -27,6 +27,9 @@ PAGE_SIZE = 30
 TAKE_ATTENDANCE, CHANGE_ATTENDANCE, SEE_ATTENDANCE, SEE_ATTENDANCE_REPORTS = 1501, 1502, 1503, 1504
 ANY_ATTENDANCE = (TAKE_ATTENDANCE, CHANGE_ATTENDANCE, SEE_ATTENDANCE, SEE_ATTENDANCE_REPORTS)
 PUBLISH_NOTICES, MANAGE_NOTICES = 1651, 1652
+# Staff who may update a student's record (guardian details included) may
+# also vouch for a parent with a family code; dues stay with the fee counter.
+UPDATE_STUDENTS, TAKE_PAYMENTS = 102, 103
 
 STUDENT_RELATED = ("class_info__school", "class_info__section", "class_info__course", "guardian_info")
 

@@ -98,7 +98,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Signed-in mobile endpoints: Bearer token, mobile error shape, version gate. */
+        /** @description The school admin, or staff who may update student records (102). */
         post: operations["admin_guardians_family_code_create"];
         delete?: never;
         options?: never;
@@ -725,7 +725,8 @@ export interface components {
     schemas: {
         AdminStudentOut: {
             attendance: components["schemas"]["MonthTotalsOut"];
-            dues: components["schemas"]["FeesDueOut"];
+            /** @description Left out for staff without the payments permission (103) */
+            dues: components["schemas"]["FeesDueOut"] | null;
             guardians: components["schemas"]["GuardianLinkBriefOut"][];
             profile: components["schemas"]["StudentProfileOut"];
             student: components["schemas"]["ChildOut"];

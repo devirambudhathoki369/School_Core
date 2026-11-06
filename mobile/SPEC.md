@@ -62,7 +62,8 @@ Rules:
   record and they are signed in. From then on the email alone works. A code
   is sent to an unknown address only after a valid family code, so the form
   cannot be used to send email to strangers.
-- **Family code:** a school admin, or staff with permission, makes one for a
+- **Family code:** a school admin, or staff who may update student records
+  (permission 102), makes one for a
   parent in the admin screens of the app (later also in the portal). It is 8
   characters from an alphabet with no look-alike letters, single use, and
   valid for 7 days. It is shown once and stored only as a hash. Making a new
@@ -307,7 +308,7 @@ Base `/api/mobile/v1/`. These conventions hold everywhere:
 | `GET /admin/fees/dues?class=` · `GET /admin/fees/collections?from=&to=` | admin | Dues by class; money received |
 | `GET /admin/staff` · `GET /admin/staff/attendance?date=` | admin | Staff, and who is in today |
 | `GET /admin/guardian-links?state=2` · `POST …/{id}/decide` | admin | Review shared numbers: confirm or reject |
-| `POST /admin/guardians/{id}/family-code` | admin, staff with permission | Make a family code (shown once) |
+| `POST /admin/guardians/{id}/family-code` | admin, staff 102 | Make a family code (shown once). Staff who may update student records (102) can also search students and open one; they see dues only with 103 |
 
 The admin's dashboard and student data reuse the portal's existing queries.
 None of its business rules are written twice.
@@ -425,5 +426,4 @@ Still open:
 1. An email account for sending codes in production.
 2. App lock required for staff and admins: built as required. Say if it
    should be optional instead.
-3. Family codes are made by the school admin only. Staff can make them too
-   once a portal permission id is chosen for it.
+
