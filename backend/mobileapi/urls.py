@@ -13,6 +13,7 @@ from .views.auth import (
 from .views.me import (
     CloseAccountView,
     MeView,
+    PasswordView,
     PushTokenView,
     SessionDetailView,
     SessionsView,
@@ -36,6 +37,7 @@ urlpatterns = [
     path("me/sessions/<uuid:session_id>", SessionDetailView.as_view(), name="session"),
     path("me/close-account", CloseAccountView.as_view(), name="close-account"),
     path("me/push-token", PushTokenView.as_view(), name="push-token"),
+    path("me/password", PasswordView.as_view(), name="password"),
     # parents and students (phase 3)
     path("students/<int:student_id>/home", students.StudentHomeView.as_view(), name="student-home"),
     path("students/<int:student_id>/attendance", students.StudentAttendanceView.as_view(), name="student-attendance"),

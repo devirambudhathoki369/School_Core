@@ -164,6 +164,12 @@ export function MoreScreen() {
             ) : undefined
           }
         />
+        {account.role !== 'parent' ? (
+          <>
+            <Divider inset={70} />
+            <ListRow icon="key" title="Change password" sub="For the app and the portal" onPress={() => go('/password')} />
+          </>
+        ) : null}
         <Divider inset={70} />
         <ListRow icon="phone" title="Phones signed in" sub="See them, and sign one out" onPress={() => router.push('/sessions')} />
       </Card>

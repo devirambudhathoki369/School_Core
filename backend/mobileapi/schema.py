@@ -123,6 +123,12 @@ class PushTokenIn(serializers.Serializer):
     )
 
 
+class PasswordIn(serializers.Serializer):
+    current_password = serializers.CharField(max_length=1024, trim_whitespace=False)
+    new_password = serializers.CharField(max_length=1024, trim_whitespace=False,
+                                         help_text="15 to 128 characters, as everywhere in SchoolCore")
+
+
 class CloseAccountIn(serializers.Serializer):
     confirm = serializers.BooleanField(help_text="Must be true")
 

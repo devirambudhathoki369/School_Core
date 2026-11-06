@@ -3,17 +3,21 @@ from django.db import transaction
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
+from rest_framework.exceptions import Throttled, ValidationError
 from rest_framework.response import Response
 
+from account.auth.AuthToken import AdminAuthToken, StaffAuthToken, StudentAuthToken
 from account.auth.UserRole import UserRoles
+from account.passwords import password_problem, require_current_password
 from account.views import close_account
 from main.models.Guardian import Guardian
 
 from ..errors import MobileError
+from ..idempotency import idempotent
 from ..models import AppSession, FamilyCode
 from ..profiles import me_payload
-from ..schema import ClosedOut, CloseAccountIn, MeOut, PhoneListOut, PushTokenIn
-from ..tokens import ACCOUNT_FIELD, revoke
+from ..schema import ClosedOut, CloseAccountIn, MeOut, PasswordIn, PhoneListOut, PushTokenIn
+from ..tokens import ACCOUNT_FIELD, credential_stamp, revoke
 from .base import MobileAPIView
 
 PLATFORM_NAMES = {AppSession.ANDROID: "android", AppSession.IOS: "ios"}
@@ -126,4 +130,56 @@ class CloseAccountView(MobileAPIView):
         return Response(ClosedOut({
             "message": "Your account is closed and you are signed out. The school keeps its records of you, "
                        "as the law asks.",
+        }).data)
+
+
+PORTAL_TOKENS = {AppSession.STUDENT: StudentAuthToken, AppSession.STAFF: StaffAuthToken, AppSession.ADMIN: AdminAuthToken}
+
+
+class PasswordView(MobileAPIView):
+    """Change the account's password: students, staff and the school admin.
+
+    The portal's rules apply (15 to 128 characters, not a common or numbers-
+    only password) and its throttled check of the current one. Every other
+    phone and every portal sign-in of the account is signed out; this phone
+    stays signed in.
+    """
+
+    @extend_schema(request=PasswordIn, responses=ClosedOut)
+    @idempotent
+    def post(self, request):
+        session = request.auth
+        if session.role not in PORTAL_TOKENS:
+            raise MobileError("forbidden", "Parents sign in with an emailed code and have no password.",
+                              status.HTTP_403_FORBIDDEN)
+        given = PasswordIn(data=request.data)
+        if not given.is_valid():
+            raise MobileError("invalid", "Fill in both passwords.", fields={
+                key: str(value[0]) for key, value in given.errors.items()
+            })
+        account = session.account
+        current, new = given.validated_data["current_password"], given.validated_data["new_password"]
+        try:
+            require_current_password(account, current)
+        except Throttled:
+            raise MobileError("rate_limited", "Too many wrong passwords. Try again in 15 minutes.",
+                              status.HTTP_429_TOO_MANY_REQUESTS)
+        except ValidationError:
+            raise MobileError("wrong_password", "The current password is not right.",
+                              fields={"current_password": "Not right."})
+        problem = password_problem(new, account)
+        if problem:
+            raise MobileError("weak_password", problem, fields={"new_password": problem})
+        if account.check_password(new):
+            raise MobileError("same_password", "Choose a password you have not used just now.",
+                              fields={"new_password": "The same as the current one."})
+        with transaction.atomic():
+            account.set_password(new)
+            account.save()
+            PORTAL_TOKENS[session.role].objects.filter(user=account).delete()
+            revoke(_own_sessions(request).exclude(pk=session.pk), AppSession.PASSWORD_CHANGED)
+            # this phone stays signed in under the new password
+            AppSession.objects.filter(pk=session.pk).update(credential_stamp=credential_stamp(account))
+        return Response(ClosedOut({
+            "message": "Your password is changed. Other phones and the portal are signed out.",
         }).data)

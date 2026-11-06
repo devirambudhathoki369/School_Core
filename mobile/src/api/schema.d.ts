@@ -359,6 +359,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Change the account's password: students, staff and the school admin.
+         *
+         *     The portal's rules apply (15 to 128 characters, not a common or numbers-
+         *     only password) and its throttled check of the current one. Every other
+         *     phone and every portal sign-in of the account is signed out; this phone
+         *     stays signed in.
+         */
+        post: operations["me_password_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/push-token": {
         parameters: {
             query?: never;
@@ -1148,6 +1172,11 @@ export interface components {
             device: components["schemas"]["DeviceRequest"];
             email: string;
             school_code: string;
+        };
+        PasswordInRequest: {
+            current_password: string;
+            /** @description 15 to 128 characters, as everywhere in SchoolCore */
+            new_password: string;
         };
         /**
          * @description * `student` - student
@@ -1946,6 +1975,31 @@ export interface operations {
                 "application/json": components["schemas"]["CloseAccountInRequest"];
                 "application/x-www-form-urlencoded": components["schemas"]["CloseAccountInRequest"];
                 "multipart/form-data": components["schemas"]["CloseAccountInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClosedOut"];
+                };
+            };
+        };
+    };
+    me_password_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordInRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PasswordInRequest"];
+                "multipart/form-data": components["schemas"]["PasswordInRequest"];
             };
         };
         responses: {

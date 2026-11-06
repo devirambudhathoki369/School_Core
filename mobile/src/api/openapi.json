@@ -1537,6 +1537,26 @@
         ],
         "type": "object"
       },
+      "PasswordInRequest": {
+        "properties": {
+          "current_password": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "type": "string"
+          },
+          "new_password": {
+            "description": "15 to 128 characters, as everywhere in SchoolCore",
+            "maxLength": 1024,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "current_password",
+          "new_password"
+        ],
+        "type": "object"
+      },
       "PasswordRoleEnum": {
         "description": "* `student` - student\n* `staff` - staff\n* `admin` - admin",
         "enum": [
@@ -3481,6 +3501,52 @@
             "multipart/form-data": {
               "schema": {
                 "$ref": "#/components/schemas/CloseAccountInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClosedOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/me/password": {
+      "post": {
+        "description": "Change the account's password: students, staff and the school admin.\n\nThe portal's rules apply (15 to 128 characters, not a common or numbers-\nonly password) and its throttled check of the current one. Every other\nphone and every portal sign-in of the account is signed out; this phone\nstays signed in.",
+        "operationId": "me_password_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordInRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordInRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordInRequest"
               }
             }
           },
