@@ -10,7 +10,15 @@ from .views.auth import (
     RefreshView,
     SchoolLookupView,
 )
-from .views.me import CloseAccountView, MeView, SessionDetailView, SessionsView, SignOutEverywhereView, SignOutView
+from .views.me import (
+    CloseAccountView,
+    MeView,
+    PushTokenView,
+    SessionDetailView,
+    SessionsView,
+    SignOutEverywhereView,
+    SignOutView,
+)
 
 urlpatterns = [
     path("schema", MobileSchemaView.as_view(), name="schema"),
@@ -27,6 +35,7 @@ urlpatterns = [
     path("me/sessions", SessionsView.as_view(), name="sessions"),
     path("me/sessions/<uuid:session_id>", SessionDetailView.as_view(), name="session"),
     path("me/close-account", CloseAccountView.as_view(), name="close-account"),
+    path("me/push-token", PushTokenView.as_view(), name="push-token"),
     # parents and students (phase 3)
     path("students/<int:student_id>/home", students.StudentHomeView.as_view(), name="student-home"),
     path("students/<int:student_id>/attendance", students.StudentAttendanceView.as_view(), name="student-attendance"),

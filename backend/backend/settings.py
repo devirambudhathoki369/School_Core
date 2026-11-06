@@ -485,6 +485,9 @@ CONTACT_SEARCH_RATE = os.environ.get("CONTACT_SEARCH_RATE") or "60/hour"
 MOBILE_TOKEN_KEY = os.environ.get("MOBILE_TOKEN_KEY", "")
 # Phones on an older app version get 426 and are asked to update.
 MOBILE_MIN_APP_VERSION = os.environ.get("MOBILE_MIN_APP_VERSION", "0.0.0")
+# Push to the app goes through Expo's push service. Set EXPO_ACCESS_TOKEN when
+# "enhanced push security" is turned on for the project at expo.dev.
+EXPO_ACCESS_TOKEN = os.environ.get("EXPO_ACCESS_TOKEN", "")
 
 # Email, used for the parents' sign-in codes. Development prints each email in
 # the server's terminal; production sends through the SMTP account below.

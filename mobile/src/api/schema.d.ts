@@ -359,6 +359,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/push-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * @description This phone's Expo push token, on this session only. Signing out ends
+         *     the session, and its notifications with it.
+         */
+        put: operations["me_push_token_update"];
+        post?: never;
+        /**
+         * @description This phone's Expo push token, on this session only. Signing out ends
+         *     the session, and its notifications with it.
+         */
+        delete: operations["me_push_token_destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/sessions": {
         parameters: {
             query?: never;
@@ -1179,6 +1203,10 @@ export interface components {
             roll_no?: string | null;
             username?: string;
         };
+        PushTokenInRequest: {
+            /** @description From expo-notifications getExpoPushTokenAsync */
+            token: string;
+        };
         ReceiptLineOut: {
             discount_paisa: number;
             due_paisa: number;
@@ -1928,6 +1956,48 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ClosedOut"];
                 };
+            };
+        };
+    };
+    me_push_token_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PushTokenInRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PushTokenInRequest"];
+                "multipart/form-data": components["schemas"]["PushTokenInRequest"];
+            };
+        };
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    me_push_token_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

@@ -1717,6 +1717,21 @@
         ],
         "type": "object"
       },
+      "PushTokenInRequest": {
+        "properties": {
+          "token": {
+            "description": "From expo-notifications getExpoPushTokenAsync",
+            "maxLength": 255,
+            "minLength": 1,
+            "pattern": "^Expo(nent)?PushToken\\[[A-Za-z0-9_-]{8,200}\\]$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "type": "object"
+      },
       "ReceiptLineOut": {
         "properties": {
           "discount_paisa": {
@@ -3481,6 +3496,62 @@
               }
             },
             "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/me/push-token": {
+      "delete": {
+        "description": "This phone's Expo push token, on this session only. Signing out ends\nthe session, and its notifications with it.",
+        "operationId": "me_push_token_destroy",
+        "responses": {
+          "204": {
+            "description": "No response body"
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "me"
+        ]
+      },
+      "put": {
+        "description": "This phone's Expo push token, on this session only. Signing out ends\nthe session, and its notifications with it.",
+        "operationId": "me_push_token_update",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushTokenInRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PushTokenInRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PushTokenInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No response body"
           }
         },
         "security": [

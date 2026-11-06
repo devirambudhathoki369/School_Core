@@ -116,6 +116,13 @@ class PhoneListOut(serializers.Serializer):
     items = PhoneSessionOut(many=True)
 
 
+class PushTokenIn(serializers.Serializer):
+    token = serializers.RegexField(
+        r"^Expo(nent)?PushToken\[[A-Za-z0-9_-]{8,200}\]$", max_length=255,
+        help_text="From expo-notifications getExpoPushTokenAsync",
+    )
+
+
 class CloseAccountIn(serializers.Serializer):
     confirm = serializers.BooleanField(help_text="Must be true")
 

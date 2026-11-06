@@ -25,6 +25,7 @@ from django.utils import timezone
 from main.models.Guardian import EMAIL_REGEX
 
 HASH_REGEX = r"^[0-9a-f]{64}$"
+PUSH_TOKEN_REGEX = r"^Expo(nent)?PushToken\[[A-Za-z0-9_-]{8,200}\]$"
 
 
 class AppSession(Model):
@@ -73,10 +74,23 @@ class AppSession(Model):
     last_seen_at = DateTimeField(default=timezone.now)
     revoked_at = DateTimeField(null=True, blank=True)
     revoke_reason = SmallIntegerField(choices=REVOKE_CHOICES, null=True, blank=True)
+    # The phone's Expo push token, while it accepts notifications. Several
+    # accounts on one phone share it; a signed-out session gets none.
+    push_token = CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = "mobileapi_session"
+        indexes = [
+            Index(
+                fields=["school"], condition=Q(push_token__isnull=False, revoked_at__isnull=True),
+                name="mobileapi_session_pushable",
+            ),
+        ]
         constraints = [
+            CheckConstraint(
+                condition=Q(push_token__isnull=True) | Q(push_token__regex=PUSH_TOKEN_REGEX),
+                name="mobileapi_session_push_token_format",
+            ),
             CheckConstraint(
                 condition=(
                     Q(role=1, guardian__isnull=False, student_account__isnull=True,

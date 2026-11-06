@@ -12,7 +12,7 @@ from main.models.Guardian import Guardian
 from ..errors import MobileError
 from ..models import AppSession, FamilyCode
 from ..profiles import me_payload
-from ..schema import ClosedOut, CloseAccountIn, MeOut, PhoneListOut
+from ..schema import ClosedOut, CloseAccountIn, MeOut, PhoneListOut, PushTokenIn
 from ..tokens import ACCOUNT_FIELD, revoke
 from .base import MobileAPIView
 
@@ -68,6 +68,24 @@ class SessionDetailView(MobileAPIView):
     def delete(self, request, session_id):
         if not revoke(_own_sessions(request).filter(pk=session_id), AppSession.SIGNED_OUT):
             raise MobileError("not_found", "That phone is not signed in.", status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PushTokenView(MobileAPIView):
+    """This phone's Expo push token, on this session only. Signing out ends
+    the session, and its notifications with it."""
+
+    @extend_schema(request=PushTokenIn, responses={204: None})
+    def put(self, request):
+        given = PushTokenIn(data=request.data)
+        if not given.is_valid():
+            raise MobileError("invalid", "That is not an Expo push token.", fields={"token": "Not a push token."})
+        AppSession.objects.filter(pk=request.auth.pk).update(push_token=given.validated_data["token"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @extend_schema(responses={204: None})
+    def delete(self, request):
+        AppSession.objects.filter(pk=request.auth.pk).update(push_token=None)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

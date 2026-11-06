@@ -11,7 +11,6 @@ from main.models.CalendarEvent import CalendarEvent
 from main.models.exams.Exam import Exam
 from main.models.exams.Result import ClassResult, StudentResult
 from main.models.Fee import FeeTitle
-from main.models.FiscalYears import EconomicYear
 from main.models.Homework import Homework, HomeworkSubmission
 from main.models.Invoice import StudentInvoice
 from main.models.Ledger import LedgerPosting, StudentLedger

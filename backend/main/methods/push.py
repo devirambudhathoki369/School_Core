@@ -139,6 +139,18 @@ def dispatch_push_async(
     )
 
 
+def _app(event, *args):
+    """The same event on the phones of the SchoolCore app (mobileapi/push.py):
+    the student's, their parents' and the staff's. Never lets a problem there
+    stop the portal's own push."""
+    try:
+        from mobileapi import push as app_push
+
+        getattr(app_push, event)(*args)
+    except Exception:
+        sentry_sdk.capture_exception()
+
+
 def _clip(text):
     text = text or ""
     if len(text) > MAX_PUSH_BODY:
@@ -207,6 +219,7 @@ def notify_school_students(school_id, title, body, notif_type="notice", image=No
     into the FCM `notification` block from there, so the OS draws it as a big
     picture without the URL ever being stated twice and left to drift.
     """
+    _app("on_notice", school_id, title, body, notif_type, image)
     recipients = _student_recipients({"class_info__school": school_id})
     if recipients:
         data = {"type": notif_type}
@@ -255,6 +268,7 @@ def unsubscribe_student_from_school(account, token):
 
 def notify_class_students(school_id, class_info_id, title, body):
     """Real-time hybrid push to active app-using students of a class."""
+    _app("on_homework", school_id, class_info_id, title, body)
     recipients = _student_recipients({"class_info": class_info_id}, school_id)
     if recipients:
         dispatch_push_async(
@@ -274,6 +288,7 @@ def notify_students_checked_in(school_id, student_ids):
     student_ids = list(student_ids or [])
     if not student_ids:
         return
+    _app("on_attendance", school_id, student_ids, True, "हाजिरी", "तपाईंलाई आज उपस्थित जनाइएको छ।")
     recipients = _student_recipients({"id__in": student_ids}, school_id)
     if recipients:
         dispatch_push_async(
@@ -298,6 +313,7 @@ def notify_students_absent(school_id, student_ids):
     student_ids = list(student_ids or [])
     if not student_ids:
         return
+    _app("on_attendance", school_id, student_ids, False, "हाजिरी", "तपाईंलाई आज अनुपस्थित जनाइएको छ।")
     recipients = _student_recipients({"id__in": student_ids}, school_id)
     if recipients:
         dispatch_push_async(
@@ -346,6 +362,7 @@ def notify_students(school_id, student_ids, title, body, notif_type):
     student_ids = list(dict.fromkeys(student_ids or []))
     if not student_ids:
         return
+    _app("on_students", school_id, student_ids, title, body, notif_type)
     recipients = _student_recipients({"id__in": student_ids}, school_id)
     if recipients:
         dispatch_push_async(
@@ -364,6 +381,7 @@ def notify_staff(school_id, staff_ids, title, body, notif_type):
     staff_ids = list(dict.fromkeys(staff_ids or []))
     if not staff_ids:
         return
+    _app("on_staff", school_id, staff_ids, title, body, notif_type)
     recipients = _staff_recipients({"id__in": staff_ids, "school_id": school_id})
     if recipients:
         dispatch_push_async(
