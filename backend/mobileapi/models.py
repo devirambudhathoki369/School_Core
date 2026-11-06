@@ -182,6 +182,10 @@ class FamilyCode(Model):
     issued_by_staff = ForeignKey(
         "account.StaffAccount", on_delete=CASCADE, null=True, blank=True, related_name="+"
     )
+    # A student inviting their own parent from the app (Account → Invite my parent).
+    issued_by_student = ForeignKey(
+        "account.StudentAccount", on_delete=CASCADE, null=True, blank=True, related_name="+"
+    )
     created_at = DateTimeField(default=timezone.now)
     expires_at = DateTimeField()
     used_at = DateTimeField(null=True, blank=True)
@@ -193,8 +197,10 @@ class FamilyCode(Model):
             CheckConstraint(condition=Q(code_hash__regex=HASH_REGEX), name="mobileapi_familycode_hash_format"),
             CheckConstraint(condition=Q(expires_at__gt=F("created_at")), name="mobileapi_familycode_expiry"),
             CheckConstraint(
-                condition=Q(issued_by_admin__isnull=False, issued_by_staff__isnull=True)
-                | Q(issued_by_admin__isnull=True, issued_by_staff__isnull=False),
+                condition=Q(issued_by_admin__isnull=False, issued_by_staff__isnull=True,
+                            issued_by_student__isnull=True)
+                | Q(issued_by_admin__isnull=True, issued_by_staff__isnull=False, issued_by_student__isnull=True)
+                | Q(issued_by_admin__isnull=True, issued_by_staff__isnull=True, issued_by_student__isnull=False),
                 name="mobileapi_familycode_one_issuer",
             ),
             UniqueConstraint(

@@ -1127,6 +1127,82 @@
         ],
         "type": "object"
       },
+      "InviteOut": {
+        "properties": {
+          "code": {
+            "description": "Shown once; only its hash is kept",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/InviteParentOut"
+          },
+          "school_code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "expires_at",
+          "parent",
+          "school_code"
+        ],
+        "type": "object"
+      },
+      "InviteParentOut": {
+        "properties": {
+          "has_email": {
+            "description": "Has joined: signs in with their email",
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "on_app": {
+            "description": "Signed in on a phone now",
+            "type": "boolean"
+          },
+          "phone_last_digits": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "has_email",
+          "name",
+          "on_app",
+          "phone_last_digits"
+        ],
+        "type": "object"
+      },
+      "InviteStatusOut": {
+        "properties": {
+          "can_invite": {
+            "type": "boolean"
+          },
+          "parent": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InviteParentOut"
+              }
+            ],
+            "nullable": true
+          },
+          "reason": {
+            "description": "Why an invite can't be made, when it can't",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "can_invite",
+          "parent",
+          "reason"
+        ],
+        "type": "object"
+      },
       "KindEnum": {
         "description": "* `bill` - bill\n* `payment` - payment",
         "enum": [
@@ -3588,6 +3664,56 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ClosedOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/me/parent-invite": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "me_parent_invite_retrieve",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteStatusOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "me"
+        ]
+      },
+      "post": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "me_parent_invite_create",
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteOut"
                 }
               }
             },

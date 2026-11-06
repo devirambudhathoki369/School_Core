@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .schema import MobileSchemaView
-from .views import admin, school, staff, students
+from .views import admin, invites, school, staff, students
 from .views.auth import (
     FamilyCodeView,
     ParentCodeView,
@@ -38,6 +38,7 @@ urlpatterns = [
     path("me/close-account", CloseAccountView.as_view(), name="close-account"),
     path("me/push-token", PushTokenView.as_view(), name="push-token"),
     path("me/password", PasswordView.as_view(), name="password"),
+    path("me/parent-invite", invites.ParentInviteView.as_view(), name="parent-invite"),
     # parents and students (phase 3)
     path("students/<int:student_id>/home", students.StudentHomeView.as_view(), name="student-home"),
     path("students/<int:student_id>/attendance", students.StudentAttendanceView.as_view(), name="student-attendance"),

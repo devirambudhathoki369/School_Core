@@ -69,8 +69,8 @@ export default function ParentEmail() {
         <Card>
           <T v="bodyStrong">The school doesn’t have my email</T>
           <T v="small" tone="quiet">
-            Ask the school office for a family code. You use it once, with your email, and after that your email
-            is enough.
+            Ask your child to make a family code in their app (Account → Invite my parent), or ask the school
+            office for one. You use it once, with your email, and after that your email is enough.
           </T>
           <Button
             title="I have a family code"

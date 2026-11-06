@@ -63,17 +63,24 @@ Rules:
   Each email address gets at most 1 code a minute and 5 an hour, and each
   network address 30 requests an hour.
 - **First sign-in when the school does not have the email:** the parent
-  enters the family code from the school and their email. A code goes to
+  enters a family code and their email. A code goes to
   that email, and once it is entered, the email is saved on that parent's
   record and they are signed in. From then on the email alone works. A code
   is sent to an unknown address only after a valid family code, so the form
   cannot be used to send email to strangers.
-- **Family code:** a school admin, or staff who may update student records
-  (permission 102), makes one for a
-  parent in the admin screens of the app (later also in the portal). It is 8
-  characters from an alphabet with no look-alike letters, single use, and
-  valid for 7 days. It is shown once and stored only as a hash. Making a new
-  one cancels the old one.
+- **Family code:** made by one of these, recorded with whoever made it:
+  - **the student** for their own parent, in their app (Account → Invite my
+    parent). This is how most parents get in: few parents' emails are on
+    the schools' records. A student may invite only their confirmed parent,
+    and only while that parent has no email on record, so a student can
+    never move a parent's sign-in to another address. Ten a day at most;
+  - **the school admin**, or **staff who may update student records**
+    (permission 102), in the app's admin screens (later also in the portal),
+    for any parent, including to change a parent's email.
+
+  It is 8 characters from an alphabet with no look-alike letters, single
+  use, and valid for 7 days. It is shown once and stored only as a hash.
+  Making a new one cancels the old one.
 - **Sending email:** the backend sends no email today. In development the
   email is printed in the server's terminal. Production needs an email
   account, set with `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`,
@@ -291,6 +298,9 @@ Base `/api/mobile/v1/`. These conventions hold everywhere:
 | `GET /me` | signed in | Role, profile, school; children (parent); permissions (staff) |
 | `GET /me/sessions` · `DELETE /me/sessions/{id}` | signed in | The phones signed in, and signing one out |
 | `POST /me/close-account` | parent, student, staff | Close the account, as the portal does for students and staff |
+| `POST /me/password` | student, staff, admin | Change the password (the portal's rules); every other phone and portal sign-in is signed out |
+| `GET /me/parent-invite` · `POST /me/parent-invite` | student | Whether their parent has joined; make a family code for them (shown once) |
+| `PUT /me/push-token` · `DELETE /me/push-token` | signed in | This phone's Expo push token, for notifications |
 | `GET /students/{id}/home` | parent, student | Today's attendance, fees due, open homework, next events, latest notice |
 | `GET /students/{id}/attendance?month=` | parent, student | Days of a BS month, with totals and reader times |
 | `GET /students/{id}/fees` | parent, student | Due now, by fee title |

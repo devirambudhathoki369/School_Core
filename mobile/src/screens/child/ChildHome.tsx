@@ -2,6 +2,7 @@ import { Pressable, ScrollView, View } from 'react-native';
 
 import { useActive } from '@/accounts/store';
 import { useApi } from '@/api/hooks';
+import type { components } from '@/api/schema';
 import type { StudentHome } from '@/api/types';
 import { bsShort, bsToday, clock, dueLabel, rupees } from '@/lib/format';
 import { radius, space, usePalette } from '@/theme';
@@ -13,11 +14,16 @@ import { Freshness, HomeHeader } from '../parts';
 import { useChild } from './context';
 
 export function ChildHome() {
+  const c = usePalette();
   const account = useActive();
   const { child, children, choose } = useChild();
   const go = useGo();
   const home = useApi<StudentHome>(child ? `students/${child.id}/home` : null);
   const parent = account.role === 'parent';
+  // a student whose parent has not joined yet is asked to invite them
+  const invite = useApi<components['schemas']['InviteStatusOut']>(parent ? null : 'me/parent-invite', {
+    staleTime: 60 * 60_000,
+  });
 
   return (
     <Screen
@@ -41,6 +47,20 @@ export function ChildHome() {
             <>
               <Freshness updatedAt={home.dataUpdatedAt} error={home.error} />
               <TodayCard today={data.today} />
+              {invite.data?.can_invite ? (
+                <Pressable onPress={() => go('/invite')} accessibilityRole="button">
+                  <Card style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+                    <Icon name="parent" size={26} color={c.blueText} />
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <T v="bodyStrong">Invite your parent</T>
+                      <T v="small" tone="quiet">
+                        They can follow your attendance, results and fees on their phone.
+                      </T>
+                    </View>
+                    <Icon name="chevron-right" size={20} color={c.textFaint} />
+                  </Card>
+                </Pressable>
+              ) : null}
               <Row>
                 <Tile
                   label="Fees to pay"

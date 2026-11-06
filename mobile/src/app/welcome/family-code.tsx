@@ -49,7 +49,7 @@ export default function FamilyCode() {
               <T v="title" tone="onHeader">
                 Use your family code
               </T>
-              <T tone="onHeaderSoft">The school gives it to parents whose email it doesn’t have. You need it once.</T>
+              <T tone="onHeaderSoft">Your child makes one in their app, or the school office gives you one. You need it once.</T>
             </View>
           </Header>
         }>

@@ -99,8 +99,9 @@ the server's `EXPO_ACCESS_TOKEN`.
    Shared phone numbers are not linked on their own. The school decides them
    in the app (Account → Parents to review), a whole number at a time.
    Surnames written differently ("K.C." and "KC") count as one family.
-   Expect very few parents to have an email on record, so most parents get
-   in with a family code from the school the first time.
+   Expect very few parents to have an email on record. Most parents get in
+   the first time with a family code their child makes in the app (Account →
+   Invite my parent), so tell students about it when the school starts.
 
 ## 4. Builds
 

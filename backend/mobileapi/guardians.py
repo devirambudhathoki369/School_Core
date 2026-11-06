@@ -182,7 +182,7 @@ def normalize_family_code(raw) -> str:
     return re.sub(r"[\s-]", "", str(raw or "")).upper()
 
 
-def issue_family_code(guardian, *, admin=None, staff=None) -> str:
+def issue_family_code(guardian, *, admin=None, staff=None, student=None) -> str:
     """A new single-use family code; any earlier live one is cancelled."""
     code = "".join(secrets.choice(FAMILY_ALPHABET) for _ in range(FAMILY_CODE_LENGTH))
     now = timezone.now()
@@ -195,6 +195,7 @@ def issue_family_code(guardian, *, admin=None, staff=None) -> str:
             code_hash=code_hash(code),
             issued_by_admin=admin,
             issued_by_staff=staff,
+            issued_by_student=student,
             created_at=now,
             expires_at=now + timedelta(days=FAMILY_CODE_DAYS),
         )

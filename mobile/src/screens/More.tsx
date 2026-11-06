@@ -33,6 +33,7 @@ const LINKS: Record<string, [IconName, string, string][]> = {
     ['sun', 'School calendar', '/calendar'],
   ],
   student: [
+    ['parent', 'Invite my parent', '/invite'],
     ['wallet', 'Fees', '/fees'],
     ['clock', 'Timetable', '/timetable'],
     ['bell', 'Notices', '/notices'],

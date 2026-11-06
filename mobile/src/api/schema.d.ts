@@ -380,6 +380,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/parent-invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Signed-in mobile endpoints: Bearer token, mobile error shape, version gate. */
+        get: operations["me_parent_invite_retrieve"];
+        put?: never;
+        /** @description Signed-in mobile endpoints: Bearer token, mobile error shape, version gate. */
+        post: operations["me_parent_invite_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/password": {
         parameters: {
             query?: never;
@@ -1081,6 +1099,28 @@ export interface components {
             subject: string;
             teacher: string;
             title: string;
+        };
+        InviteOut: {
+            /** @description Shown once; only its hash is kept */
+            code: string;
+            /** Format: date-time */
+            expires_at: string;
+            parent: components["schemas"]["InviteParentOut"];
+            school_code: string;
+        };
+        InviteParentOut: {
+            /** @description Has joined: signs in with their email */
+            has_email: boolean;
+            name: string;
+            /** @description Signed in on a phone now */
+            on_app: boolean;
+            phone_last_digits: string;
+        };
+        InviteStatusOut: {
+            can_invite: boolean;
+            parent: components["schemas"]["InviteParentOut"] | null;
+            /** @description Why an invite can't be made, when it can't */
+            reason: string | null;
         };
         /**
          * @description * `bill` - bill
@@ -2038,6 +2078,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClosedOut"];
+                };
+            };
+        };
+    };
+    me_parent_invite_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteStatusOut"];
+                };
+            };
+        };
+    };
+    me_parent_invite_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteOut"];
                 };
             };
         };
