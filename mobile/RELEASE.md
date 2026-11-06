@@ -34,9 +34,50 @@ the server's `EXPO_ACCESS_TOKEN`.
 
 ## 3. Server
 
-1. Deploy, then `python manage.py migrate` (`main/0117`, `mobileapi/0001` and
-   `0002`).
-2. Settings, in the server's environment:
+1. **Back up the database**, then deploy this repo's code.
+2. **Reconcile the migration history, then migrate.** Production's history
+   differs from this repo's at `main` 0105. Production recorded
+   `0105_schooladmin_uses_canteen` (a `uses_canteen` column) with canteen
+   0001 to 0004 after it. This repo has `0105_school_module` (the module
+   grants) there instead. A plain `migrate` stops with
+   `InconsistentMigrationHistory`. Rehearsed on a copy of the real data on
+   6 November 2026, this works:
+
+   ```sql
+   BEGIN;
+   DELETE FROM django_migrations WHERE app = 'main' AND name = '0105_schooladmin_uses_canteen';
+   DELETE FROM django_migrations WHERE app = 'canteen' AND name IN
+     ('0001_initial', '0002_use_types_and_canteen_billing', '0003_account_last_reminded', '0004_canteen_users');
+   COMMIT;
+   ```
+
+   ```sh
+   python manage.py migrate main 0105_school_module   # the module tables and grants
+   ```
+
+   ```sql
+   -- each school's canteen switch becomes its canteen grant; the old column gets a default
+   BEGIN;
+   INSERT INTO main_module (code, name) VALUES ('canteen', 'Canteen') ON CONFLICT DO NOTHING;
+   INSERT INTO main_schoolmodule (created_at, updated_at, is_active, module_id, school_id)
+     SELECT current_date, now(), true, 'canteen', id FROM main_schooladmin WHERE uses_canteen
+     ON CONFLICT DO NOTHING;
+   ALTER TABLE main_schooladmin ALTER COLUMN uses_canteen SET DEFAULT false;
+   COMMIT;
+   ```
+
+   ```sh
+   python manage.py migrate canteen 0004_canteen_users --fake   # the tables exist and match
+   python manage.py migrate                                     # the rest, to mobileapi 0002
+   ```
+
+   On the copy the canteen tables matched this repo's column for column, and
+   the final `migrate` took about two minutes. Where old data holds
+   duplicates, the migrations skip the unique rule. Where old rows cross
+   schools, they add the school-ownership keys unvalidated. They print each
+   one; that is expected. Drop `uses_canteen` in a later release, once
+   rolling back past this one is no longer needed.
+3. Settings, in the server's environment:
 
    | Name | What |
    |---|---|
@@ -46,7 +87,7 @@ the server's `EXPO_ACCESS_TOKEN`.
    | `EXPO_ACCESS_TOKEN` | Only with enhanced push security (step 2). |
 
    Check the email with `python manage.py sendtestemail you@example.com`.
-3. For each school that will use the app: give it an `app_code` and turn on
+4. For each school that will use the app: give it an `app_code` and turn on
    `uses_mobile_app`. Then link its parents. Read the report first and apply
    only after it looks right:
 
@@ -55,8 +96,11 @@ the server's `EXPO_ACCESS_TOKEN`.
    python manage.py link_guardians --school <id> --apply
    ```
 
-   Shared phone numbers are not linked on their own: the school confirms them
-   in the app (Account → Parents to review).
+   Shared phone numbers are not linked on their own. The school decides them
+   in the app (Account → Parents to review), a whole number at a time.
+   Surnames written differently ("K.C." and "KC") count as one family.
+   Expect very few parents to have an email on record, so most parents get
+   in with a family code from the school the first time.
 
 ## 4. Builds
 
