@@ -206,6 +206,12 @@ class DecisionIn(serializers.Serializer):
     decision = serializers.ChoiceField(choices=["confirm", "reject"])
 
 
+class NumberDecisionOut(serializers.Serializer):
+    guardian = LinkGuardianOut()
+    decided = serializers.IntegerField(help_text="Links on this number that were waiting and are now decided")
+    state = serializers.ChoiceField(choices=sorted(LINK_STATES.values()))
+
+
 class FamilyCodeOut(serializers.Serializer):
     code = serializers.CharField(help_text="Shown once; only its hash is kept")
     expires_at = serializers.DateTimeField()
@@ -574,6 +580,30 @@ class GuardianLinkDecideView(MobileAPIView):
         link.decided_at = timezone.now()
         link.save(update_fields=["state", "is_primary", "decided_at"])
         return Response(LinkOut(link_payload(request, link, _ClassNames())).data)
+
+
+class GuardianNumberDecideView(MobileAPIView):
+    """Decide every link of one phone number that waits for review at once:
+    one family's children with differently written names (confirm), or an
+    office or hostel number on many records (reject)."""
+
+    @extend_schema(parameters=[OpenApiParameter("guardian_id", int, OpenApiParameter.PATH)], request=DecisionIn,
+                   responses=NumberDecisionOut)
+    @idempotent
+    def post(self, request, guardian_id):
+        school_id = _admin(request)
+        given = DecisionIn(data=request.data)
+        if not given.is_valid():
+            raise MobileError("invalid", "Choose confirm or reject.", fields={"decision": "confirm or reject"})
+        guardian = Guardian.objects.filter(pk=guardian_id, school=school_id).first()
+        if guardian is None:
+            raise not_found("That parent was not found.")
+        state = StudentGuardian.LINKED if given.validated_data["decision"] == "confirm" else StudentGuardian.REJECTED
+        decided = StudentGuardian.objects.filter(guardian=guardian, state=StudentGuardian.NEEDS_REVIEW).update(
+            state=state, decided_at=timezone.now(),
+        )
+        body = {"guardian": _guardian_out(guardian), "decided": decided, "state": LINK_STATES[state]}
+        return Response(NumberDecisionOut(body).data)
 
 
 class GuardianFamilyCodeView(MobileAPIView):

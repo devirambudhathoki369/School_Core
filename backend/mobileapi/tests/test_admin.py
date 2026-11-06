@@ -121,6 +121,27 @@ class ParentLinkTests(AdminFixtures, TestCase):
         self.review.refresh_from_db()
         self.assertEqual(self.review.state, StudentGuardian.REJECTED)
 
+    def test_a_whole_number_is_decided_at_once(self):
+        office = Guardian.objects.create(school=self.school, phone="9866666666", name="Hostel office")
+        links = [
+            StudentGuardian.objects.create(student=child, guardian=office, relation=StudentGuardian.GUARDIAN,
+                                           state=StudentGuardian.NEEDS_REVIEW, source=StudentGuardian.FROM_RECORD)
+            for child in (self.student, self.sibling)
+        ]
+        answer = self.write("post", f"admin/guardians/{office.id}/decide", {"decision": "reject"}, self.admin_token)
+        self.assertEqual(answer.status_code, 200, answer.content)
+        self.assertEqual((answer.json()["decided"], answer.json()["state"]), (2, "rejected"))
+        self.assertTrue(all(
+            StudentGuardian.objects.get(pk=l.pk).state == StudentGuardian.REJECTED for l in links
+        ))
+        # the shared number's other review is untouched, and so are decided links
+        self.review.refresh_from_db()
+        self.assertEqual(self.review.state, StudentGuardian.NEEDS_REVIEW)
+        self.assertEqual(self.write("post", f"admin/guardians/{office.id}/decide", {"decision": "confirm"},
+                                    self.other_admin_token).status_code, 404)
+        self.assertEqual(self.write("post", f"admin/guardians/{office.id}/decide", {"decision": "confirm"},
+                                    self.staff_token).status_code, 403)
+
     def test_another_schools_admin_cannot_decide(self):
         self.assertEqual(self.decide("confirm", token=self.other_admin_token).status_code, 404)
         self.assertEqual(self.decide("maybe").status_code, 400)

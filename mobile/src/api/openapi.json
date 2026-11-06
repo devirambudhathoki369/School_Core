@@ -1489,6 +1489,26 @@
           null
         ]
       },
+      "NumberDecisionOut": {
+        "properties": {
+          "decided": {
+            "description": "Links on this number that were waiting and are now decided",
+            "type": "integer"
+          },
+          "guardian": {
+            "$ref": "#/components/schemas/LinkGuardianOut"
+          },
+          "state": {
+            "$ref": "#/components/schemas/StateEnum"
+          }
+        },
+        "required": [
+          "decided",
+          "guardian",
+          "state"
+        ],
+        "type": "object"
+      },
       "ParentCodeRequest": {
         "properties": {
           "email": {
@@ -2886,6 +2906,62 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LinkOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/guardians/{guardian_id}/decide": {
+      "post": {
+        "description": "Decide every link of one phone number that waits for review at once:\none family's children with differently written names (confirm), or an\noffice or hostel number on many records (reject).",
+        "operationId": "admin_guardians_decide_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "guardian_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionInRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionInRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NumberDecisionOut"
                 }
               }
             },

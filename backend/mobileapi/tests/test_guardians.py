@@ -45,6 +45,19 @@ class LinkGuardiansTests(MobileTestMixin, TestCase):
         shared = StudentGuardian.objects.filter(guardian__phone="9822222222")
         self.assertTrue(all(l.state == StudentGuardian.NEEDS_REVIEW and not l.is_primary for l in shared))
 
+    def test_the_same_surname_written_differently_is_one_family(self):
+        make = MobileFixtures.student
+        kc = [make(self.school, "Gita", last_name=name, phone="9833333333") for name in ("K.C.", "KC", "k. c")]
+        devanagari = [make(self.school, "Hira", last_name=name, phone="9844444444") for name in ("थापा", "राई")]
+        link_school(self.school)
+        self.assertTrue(all(
+            l.state == StudentGuardian.LINKED for l in StudentGuardian.objects.filter(student__in=kc)
+        ))
+        # a different name in any script still waits for the school
+        self.assertTrue(all(
+            l.state == StudentGuardian.NEEDS_REVIEW for l in StudentGuardian.objects.filter(student__in=devanagari)
+        ))
+
     def test_running_it_twice_changes_nothing(self):
         link_school(self.school)
         again = link_school(self.school)

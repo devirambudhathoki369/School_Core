@@ -47,7 +47,10 @@ def normalize_email(raw) -> str | None:
 
 
 def _family(student) -> str:
-    return re.sub(r"\s+", " ", (student.last_name or "").strip().lower())
+    """The family name as a comparison key: case, dots, spaces, hyphens and
+    apostrophes don't count ("K.C." is "KC", "B. K." is "BK"). Letters do,
+    in any script, so names written in Devanagari still compare."""
+    return re.sub(r"[\s.\-'’]+", "", (student.last_name or "").lower())
 
 
 def _guardian_name(info) -> str:

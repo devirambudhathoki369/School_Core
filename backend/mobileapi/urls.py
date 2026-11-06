@@ -73,6 +73,8 @@ urlpatterns = [
     path("admin/staff/attendance", admin.AdminStaffAttendanceView.as_view(), name="admin-staff-attendance"),
     path("admin/guardian-links", admin.GuardianLinksView.as_view(), name="admin-links"),
     path("admin/guardian-links/<int:link_id>/decide", admin.GuardianLinkDecideView.as_view(), name="admin-link-decide"),
+    path("admin/guardians/<int:guardian_id>/decide", admin.GuardianNumberDecideView.as_view(),
+         name="admin-number-decide"),
     path("admin/guardians/<int:guardian_id>/family-code", admin.GuardianFamilyCodeView.as_view(),
          name="admin-family-code"),
 ]

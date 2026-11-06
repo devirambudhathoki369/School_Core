@@ -89,6 +89,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/guardians/{guardian_id}/decide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Decide every link of one phone number that waits for review at once:
+         *     one family's children with differently written names (confirm), or an
+         *     office or hostel number on many records (reject).
+         */
+        post: operations["admin_guardians_decide_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/guardians/{guardian_id}/family-code": {
         parameters: {
             query?: never;
@@ -1163,6 +1184,12 @@ export interface components {
         };
         /** @enum {unknown} */
         NullEnum: null;
+        NumberDecisionOut: {
+            /** @description Links on this number that were waiting and are now decided */
+            decided: number;
+            guardian: components["schemas"]["LinkGuardianOut"];
+            state: components["schemas"]["StateEnum"];
+        };
         ParentCodeRequest: {
             email: string;
             school_code: string;
@@ -1599,6 +1626,33 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LinkOut"];
+                };
+            };
+        };
+    };
+    admin_guardians_decide_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guardian_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionInRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["DecisionInRequest"];
+                "multipart/form-data": components["schemas"]["DecisionInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NumberDecisionOut"];
                 };
             };
         };

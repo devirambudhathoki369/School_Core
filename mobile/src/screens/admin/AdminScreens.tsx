@@ -7,6 +7,7 @@ import { useApi, usePages, useWrite } from '@/api/hooks';
 import type { AdminStudent, Collections, Dashboard, Dues, FamilyCode, Link, StaffDay, StudentRow } from '@/api/types';
 import { bsAddDays, bsFromIso, bsLong, bsShort, bsToday, clock, rupees, titleCase } from '@/lib/format';
 import { radius, space, type as typeScale, usePalette } from '@/theme';
+import { Icon } from '@/ui/Icon';
 import { Banner, Button, Card, Divider, Field, ListRow, Screen, SectionLabel, T } from '@/ui/kit';
 import { Avatar, Bar, Chip, Empty, Line, LoadMore, Loaded, Row, Shortcut, Shortcuts, Tile } from '@/ui/parts';
 import { useGo } from '../nav';
@@ -421,14 +422,22 @@ export function ParentLinksScreen() {
   const c = usePalette();
   const write = useWrite();
   const links = usePages<Link>('admin/guardian-links?state=2');
-  const [busy, setBusy] = useState<number | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function decide(link: Link, decision: 'confirm' | 'reject') {
-    setBusy(link.id);
+  // one card per phone number, with every child on it
+  const numbers = new Map<number, { guardian: Link['guardian']; links: Link[] }>();
+  for (const link of links.items) {
+    const entry = numbers.get(link.guardian.id) ?? { guardian: link.guardian, links: [] };
+    entry.links.push(link);
+    numbers.set(link.guardian.id, entry);
+  }
+
+  async function decide(key: string, path: string, decision: 'confirm' | 'reject') {
+    setBusy(key);
     setError(null);
     try {
-      await write(`admin/guardian-links/${link.id}/decide`, 'POST', { decision });
+      await write(path, 'POST', { decision });
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -440,41 +449,82 @@ export function ParentLinksScreen() {
     <Screen
       onRefresh={() => void links.refetch()}
       refreshing={links.isRefetching}
-      header={<PageHeader title="Parents to review" sub="Phone numbers shared by different families" />}>
+      header={<PageHeader title="Parents to review" sub="Phone numbers on the records of different families" />}>
       {error ? <Banner tone="bad">{error}</Banner> : null}
       <T v="small" tone="quiet">
-        These students share a guardian phone number with another family, so the app did not link them on its own.
-        Confirm only if this parent is really the student’s parent.
+        These students share a guardian phone number with a different family name, so the app did not link them
+        on its own. Confirm a number when it is really these children’s parent. Reject it when it is not, for
+        example an office or hostel number.
       </T>
       <Loaded
-        query={{ ...links, data: links.data ? links.items : undefined }}
-        empty={(items) =>
-          items.length ? null : <Empty icon="check" title="Nothing to review" body="Every parent link is decided." />
+        query={{ ...links, data: links.data ? [...numbers.values()] : undefined }}
+        empty={(groups) =>
+          groups.length ? null : <Empty icon="check" title="Nothing to review" body="Every parent link is decided." />
         }>
-        {(items) =>
-          items.map((link) => (
-            <Card key={link.id}>
+        {(groups) =>
+          groups.map(({ guardian, links: group }) => (
+            <Card key={guardian.id}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-                <Avatar name={link.student.name} photo={link.student.photo_url} />
+                <Avatar name={guardian.name} tone="warn" />
                 <View style={{ flex: 1 }}>
-                  <T v="bodyStrong">{link.student.name}</T>
+                  <T v="bodyStrong">{guardian.name}</T>
                   <T v="small" tone="quiet">
-                    {link.student.class_name}
+                    {guardian.phone}
                   </T>
                 </View>
+                <Chip label={`${group.length} ${group.length === 1 ? 'child' : 'children'}`} tone="warn" />
               </View>
-              <View style={{ padding: space.md, borderRadius: radius.control, backgroundColor: c.cardAlt, gap: 2 }}>
-                <T v="smallStrong">{`${link.guardian.name} · ${link.guardian.phone}`}</T>
-                <T v="small" tone="quiet">
-                  {link.shared_with.length ? `Also on this number: ${link.shared_with.join(', ')}` : 'No other child on this number'}
-                </T>
+              <View style={{ borderRadius: radius.control, backgroundColor: c.cardAlt }}>
+                {group.map((link, i) => (
+                  <View key={link.id}>
+                    {i ? <Divider /> : null}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.md }}>
+                      <View style={{ flex: 1 }}>
+                        <T v="smallStrong">{link.student.name}</T>
+                        <T v="small" tone="quiet">
+                          {link.student.class_name}
+                        </T>
+                      </View>
+                      <Pressable
+                        onPress={() => void decide(`link-${link.id}`, `admin/guardian-links/${link.id}/decide`, 'reject')}
+                        disabled={!!busy}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${guardian.name} is not ${link.student.name}'s parent`}
+                        hitSlop={6}
+                        style={{ padding: space.sm }}>
+                        <Icon name="x" size={20} color={c.bad} />
+                      </Pressable>
+                      <Pressable
+                        onPress={() => void decide(`link-${link.id}`, `admin/guardian-links/${link.id}/decide`, 'confirm')}
+                        disabled={!!busy}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Confirm ${guardian.name} as ${link.student.name}'s parent`}
+                        hitSlop={6}
+                        style={{ padding: space.sm }}>
+                        <Icon name="check" size={20} color={c.ok} />
+                      </Pressable>
+                    </View>
+                  </View>
+                ))}
               </View>
               <View style={{ flexDirection: 'row', gap: space.sm }}>
                 <View style={{ flex: 1 }}>
-                  <Button title="Not their parent" kind="danger" busy={busy === link.id} onPress={() => void decide(link, 'reject')} />
+                  <Button
+                    title="Not their parent"
+                    kind="danger"
+                    busy={busy === `number-${guardian.id}`}
+                    disabled={!!busy}
+                    onPress={() => void decide(`number-${guardian.id}`, `admin/guardians/${guardian.id}/decide`, 'reject')}
+                  />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Button title="Confirm" icon="check" busy={busy === link.id} onPress={() => void decide(link, 'confirm')} />
+                  <Button
+                    title={group.length > 1 ? `Confirm all ${group.length}` : 'Confirm'}
+                    icon="check"
+                    busy={busy === `number-${guardian.id}`}
+                    disabled={!!busy}
+                    onPress={() => void decide(`number-${guardian.id}`, `admin/guardians/${guardian.id}/decide`, 'confirm')}
+                  />
                 </View>
               </View>
             </Card>
