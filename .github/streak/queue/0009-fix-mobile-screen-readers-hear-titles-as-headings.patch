@@ -1,0 +1,73 @@
+From 341536fdf9e56be02793d9c5f9267b38f1640389 Mon Sep 17 00:00:00 2001
+From: devirambudhathoki369 <devirambudhathoki369@gmail.com>
+Date: Fri, 6 Nov 2026 15:28:30 +0545
+Subject: [PATCH 09/10] fix(mobile): screen readers hear titles as headings
+
+Screen titles and section labels were plain text to TalkBack and
+VoiceOver, so a student using one could not jump from section to section.
+They are now marked as headings.
+---
+ mobile/src/screens/parts.tsx | 4 ++--
+ mobile/src/ui/kit.tsx        | 6 +++++-
+ 2 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/mobile/src/screens/parts.tsx b/mobile/src/screens/parts.tsx
+index 17c3d7df..77841ab2 100644
+--- a/mobile/src/screens/parts.tsx
++++ b/mobile/src/screens/parts.tsx
+@@ -42,7 +42,7 @@ export function HomeHeader({ name, sub, school }: { name: string; sub: string; s
+               {school}
+             </T>
+           ) : null}
+-          <T v="title" tone="onHeader" numberOfLines={1}>
++          <T v="title" tone="onHeader" numberOfLines={1} heading>
+             {name}
+           </T>
+           <T v="small" tone="onHeaderSoft" numberOfLines={1}>
+@@ -94,7 +94,7 @@ export function PageHeader({
+   return (
+     <Header onBack={onBack === null ? undefined : (onBack ?? goBack)} right={right}>
+       <View style={{ gap: space.xs }}>
+-        <T v="title" tone="onHeader">
++        <T v="title" tone="onHeader" heading>
+           {title}
+         </T>
+         {sub ? <T tone="onHeaderSoft">{sub}</T> : null}
+diff --git a/mobile/src/ui/kit.tsx b/mobile/src/ui/kit.tsx
+index d50a6703..40d16c19 100644
+--- a/mobile/src/ui/kit.tsx
++++ b/mobile/src/ui/kit.tsx
+@@ -41,6 +41,7 @@ export function T({
+   children,
+   numberOfLines,
+   center,
++  heading,
+ }: {
+   v?: Variant;
+   tone?: Tone;
+@@ -48,10 +49,13 @@ export function T({
+   children: ReactNode;
+   numberOfLines?: number;
+   center?: boolean;
++  /** A screen's title: screen readers announce it as a heading. */
++  heading?: boolean;
+ }) {
+   const c = usePalette();
+   return (
+     <Text
++      accessibilityRole={heading ? 'header' : undefined}
+       numberOfLines={numberOfLines}
+       style={[type[v], { color: toneColor(c, tone) }, center && { textAlign: 'center' }, style]}>
+       {children}
+@@ -154,7 +158,7 @@ export function Card({ children, style, padded = true }: { children: ReactNode;
+ 
+ export function SectionLabel({ children }: { children: string }) {
+   return (
+-    <T v="label" tone="quiet" style={{ textTransform: 'uppercase', marginTop: space.sm, marginBottom: -space.xs }}>
++    <T v="label" tone="quiet" heading style={{ textTransform: 'uppercase', marginTop: space.sm, marginBottom: -space.xs }}>
+       {children}
+     </T>
+   );
+-- 
+2.55.0
+

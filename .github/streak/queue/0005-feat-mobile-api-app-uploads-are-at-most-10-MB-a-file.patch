@@ -1,0 +1,101 @@
+From 77d0d8116201faeef42686b8ff61b89c02916792 Mon Sep 17 00:00:00 2001
+From: devirambudhathoki369 <devirambudhathoki369@gmail.com>
+Date: Fri, 6 Nov 2026 15:26:28 +0545
+Subject: [PATCH 05/10] feat(mobile-api): app uploads are at most 10 MB a file
+
+Nothing limited the size of a hand-in or a homework file, so one long video
+could fill the server's disk and a student's data plan. The app's uploads
+now take at most 10 MB a file, and the refusal names the file.
+---
+ backend/mobileapi/access.py              | 12 ++++++++++++
+ backend/mobileapi/tests/test_children.py |  7 +++++++
+ backend/mobileapi/views/staff.py         |  3 ++-
+ backend/mobileapi/views/students.py      |  3 ++-
+ 4 files changed, 23 insertions(+), 2 deletions(-)
+
+diff --git a/backend/mobileapi/access.py b/backend/mobileapi/access.py
+index a3971712..5cc109c1 100644
+--- a/backend/mobileapi/access.py
++++ b/backend/mobileapi/access.py
+@@ -196,6 +196,18 @@ def month_names(months) -> list[str]:
+     return names
+ 
+ 
++MAX_FILE_MB = 10
++
++
++def check_file_sizes(files, field="files") -> None:
++    """Each uploaded file at most MAX_FILE_MB: a phone on mobile data should
++    not send, and the server should not keep, a long video as homework."""
++    for upload in files:
++        if upload.size > MAX_FILE_MB * 1024 * 1024:
++            message = f"{upload.name} is larger than {MAX_FILE_MB} MB. Send a smaller file or a photo of the page."
++            raise MobileError("file_too_large", message, fields={field: message})
++
++
+ def paisa(amount) -> int:
+     """Rupees (Decimal, str, int or None) as whole paisa, rounded half up."""
+     try:
+diff --git a/backend/mobileapi/tests/test_children.py b/backend/mobileapi/tests/test_children.py
+index b5e00234..ef6a7033 100644
+--- a/backend/mobileapi/tests/test_children.py
++++ b/backend/mobileapi/tests/test_children.py
+@@ -212,6 +212,13 @@ class HomeworkTests(ChildFixtures, TestCase):
+         self.assertEqual(answer.status_code, 400)
+         self.assertFalse(HomeworkSubmission.objects.exists())
+ 
++    def test_a_file_over_10_mb_is_refused_with_its_name(self):
++        big = SimpleUploadedFile("video.mp4", b"0" * (10 * 1024 * 1024 + 1), content_type="video/mp4")
++        answer = self.hand_in(self.open, files=[big])
++        self.assertEqual((answer.status_code, self.error(answer)), (400, "file_too_large"))
++        self.assertIn("video.mp4", answer.json()["error"]["message"])
++        self.assertFalse(HomeworkSubmission.objects.exists())
++
+     def test_a_write_without_an_idempotency_key_is_refused(self):
+         answer = self.write("post", f"students/{self.student.id}/homework/{self.open.id}/hand-in",
+                             {"files": [self.pdf()]}, self.student_token, key="", fmt="multipart")
+diff --git a/backend/mobileapi/views/staff.py b/backend/mobileapi/views/staff.py
+index b2776b69..a7e4c465 100644
+--- a/backend/mobileapi/views/staff.py
++++ b/backend/mobileapi/views/staff.py
+@@ -29,7 +29,7 @@ from main.serializers.HomeworkSerializer import HomeworkSerializer
+ from main.views.AttendanceViews import ClassAttendanceView
+ 
+ from ..access import (
+-    ANY_ATTENDANCE, CHANGE_ATTENDANCE, TAKE_ATTENDANCE, bs_date, bs_month, not_found, page_by_id,
++    ANY_ATTENDANCE, CHANGE_ATTENDANCE, TAKE_ATTENDANCE, bs_date, bs_month, check_file_sizes, not_found, page_by_id,
+     require_permission, staff_of, staff_permissions,
+ )
+ from ..auth import STUDENT_RUNNING
+@@ -527,6 +527,7 @@ class StaffHomeworkView(MobileAPIView):
+         today = ndt_today()
+         data = {key: request.data.get(key) for key in ("class_id", "subject_id", "title", "description", "due_date")}
+         data["files"] = request.FILES.getlist("files")
++        check_file_sizes(data["files"])
+         given = HomeworkIn(data=data)
+         if not given.is_valid():
+             raise MobileError("invalid", "Check the highlighted fields.", fields=_fields_error(given.errors))
+diff --git a/backend/mobileapi/views/students.py b/backend/mobileapi/views/students.py
+index 517329ac..5fa8eaee 100644
+--- a/backend/mobileapi/views/students.py
++++ b/backend/mobileapi/views/students.py
+@@ -32,7 +32,7 @@ from main.views.exams.ResultViews import ResultView
+ from main.views.InvoiceViews import InvoiceViews
+ from main.views.LedgerViews import LedgerView
+ 
+-from ..access import bs_month, month_names, not_found, page_by_id, paisa, student_for
++from ..access import bs_month, check_file_sizes, month_names, not_found, page_by_id, paisa, student_for
+ from ..auth import STUDENT_RUNNING
+ from ..errors import MobileError
+ from ..idempotency import idempotent
+@@ -561,6 +561,7 @@ class StudentHandInView(MobileAPIView):
+         if HomeworkSubmission.objects.filter(homework=homework, student=student, is_active=True).exists():
+             raise MobileError("already_handed_in", "This homework has already been handed in.", status.HTTP_409_CONFLICT)
+         files = request.FILES.getlist("files")
++        check_file_sizes(files)
+         # The portal's own rules: allowed file types, at most ten files, and
+         # not after the due date.
+         submission = HomeworkSubmissionSerializer(data={"homework": homework.id, "student": student.id, "files": files})
+-- 
+2.55.0
+

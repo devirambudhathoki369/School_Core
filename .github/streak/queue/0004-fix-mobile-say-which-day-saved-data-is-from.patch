@@ -1,0 +1,46 @@
+From 66c9fa48374b7f0e15812471b0495013e9662a18 Mon Sep 17 00:00:00 2001
+From: devirambudhathoki369 <devirambudhathoki369@gmail.com>
+Date: Fri, 6 Nov 2026 15:25:30 +0545
+Subject: [PATCH 04/10] fix(mobile): say which day saved data is from
+
+Offline, a screen showed "Showing what was saved at 10:42" even when that
+was yesterday, so old attendance or dues could pass for today's. A time
+from an earlier day now carries its date: "19 Kartik, 10:42".
+---
+ mobile/src/screens/parts.tsx | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/mobile/src/screens/parts.tsx b/mobile/src/screens/parts.tsx
+index d40b2586..17c3d7df 100644
+--- a/mobile/src/screens/parts.tsx
++++ b/mobile/src/screens/parts.tsx
+@@ -1,9 +1,10 @@
+ import { type Href, router } from 'expo-router';
++import NepaliDate from 'nepali-date-converter';
+ import { Pressable, View } from 'react-native';
+ 
+ import { useActive } from '@/accounts/store';
+ import { ApiError } from '@/api/client';
+-import { bsLong, bsToday, bsWeekday } from '@/lib/format';
++import { bsLong, bsShort, bsToday, bsWeekday } from '@/lib/format';
+ import { font, space, usePalette } from '@/theme';
+ import { Banner, Header, T } from '@/ui/kit';
+ import { initials } from '@/ui/SchoolCard';
+@@ -56,9 +57,13 @@ export function HomeHeader({ name, sub, school }: { name: string; sub: string; s
+   );
+ }
+ 
++/** "10:42" for today, "19 Kartik, 10:42" for an earlier day: saved data
++ *  from yesterday must not look like today's. */
+ function clock(ms: number) {
+   const d = new Date(ms);
+-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
++  const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
++  const day = new NepaliDate(d).format('YYYY-MM-DD');
++  return day === bsToday() ? time : `${bsShort(day)}, ${time}`;
+ }
+ 
+ /** "Updated 10:42", or the offline note when the last refresh failed. */
+-- 
+2.55.0
+

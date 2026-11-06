@@ -1,0 +1,96 @@
+From 7ee9c719f3029e40aa7f3691bba67d7935731e1c Mon Sep 17 00:00:00 2001
+From: devirambudhathoki369 <devirambudhathoki369@gmail.com>
+Date: Fri, 6 Nov 2026 15:29:27 +0545
+Subject: [PATCH 10/10] feat(mobile-api): mobile_status shows how each school
+ takes to the app
+
+python manage.py mobile_status prints, for each school on the app, its
+code, parents, confirmed children, links waiting for review, parents who
+have joined, and phones signed in with and without notifications. It is
+there to watch a school's first weeks.
+---
+ .../management/commands/mobile_status.py      | 44 +++++++++++++++++++
+ backend/mobileapi/tests/test_guardians.py     | 19 ++++++++
+ 2 files changed, 63 insertions(+)
+ create mode 100644 backend/mobileapi/management/commands/mobile_status.py
+
+diff --git a/backend/mobileapi/management/commands/mobile_status.py b/backend/mobileapi/management/commands/mobile_status.py
+new file mode 100644
+index 00000000..f035b143
+--- /dev/null
++++ b/backend/mobileapi/management/commands/mobile_status.py
+@@ -0,0 +1,44 @@
++"""How each school is taking to the app.
++
++    python manage.py mobile_status             # the schools that use the app
++    python manage.py mobile_status --school 3  # one school, app or not
++
++For each school: its code, parents and their confirmed children, links
++waiting for review, parents who have joined (an email on record), and the
++phones signed in, with and without notifications.
++"""
++from django.core.management.base import BaseCommand
++from django.db.models import Count, Q
++
++from main.models.Guardian import Guardian, StudentGuardian
++from main.models.SchoolAdmin import SchoolAdmin
++from mobileapi.models import AppSession
++
++
++class Command(BaseCommand):
++    help = "Show how each school is taking to the app."
++
++    def add_arguments(self, parser):
++        parser.add_argument("--school", type=int, help="Only this school (by id), even if it does not use the app.")
++
++    def handle(self, *args, school=None, **options):
++        schools = SchoolAdmin.objects.filter(pk=school) if school else SchoolAdmin.objects.filter(
++            uses_mobile_app=True, is_active=True
++        )
++        self.stdout.write(f"{'id':>5}  {'code':<8} {'parents':>8} {'linked':>7} {'review':>7} {'joined':>7} "
++                          f"{'phones':>7} {'notify':>7}")
++        for each in schools.order_by("id"):
++            links = StudentGuardian.objects.filter(guardian__school=each).aggregate(
++                linked=Count("id", filter=Q(state=StudentGuardian.LINKED)),
++                review=Count("id", filter=Q(state=StudentGuardian.NEEDS_REVIEW)),
++            )
++            parents = Guardian.objects.filter(school=each, is_active=True).aggregate(
++                all=Count("id"), joined=Count("id", filter=Q(email__isnull=False)),
++            )
++            phones = AppSession.objects.filter(school=each, revoked_at__isnull=True).aggregate(
++                all=Count("id"), notify=Count("id", filter=Q(push_token__isnull=False)),
++            )
++            self.stdout.write(
++                f"{each.id:>5}  {each.app_code or '-':<8} {parents['all']:>8} {links['linked']:>7} "
++                f"{links['review']:>7} {parents['joined']:>7} {phones['all']:>7} {phones['notify']:>7}"
++            )
+diff --git a/backend/mobileapi/tests/test_guardians.py b/backend/mobileapi/tests/test_guardians.py
+index 80211b96..4a2d8b99 100644
+--- a/backend/mobileapi/tests/test_guardians.py
++++ b/backend/mobileapi/tests/test_guardians.py
+@@ -108,3 +108,22 @@ class LinkGuardiansTests(MobileTestMixin, TestCase):
+         with self.captureOnCommitCallbacks(execute=True):
+             MobileFixtures.student(self.school, "Fio", phone="9888888888")
+         self.assertFalse(Guardian.objects.exists())
++
++
++class StatusCommandTests(MobileTestMixin, TestCase):
++    @classmethod
++    def setUpTestData(cls):
++        MobileFixtures.build(cls)
++
++    def test_it_counts_parents_links_and_phones_per_school(self):
++        from mobileapi.models import AppSession
++
++        AppSession.objects.create(role=AppSession.PARENT, guardian=self.guardian, school=self.school, platform=1,
++                                  app_version="1.0.0", push_token="ExponentPushToken[statusCheck01]")
++        out = StringIO()
++        call_command("mobile_status", stdout=out)
++        lines = out.getvalue().splitlines()
++        row = next(line for line in lines if "ONE001" in line).split()
++        # id, code, parents, linked, review, joined, phones, notify
++        self.assertEqual(row[1:], ["ONE001", "1", "2", "0", "1", "1", "1"])
++        self.assertTrue(any("TWO002" in line for line in lines))
+-- 
+2.55.0
+
