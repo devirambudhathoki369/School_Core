@@ -68,7 +68,7 @@ the server's `EXPO_ACCESS_TOKEN`.
 
    ```sh
    python manage.py migrate canteen 0004_canteen_users --fake   # the tables exist and match
-   python manage.py migrate                                     # the rest, to mobileapi 0002
+   python manage.py migrate                                     # the rest, to mobileapi 0003
    ```
 
    On the copy the canteen tables matched this repo's column for column, and

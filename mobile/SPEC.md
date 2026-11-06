@@ -2,7 +2,7 @@
 
 Status: signed off 2026-11-05. Phases 1 to 6 are built as far as code can go:
 the backend in `backend/mobileapi/` (migrations `main/0117`, `mobileapi/0001`
-and `0002`), and the app in this folder with every role's screens, push
+to `0003`), and the app in this folder with every role's screens, push
 notifications, its icons and its build profiles. The app's types are
 generated from the API's OpenAPI schema (`src/api/README.md`). What is left
 needs your Expo, Firebase, Apple and Play accounts and a package name: see
