@@ -1,11 +1,12 @@
 # SchoolCore mobile: specification
 
-Status: signed off 2026-11-05. Phases 1 to 5 are built: the backend in
-`backend/mobileapi/` (migrations `main/0117` and `mobileapi/0001`) and the
-app in this folder, with every role's screens. The app's types are
-generated from the API's OpenAPI schema (`src/api/README.md`). Phase 6
-(push notifications and the store listings) waits on the Firebase, Play
-Console and Apple accounts.
+Status: signed off 2026-11-05. Phases 1 to 6 are built as far as code can go:
+the backend in `backend/mobileapi/` (migrations `main/0117`, `mobileapi/0001`
+and `0002`), and the app in this folder with every role's screens, push
+notifications, its icons and its build profiles. The app's types are
+generated from the API's OpenAPI schema (`src/api/README.md`). What is left
+needs your Expo, Firebase, Apple and Play accounts and two decisions: see
+`RELEASE.md`.
 
 One app for Android and iPhone with four kinds of user: **parent**,
 **student**, **staff** and **school admin**. Each signs in their own way and
@@ -410,7 +411,7 @@ Rules every look keeps:
 | 3. Parents and students | Their endpoints and screens, homework hand-in included | Every screen works on a phone with demo data |
 | 4. Staff | Today, classes, attendance with the offline queue, homework, notices | A teacher takes a class's attendance offline and it syncs |
 | 5. School admin | Dashboard, students, fees, staff, parents, notices | An admin confirms a shared number and issues a family code |
-| 6. Notifications and stores | Push (gate tap-in, absence, fees due, notices, homework), store listings and builds | Needs your Firebase, Play Console and Apple accounts |
+| 6. Notifications and stores | Push (gate tap-in, absence, fees due, notices, homework), store listings and builds | Code done: every portal push also reaches the app, with icons, EAS profiles and the listing in `RELEASE.md`. Needs your Firebase, Play Console and Apple accounts |
 
 ## 10. Decisions
 
@@ -426,4 +427,6 @@ Still open:
 1. An email account for sending codes in production.
 2. App lock required for staff and admins: built as required. Say if it
    should be optional instead.
+3. One app for every school, or one build per school as the old app was,
+   and its package name (`RELEASE.md` §1).
 
