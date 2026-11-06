@@ -1,0 +1,91 @@
+From 40f4cb59c7068ab2b9423adeb50dbeec336f33f8 Mon Sep 17 00:00:00 2001
+From: devirambudhathoki369 <devirambudhathoki369@gmail.com>
+Date: Fri, 6 Nov 2026 15:20:57 +0545
+Subject: [PATCH 2/3] feat(mobile-api): find a student by their guardian's
+ phone number
+
+An admin's student search now also matches four or more digits against the
+guardian's and the student's phone numbers. A parent asking at the office
+usually gives their number, not their child's roll number.
+---
+ backend/mobileapi/tests/test_admin.py | 6 ++++++
+ backend/mobileapi/views/admin.py      | 8 ++++++--
+ mobile/src/api/openapi.json           | 2 +-
+ mobile/src/api/schema.d.ts            | 2 +-
+ 4 files changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/backend/mobileapi/tests/test_admin.py b/backend/mobileapi/tests/test_admin.py
+index f0976e50..c358f463 100644
+--- a/backend/mobileapi/tests/test_admin.py
++++ b/backend/mobileapi/tests/test_admin.py
+@@ -76,6 +76,12 @@ class AdminScreenTests(AdminFixtures, TestCase):
+         self.assertEqual(self.get("admin/students?q=dev", self.admin_token).json()["items"], [])
+         self.assertEqual(self.get(f"admin/students/{self.far.id}", self.admin_token).status_code, 404)
+ 
++    def test_students_are_found_by_a_guardian_phone_number(self):
++        found = {i["id"] for i in self.get("admin/students?q=1111", self.admin_token).json()["items"]}
++        self.assertEqual(found, {self.student.id, self.sibling.id})
++        # a short number is a roll number, not a phone
++        self.assertEqual(self.get("admin/students?q=111", self.admin_token).json()["items"], [])
++
+     def test_a_student_shows_their_parents_and_dues(self):
+         body = self.get(f"admin/students/{self.student.id}", self.admin_token).json()
+         self.assertEqual([(g["name"], g["state"]) for g in body["guardians"]], [("Hari Pun", "linked")])
+diff --git a/backend/mobileapi/views/admin.py b/backend/mobileapi/views/admin.py
+index 2126d8e3..ad168f21 100644
+--- a/backend/mobileapi/views/admin.py
++++ b/backend/mobileapi/views/admin.py
+@@ -349,7 +349,7 @@ class AdminDashboardView(MobileAPIView):
+ 
+ class AdminStudentsView(MobileAPIView):
+     @extend_schema(
+-        parameters=[OpenApiParameter("q", str, description="Name, roll or registration number"),
++        parameters=[OpenApiParameter("q", str, description="Name, roll or registration number, or 4+ digits of a phone"),
+                     OpenApiParameter("class", int), OpenApiParameter("cursor", str)],
+         responses=StudentListOut,
+     )
+@@ -364,10 +364,14 @@ class AdminStudentsView(MobileAPIView):
+         query = (request.query_params.get("q") or "").strip()[:60]
+         if query:
+             for word in query.split()[:4]:
+-                students = students.filter(
++                match = (
+                     Q(first_name__icontains=word) | Q(middle_name__icontains=word) | Q(last_name__icontains=word)
+                     | Q(roll_no__iexact=word) | Q(regd_no__iexact=word)
+                 )
++                if word.isdigit() and len(word) >= 4:
++                    # a parent asking at the office gives their number
++                    match |= Q(guardian_info__guardian_contact__contains=word) | Q(contact__contains=word)
++                students = students.filter(match)
+         students = students.order_by("first_name", "last_name", "id")
+         rows, cursor = page_by_offset(students, request)
+         names = _ClassNames()
+diff --git a/mobile/src/api/openapi.json b/mobile/src/api/openapi.json
+index 5924fe4f..8f91c1a8 100644
+--- a/mobile/src/api/openapi.json
++++ b/mobile/src/api/openapi.json
+@@ -3180,7 +3180,7 @@
+             }
+           },
+           {
+-            "description": "Name, roll or registration number",
++            "description": "Name, roll or registration number, or 4+ digits of a phone",
+             "in": "query",
+             "name": "q",
+             "schema": {
+diff --git a/mobile/src/api/schema.d.ts b/mobile/src/api/schema.d.ts
+index bd146c3a..fd9ee732 100644
+--- a/mobile/src/api/schema.d.ts
++++ b/mobile/src/api/schema.d.ts
+@@ -1765,7 +1765,7 @@ export interface operations {
+             query?: {
+                 class?: number;
+                 cursor?: string;
+-                /** @description Name, roll or registration number */
++                /** @description Name, roll or registration number, or 4+ digits of a phone */
+                 q?: string;
+             };
+             header?: never;
+-- 
+2.55.0
+

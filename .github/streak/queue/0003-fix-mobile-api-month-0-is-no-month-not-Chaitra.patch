@@ -1,0 +1,98 @@
+From aa1a286df8cfc53e759a7b9d721417fd4f434732 Mon Sep 17 00:00:00 2001
+From: devirambudhathoki369 <devirambudhathoki369@gmail.com>
+Date: Fri, 6 Nov 2026 15:22:21 +0545
+Subject: [PATCH 3/3] fix(mobile-api): month 0 is no month, not Chaitra
+
+month_names read month 0 from the end of the list and called it Chaitra, so
+a bill with a stray 0 among its months would have said Chaitra. Months
+outside 1 to 12 are now left out. New tests cover the BS date and month
+helpers (lengths, first weekday, the year turning at Chaitra), paisa
+rounding and page cursors.
+---
+ backend/mobileapi/access.py            |  6 ++-
+ backend/mobileapi/tests/test_access.py | 55 ++++++++++++++++++++++++++
+ 2 files changed, 59 insertions(+), 2 deletions(-)
+ create mode 100644 backend/mobileapi/tests/test_access.py
+
+diff --git a/backend/mobileapi/access.py b/backend/mobileapi/access.py
+index 693ac133..a3971712 100644
+--- a/backend/mobileapi/access.py
++++ b/backend/mobileapi/access.py
+@@ -188,9 +188,11 @@ def month_names(months) -> list[str]:
+     names = []
+     for month in months or []:
+         try:
+-            names.append(BS_MONTHS[int(month) - 1])
+-        except (ValueError, TypeError, IndexError):
++            number = int(month)
++        except (ValueError, TypeError):
+             continue
++        if 1 <= number <= 12:  # 0 would read the list from its end: Chaitra
++            names.append(BS_MONTHS[number - 1])
+     return names
+ 
+ 
+diff --git a/backend/mobileapi/tests/test_access.py b/backend/mobileapi/tests/test_access.py
+new file mode 100644
+index 00000000..1f8c6e60
+--- /dev/null
++++ b/backend/mobileapi/tests/test_access.py
+@@ -0,0 +1,55 @@
++"""The helpers every endpoint leans on: BS dates, months, money and paging."""
++from django.test import SimpleTestCase
++
++from mobileapi.access import _decode, _encode, bs_date, bs_month, month_names, paisa
++from mobileapi.errors import MobileError
++
++
++class BsDateTests(SimpleTestCase):
++    def test_a_date_is_written_as_the_database_holds_it(self):
++        self.assertEqual(bs_date("2083-07-05"), "2083-07-05")
++
++    def test_dates_that_are_not_in_the_calendar_are_refused(self):
++        for value in ("2083-07-32", "2083-13-01", "2083-7-5", "07-05-2083", "yesterday"):
++            with self.assertRaises(MobileError, msg=value):
++                bs_date(value)
++
++    def test_a_missing_date_is_today_unless_it_is_required(self):
++        self.assertRegex(bs_date(None), r"^\d{4}-\d{2}-\d{2}$")
++        with self.assertRaises(MobileError):
++            bs_date(None, default_today=False)
++
++
++class BsMonthTests(SimpleTestCase):
++    def test_a_month_knows_its_length_first_weekday_and_neighbours(self):
++        kartik = bs_month("2083-07")
++        self.assertEqual((kartik["start"], kartik["end"], kartik["days"]), ("2083-07-01", "2083-07-30", 30))
++        self.assertEqual(kartik["starts_on"], 0)  # 1 Kartik 2083 is a Sunday
++        self.assertEqual(kartik["label"], "Kartik 2083")
++
++    def test_the_year_turns_over_at_chaitra_and_baishakh(self):
++        self.assertEqual(bs_month("2083-12")["next"], "2084-01")
++        self.assertEqual(bs_month("2084-01")["previous"], "2083-12")
++
++    def test_bad_months_are_refused(self):
++        for value in ("2083-00", "2083-13", "1800-01", "2083-1", "Kartik"):
++            with self.assertRaises(MobileError, msg=value):
++                bs_month(value)
++
++
++class MoneyAndPagingTests(SimpleTestCase):
++    def test_rupees_become_whole_paisa_rounded_half_up(self):
++        self.assertEqual(paisa("4800.00"), 480000)
++        self.assertEqual(paisa("10.005"), 1001)
++        self.assertEqual(paisa(None), 0)
++        self.assertEqual(paisa("not money"), 0)
++
++    def test_month_numbers_become_names(self):
++        self.assertEqual(month_names([1, 7, 12]), ["Baishakh", "Kartik", "Chaitra"])
++        self.assertEqual(month_names(4), ["Shrawan"])
++        self.assertEqual(month_names([0, 13, "x"]), [])
++
++    def test_a_cursor_reads_back_and_a_forged_one_is_refused(self):
++        self.assertEqual(_decode(_encode(1234)), 1234)
++        with self.assertRaises(MobileError):
++            _decode("not-base64!!")
+-- 
+2.55.0
+

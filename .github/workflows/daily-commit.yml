@@ -1,0 +1,69 @@
+# One commit a day on main, 7 to 16 November 2026, while the laptop is away.
+#
+# Each run takes the next prepared change from .github/streak/queue (a patch
+# made and tested beforehand), commits it as devirambudhathoki369, dated the
+# day it runs, and pushes it. If the queue is ever empty it adds a line to
+# .github/streak/log.md instead, so no day is missed. It runs twice a day in
+# case GitHub drops one run; the second does nothing once the day has a
+# commit. "Run workflow" by hand does a dry run unless you untick it.
+name: Daily commit
+
+on:
+  schedule:
+    - cron: "30 4 7-16 11 *"   # 10:15 in Nepal
+    - cron: "30 10 7-16 11 *"  # 16:15 in Nepal, if the first run was dropped
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Apply the next change without pushing it"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-commit
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Commit and push the next change
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+        run: |
+          set -euo pipefail
+          git config user.name "devirambudhathoki369"
+          git config user.email "devirambudhathoki369@gmail.com"
+          today=$(TZ=Asia/Kathmandu date +%F)
+
+          # only in 2026: the same dates next year must do nothing
+          if [ "$(TZ=Asia/Kathmandu date +%Y)" != "2026" ] && [ "$DRY_RUN" != "true" ]; then
+            echo "Past 2026: nothing to do."; exit 0
+          fi
+          # one commit a day: the second run skips when today already has one
+          last=$(TZ=Asia/Kathmandu git log -1 --format=%cd --date=format-local:%F)
+          if [ "$last" = "$today" ] && [ "$DRY_RUN" != "true" ]; then
+            echo "Today ($today) already has a commit."; exit 0
+          fi
+
+          next=$(ls .github/streak/queue/*.patch 2>/dev/null | sort | head -n 1 || true)
+          if [ -n "$next" ]; then
+            # the patch carries its author and message; --ignore-date dates it today
+            git am --ignore-date --3way "$next"
+            git rm -q "$next"
+            git commit -q --amend --no-edit
+          else
+            echo "- $today" >> .github/streak/log.md
+            git add .github/streak/log.md
+            git commit -q -m "chore: daily log, $today"
+          fi
+          git log -1 --format='%h %an <%ae> %ad%n%s' --stat
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "Dry run: not pushed."; exit 0
+          fi
+          git push origin HEAD:main

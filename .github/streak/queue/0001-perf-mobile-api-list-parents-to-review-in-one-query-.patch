@@ -1,0 +1,96 @@
+From 26d971957095b05388bd6ee5ec130b6989b1424b Mon Sep 17 00:00:00 2001
+From: devirambudhathoki369 <devirambudhathoki369@gmail.com>
+Date: Fri, 6 Nov 2026 15:20:08 +0545
+Subject: [PATCH 1/3] perf(mobile-api): list parents to review in one query per
+ page
+
+Each link on the review list looked up the other children on its number
+with a query of its own, so a page of 30 cost 30 more queries. They now
+come from one query for the whole page, and a test keeps it that way.
+---
+ backend/mobileapi/tests/test_admin.py | 15 ++++++++++++++
+ backend/mobileapi/views/admin.py      | 28 ++++++++++++++++++---------
+ 2 files changed, 34 insertions(+), 9 deletions(-)
+
+diff --git a/backend/mobileapi/tests/test_admin.py b/backend/mobileapi/tests/test_admin.py
+index 006ce4fd..f0976e50 100644
+--- a/backend/mobileapi/tests/test_admin.py
++++ b/backend/mobileapi/tests/test_admin.py
+@@ -116,6 +116,21 @@ class ParentLinkTests(AdminFixtures, TestCase):
+         self.assertEqual(self.review.state, StudentGuardian.LINKED)
+         self.assertIsNotNone(self.review.decided_at)
+ 
++    def test_the_list_costs_the_same_however_many_links(self):
++        for n in range(5):
++            child = MobileFixtures.student(self.school, f"Kid{n}", last_name=f"Family{n}", phone="9844444444")
++            StudentGuardian.objects.create(student=child, guardian=self.shared, relation=StudentGuardian.GUARDIAN,
++                                           state=StudentGuardian.NEEDS_REVIEW, source=StudentGuardian.FROM_RECORD)
++        self.get("admin/guardian-links", self.admin_token)  # warm the session and class names
++        from django.db import connection
++        from django.test.utils import CaptureQueriesContext
++
++        with CaptureQueriesContext(connection) as queries:
++            items = self.get("admin/guardian-links", self.admin_token).json()["items"]
++        self.assertEqual(len(items), 6)
++        self.assertEqual(len(items[0]["shared_with"]), 5)
++        self.assertLess(len(queries), 15)
++
+     def test_a_link_can_be_rejected(self):
+         self.decide("reject")
+         self.review.refresh_from_db()
+diff --git a/backend/mobileapi/views/admin.py b/backend/mobileapi/views/admin.py
+index a0b61b8f..2126d8e3 100644
+--- a/backend/mobileapi/views/admin.py
++++ b/backend/mobileapi/views/admin.py
+@@ -285,13 +285,22 @@ def _guardian_out(guardian) -> dict:
+     return {"id": guardian.id, "name": guardian.name or "Parent", "phone": guardian.phone, "email": guardian.email}
+ 
+ 
+-def link_payload(request, link, names) -> dict:
+-    others = (
+-        StudentGuardian.objects.filter(guardian=link.guardian_id)
+-        .exclude(pk=link.pk)
+-        .select_related("student")
+-        .order_by("student__first_name")
+-    )
++def children_by_number(links) -> dict:
++    """{guardian id: [(link id, child's name)]} for every number in `links`,
++    in one query rather than one per link."""
++    out = {}
++    for link_id, guardian_id, first, middle, last in (
++        StudentGuardian.objects.filter(guardian__in={link.guardian_id for link in links})
++        .order_by("student__first_name", "student__last_name", "id")
++        .values_list("id", "guardian_id", "student__first_name", "student__middle_name", "student__last_name")
++    ):
++        name = " ".join(part.strip() for part in (first, middle, last) if part and part.strip())
++        out.setdefault(guardian_id, []).append((link_id, name))
++    return out
++
++
++def link_payload(request, link, names, numbers=None) -> dict:
++    numbers = numbers if numbers is not None else children_by_number([link])
+     return {
+         "id": link.id,
+         "relation": RELATIONS.get(link.relation, "other"),
+@@ -299,7 +308,7 @@ def link_payload(request, link, names) -> dict:
+         "created_at": link.created_at,
+         "guardian": _guardian_out(link.guardian),
+         "student": _row(request, link.student, names),
+-        "shared_with": [_name(other.student) for other in others],
++        "shared_with": [name for link_id, name in numbers.get(link.guardian_id, []) if link_id != link.id],
+     }
+ 
+ 
+@@ -555,7 +564,8 @@ class GuardianLinksView(MobileAPIView):
+         )
+         rows, cursor = page_by_offset(links, request)
+         names = _ClassNames()
+-        return Response(LinkListOut({"items": [link_payload(request, link, names) for link in rows],
++        numbers = children_by_number(rows)
++        return Response(LinkListOut({"items": [link_payload(request, link, names, numbers) for link in rows],
+                                      "next_cursor": cursor}).data)
+ 
+ 
+-- 
+2.55.0
+
