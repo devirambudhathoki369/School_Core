@@ -285,13 +285,22 @@ def _guardian_out(guardian) -> dict:
     return {"id": guardian.id, "name": guardian.name or "Parent", "phone": guardian.phone, "email": guardian.email}
 
 
-def link_payload(request, link, names) -> dict:
-    others = (
-        StudentGuardian.objects.filter(guardian=link.guardian_id)
-        .exclude(pk=link.pk)
-        .select_related("student")
-        .order_by("student__first_name")
-    )
+def children_by_number(links) -> dict:
+    """{guardian id: [(link id, child's name)]} for every number in `links`,
+    in one query rather than one per link."""
+    out = {}
+    for link_id, guardian_id, first, middle, last in (
+        StudentGuardian.objects.filter(guardian__in={link.guardian_id for link in links})
+        .order_by("student__first_name", "student__last_name", "id")
+        .values_list("id", "guardian_id", "student__first_name", "student__middle_name", "student__last_name")
+    ):
+        name = " ".join(part.strip() for part in (first, middle, last) if part and part.strip())
+        out.setdefault(guardian_id, []).append((link_id, name))
+    return out
+
+
+def link_payload(request, link, names, numbers=None) -> dict:
+    numbers = numbers if numbers is not None else children_by_number([link])
     return {
         "id": link.id,
         "relation": RELATIONS.get(link.relation, "other"),
@@ -299,7 +308,7 @@ def link_payload(request, link, names) -> dict:
         "created_at": link.created_at,
         "guardian": _guardian_out(link.guardian),
         "student": _row(request, link.student, names),
-        "shared_with": [_name(other.student) for other in others],
+        "shared_with": [name for link_id, name in numbers.get(link.guardian_id, []) if link_id != link.id],
     }
 
 
@@ -555,7 +564,8 @@ class GuardianLinksView(MobileAPIView):
         )
         rows, cursor = page_by_offset(links, request)
         names = _ClassNames()
-        return Response(LinkListOut({"items": [link_payload(request, link, names) for link in rows],
+        numbers = children_by_number(rows)
+        return Response(LinkListOut({"items": [link_payload(request, link, names, numbers) for link in rows],
                                      "next_cursor": cursor}).data)
 
 

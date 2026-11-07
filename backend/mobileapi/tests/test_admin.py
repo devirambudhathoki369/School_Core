@@ -116,6 +116,21 @@ class ParentLinkTests(AdminFixtures, TestCase):
         self.assertEqual(self.review.state, StudentGuardian.LINKED)
         self.assertIsNotNone(self.review.decided_at)
 
+    def test_the_list_costs_the_same_however_many_links(self):
+        for n in range(5):
+            child = MobileFixtures.student(self.school, f"Kid{n}", last_name=f"Family{n}", phone="9844444444")
+            StudentGuardian.objects.create(student=child, guardian=self.shared, relation=StudentGuardian.GUARDIAN,
+                                           state=StudentGuardian.NEEDS_REVIEW, source=StudentGuardian.FROM_RECORD)
+        self.get("admin/guardian-links", self.admin_token)  # warm the session and class names
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        with CaptureQueriesContext(connection) as queries:
+            items = self.get("admin/guardian-links", self.admin_token).json()["items"]
+        self.assertEqual(len(items), 6)
+        self.assertEqual(len(items[0]["shared_with"]), 5)
+        self.assertLess(len(queries), 15)
+
     def test_a_link_can_be_rejected(self):
         self.decide("reject")
         self.review.refresh_from_db()
