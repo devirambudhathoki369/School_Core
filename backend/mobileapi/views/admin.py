@@ -349,7 +349,7 @@ class AdminDashboardView(MobileAPIView):
 
 class AdminStudentsView(MobileAPIView):
     @extend_schema(
-        parameters=[OpenApiParameter("q", str, description="Name, roll or registration number"),
+        parameters=[OpenApiParameter("q", str, description="Name, roll or registration number, or 4+ digits of a phone"),
                     OpenApiParameter("class", int), OpenApiParameter("cursor", str)],
         responses=StudentListOut,
     )
@@ -364,10 +364,14 @@ class AdminStudentsView(MobileAPIView):
         query = (request.query_params.get("q") or "").strip()[:60]
         if query:
             for word in query.split()[:4]:
-                students = students.filter(
+                match = (
                     Q(first_name__icontains=word) | Q(middle_name__icontains=word) | Q(last_name__icontains=word)
                     | Q(roll_no__iexact=word) | Q(regd_no__iexact=word)
                 )
+                if word.isdigit() and len(word) >= 4:
+                    # a parent asking at the office gives their number
+                    match |= Q(guardian_info__guardian_contact__contains=word) | Q(contact__contains=word)
+                students = students.filter(match)
         students = students.order_by("first_name", "last_name", "id")
         rows, cursor = page_by_offset(students, request)
         names = _ClassNames()

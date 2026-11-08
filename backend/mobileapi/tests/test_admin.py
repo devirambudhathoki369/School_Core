@@ -76,6 +76,12 @@ class AdminScreenTests(AdminFixtures, TestCase):
         self.assertEqual(self.get("admin/students?q=dev", self.admin_token).json()["items"], [])
         self.assertEqual(self.get(f"admin/students/{self.far.id}", self.admin_token).status_code, 404)
 
+    def test_students_are_found_by_a_guardian_phone_number(self):
+        found = {i["id"] for i in self.get("admin/students?q=1111", self.admin_token).json()["items"]}
+        self.assertEqual(found, {self.student.id, self.sibling.id})
+        # a short number is a roll number, not a phone
+        self.assertEqual(self.get("admin/students?q=111", self.admin_token).json()["items"], [])
+
     def test_a_student_shows_their_parents_and_dues(self):
         body = self.get(f"admin/students/{self.student.id}", self.admin_token).json()
         self.assertEqual([(g["name"], g["state"]) for g in body["guardians"]], [("Hari Pun", "linked")])

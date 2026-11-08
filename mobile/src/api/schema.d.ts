@@ -1765,7 +1765,7 @@ export interface operations {
             query?: {
                 class?: number;
                 cursor?: string;
-                /** @description Name, roll or registration number */
+                /** @description Name, roll or registration number, or 4+ digits of a phone */
                 q?: string;
             };
             header?: never;

@@ -3180,7 +3180,7 @@
             }
           },
           {
-            "description": "Name, roll or registration number",
+            "description": "Name, roll or registration number, or 4+ digits of a phone",
             "in": "query",
             "name": "q",
             "schema": {
