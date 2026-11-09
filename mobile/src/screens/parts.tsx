@@ -1,9 +1,10 @@
 import { type Href, router } from 'expo-router';
+import NepaliDate from 'nepali-date-converter';
 import { Pressable, View } from 'react-native';
 
 import { useActive } from '@/accounts/store';
 import { ApiError } from '@/api/client';
-import { bsLong, bsToday, bsWeekday } from '@/lib/format';
+import { bsLong, bsShort, bsToday, bsWeekday } from '@/lib/format';
 import { font, space, usePalette } from '@/theme';
 import { Banner, Header, T } from '@/ui/kit';
 import { initials } from '@/ui/SchoolCard';
@@ -56,9 +57,13 @@ export function HomeHeader({ name, sub, school }: { name: string; sub: string; s
   );
 }
 
+/** "10:42" for today, "19 Kartik, 10:42" for an earlier day: saved data
+ *  from yesterday must not look like today's. */
 function clock(ms: number) {
   const d = new Date(ms);
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  const day = new NepaliDate(d).format('YYYY-MM-DD');
+  return day === bsToday() ? time : `${bsShort(day)}, ${time}`;
 }
 
 /** "Updated 10:42", or the offline note when the last refresh failed. */
