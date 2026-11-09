@@ -188,9 +188,11 @@ def month_names(months) -> list[str]:
     names = []
     for month in months or []:
         try:
-            names.append(BS_MONTHS[int(month) - 1])
-        except (ValueError, TypeError, IndexError):
+            number = int(month)
+        except (ValueError, TypeError):
             continue
+        if 1 <= number <= 12:  # 0 would read the list from its end: Chaitra
+            names.append(BS_MONTHS[number - 1])
     return names
 
 
