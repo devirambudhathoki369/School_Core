@@ -212,6 +212,13 @@ class HomeworkTests(ChildFixtures, TestCase):
         self.assertEqual(answer.status_code, 400)
         self.assertFalse(HomeworkSubmission.objects.exists())
 
+    def test_a_file_over_10_mb_is_refused_with_its_name(self):
+        big = SimpleUploadedFile("video.mp4", b"0" * (10 * 1024 * 1024 + 1), content_type="video/mp4")
+        answer = self.hand_in(self.open, files=[big])
+        self.assertEqual((answer.status_code, self.error(answer)), (400, "file_too_large"))
+        self.assertIn("video.mp4", answer.json()["error"]["message"])
+        self.assertFalse(HomeworkSubmission.objects.exists())
+
     def test_a_write_without_an_idempotency_key_is_refused(self):
         answer = self.write("post", f"students/{self.student.id}/homework/{self.open.id}/hand-in",
                             {"files": [self.pdf()]}, self.student_token, key="", fmt="multipart")

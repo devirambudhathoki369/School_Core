@@ -32,7 +32,7 @@ from main.views.exams.ResultViews import ResultView
 from main.views.InvoiceViews import InvoiceViews
 from main.views.LedgerViews import LedgerView
 
-from ..access import bs_month, month_names, not_found, page_by_id, paisa, student_for
+from ..access import bs_month, check_file_sizes, month_names, not_found, page_by_id, paisa, student_for
 from ..auth import STUDENT_RUNNING
 from ..errors import MobileError
 from ..idempotency import idempotent
@@ -561,6 +561,7 @@ class StudentHandInView(MobileAPIView):
         if HomeworkSubmission.objects.filter(homework=homework, student=student, is_active=True).exists():
             raise MobileError("already_handed_in", "This homework has already been handed in.", status.HTTP_409_CONFLICT)
         files = request.FILES.getlist("files")
+        check_file_sizes(files)
         # The portal's own rules: allowed file types, at most ten files, and
         # not after the due date.
         submission = HomeworkSubmissionSerializer(data={"homework": homework.id, "student": student.id, "files": files})

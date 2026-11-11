@@ -196,6 +196,18 @@ def month_names(months) -> list[str]:
     return names
 
 
+MAX_FILE_MB = 10
+
+
+def check_file_sizes(files, field="files") -> None:
+    """Each uploaded file at most MAX_FILE_MB: a phone on mobile data should
+    not send, and the server should not keep, a long video as homework."""
+    for upload in files:
+        if upload.size > MAX_FILE_MB * 1024 * 1024:
+            message = f"{upload.name} is larger than {MAX_FILE_MB} MB. Send a smaller file or a photo of the page."
+            raise MobileError("file_too_large", message, fields={field: message})
+
+
 def paisa(amount) -> int:
     """Rupees (Decimal, str, int or None) as whole paisa, rounded half up."""
     try:

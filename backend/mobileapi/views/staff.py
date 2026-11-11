@@ -29,7 +29,7 @@ from main.serializers.HomeworkSerializer import HomeworkSerializer
 from main.views.AttendanceViews import ClassAttendanceView
 
 from ..access import (
-    ANY_ATTENDANCE, CHANGE_ATTENDANCE, TAKE_ATTENDANCE, bs_date, bs_month, not_found, page_by_id,
+    ANY_ATTENDANCE, CHANGE_ATTENDANCE, TAKE_ATTENDANCE, bs_date, bs_month, check_file_sizes, not_found, page_by_id,
     require_permission, staff_of, staff_permissions,
 )
 from ..auth import STUDENT_RUNNING
@@ -527,6 +527,7 @@ class StaffHomeworkView(MobileAPIView):
         today = ndt_today()
         data = {key: request.data.get(key) for key in ("class_id", "subject_id", "title", "description", "due_date")}
         data["files"] = request.FILES.getlist("files")
+        check_file_sizes(data["files"])
         given = HomeworkIn(data=data)
         if not given.is_valid():
             raise MobileError("invalid", "Check the highlighted fields.", fields=_fields_error(given.errors))
