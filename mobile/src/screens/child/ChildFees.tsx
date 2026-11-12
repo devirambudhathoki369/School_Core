@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { View } from 'react-native';
+import { Share, View } from 'react-native';
 
 import { useApi } from '@/api/hooks';
 import type { FeeHistory, FeesDue, Receipt } from '@/api/types';
@@ -138,6 +138,24 @@ export function ReceiptScreen() {
                 {data.remarks}
               </T>
             ) : null}
+            <Button
+              title="Share this receipt"
+              kind="secondary"
+              icon="send"
+              onPress={() =>
+                void Share.share({
+                  message: [
+                    `Receipt ${data.receipt_no}, ${bsLong(data.date)}`,
+                    `${data.student_name}, ${data.class_name}`,
+                    ...data.lines.map((line) => `${titleCase(line.title)}: ${rupees(line.paid_paisa)}`),
+                    `Total paid: ${rupees(data.total_paid_paisa)}`,
+                    data.total_due_paisa ? `Left to pay: ${rupees(data.total_due_paisa)}` : '',
+                  ]
+                    .filter(Boolean)
+                    .join('\n'),
+                }).catch(() => undefined)
+              }
+            />
           </>
         )}
       </Loaded>
