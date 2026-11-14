@@ -73,3 +73,30 @@ class SchemaTests(MobileTestMixin, TestCase):
             for method, operation in schema["paths"][route].items():
                 codes = set(operation["responses"])
                 self.assertTrue(codes & {"200", "201", "202", "204"}, f"{method} {route} has no answer")
+
+
+class SchemaFileTests(MobileTestMixin, TestCase):
+    def test_check_passes_on_a_fresh_file_and_fails_on_a_stale_one(self):
+        import os
+        import tempfile
+
+        from django.core.management import CommandError, call_command
+
+        with tempfile.TemporaryDirectory() as folder:
+            path = os.path.join(folder, "openapi.json")
+            call_command("mobile_schema", path, stderr=open(os.devnull, "w"))
+            call_command("mobile_schema", path, check=True, stderr=open(os.devnull, "w"))
+            with open(path, "a", encoding="utf-8") as stale:
+                stale.write(" ")
+            with self.assertRaises(CommandError):
+                call_command("mobile_schema", path, check=True, stderr=open(os.devnull, "w"))
+
+    def test_the_apps_schema_file_is_up_to_date(self):
+        import os
+
+        from django.conf import settings
+        from django.core.management import call_command
+
+        path = os.path.join(settings.BASE_DIR, "..", "mobile", "src", "api", "openapi.json")
+        if os.path.exists(path):  # a backend checked out on its own has no app
+            call_command("mobile_schema", path, check=True, stderr=open(os.devnull, "w"))
