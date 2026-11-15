@@ -41,6 +41,7 @@ export function T({
   children,
   numberOfLines,
   center,
+  heading,
 }: {
   v?: Variant;
   tone?: Tone;
@@ -48,10 +49,13 @@ export function T({
   children: ReactNode;
   numberOfLines?: number;
   center?: boolean;
+  /** A screen's title: screen readers announce it as a heading. */
+  heading?: boolean;
 }) {
   const c = usePalette();
   return (
     <Text
+      accessibilityRole={heading ? 'header' : undefined}
       numberOfLines={numberOfLines}
       style={[type[v], { color: toneColor(c, tone) }, center && { textAlign: 'center' }, style]}>
       {children}
@@ -154,7 +158,7 @@ export function Card({ children, style, padded = true }: { children: ReactNode; 
 
 export function SectionLabel({ children }: { children: string }) {
   return (
-    <T v="label" tone="quiet" style={{ textTransform: 'uppercase', marginTop: space.sm, marginBottom: -space.xs }}>
+    <T v="label" tone="quiet" heading style={{ textTransform: 'uppercase', marginTop: space.sm, marginBottom: -space.xs }}>
       {children}
     </T>
   );

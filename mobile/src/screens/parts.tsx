@@ -42,7 +42,7 @@ export function HomeHeader({ name, sub, school }: { name: string; sub: string; s
               {school}
             </T>
           ) : null}
-          <T v="title" tone="onHeader" numberOfLines={1}>
+          <T v="title" tone="onHeader" numberOfLines={1} heading>
             {name}
           </T>
           <T v="small" tone="onHeaderSoft" numberOfLines={1}>
@@ -94,7 +94,7 @@ export function PageHeader({
   return (
     <Header onBack={onBack === null ? undefined : (onBack ?? goBack)} right={right}>
       <View style={{ gap: space.xs }}>
-        <T v="title" tone="onHeader">
+        <T v="title" tone="onHeader" heading>
           {title}
         </T>
         {sub ? <T tone="onHeaderSoft">{sub}</T> : null}
