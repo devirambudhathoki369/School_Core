@@ -108,3 +108,22 @@ class LinkGuardiansTests(MobileTestMixin, TestCase):
         with self.captureOnCommitCallbacks(execute=True):
             MobileFixtures.student(self.school, "Fio", phone="9888888888")
         self.assertFalse(Guardian.objects.exists())
+
+
+class StatusCommandTests(MobileTestMixin, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        MobileFixtures.build(cls)
+
+    def test_it_counts_parents_links_and_phones_per_school(self):
+        from mobileapi.models import AppSession
+
+        AppSession.objects.create(role=AppSession.PARENT, guardian=self.guardian, school=self.school, platform=1,
+                                  app_version="1.0.0", push_token="ExponentPushToken[statusCheck01]")
+        out = StringIO()
+        call_command("mobile_status", stdout=out)
+        lines = out.getvalue().splitlines()
+        row = next(line for line in lines if "ONE001" in line).split()
+        # id, code, parents, linked, review, joined, phones, notify
+        self.assertEqual(row[1:], ["ONE001", "1", "2", "0", "1", "1", "1"])
+        self.assertTrue(any("TWO002" in line for line in lines))
