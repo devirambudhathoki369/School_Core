@@ -42,7 +42,7 @@ function StudentEnrollmentForm() {
     }
     return (
         <form onSubmit={handleSubmit}>
-            <div className="space-y-12">
+            <div className="app-form-rows">
                 <AcademicYearNotice />
                 <PersonalInformationSection />
                 <GuardianInformationSection />
@@ -50,7 +50,8 @@ function StudentEnrollmentForm() {
                 <TransportationInformationSection />
                 <OtherInformationSection />
             </div>
-            <div className="w-full my-5 flex justify-center">
+            {/* the form ends on the right, under a hairline, as the design system draws it */}
+            <div className="app-form-footer">
                 <FormSaveButton saving={uploading} isUpdate={student?.id} />
             </div>
         </form>

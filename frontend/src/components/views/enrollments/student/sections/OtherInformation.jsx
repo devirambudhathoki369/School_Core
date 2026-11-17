@@ -7,7 +7,7 @@ import { useEnrollmentContext } from "@/contexts/EnrollmentContext";
 function OtherInformationSection() {
     const { student, errors, methods } = useEnrollmentContext();
     return (
-        <Section title={"Other Information"}>
+        <Section aside title={"Other details"} description={"For reports and the ID card."}>
             <>
                 <EthnicityInput error={errors?.ethnicity} value={student?.ethnicity} {...methods} />
                 <SportInput error={errors?.sport} value={student?.sport} {...methods} />

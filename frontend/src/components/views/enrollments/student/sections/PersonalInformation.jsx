@@ -8,7 +8,7 @@ function PersonalInformationSection() {
     const { student, methods, errors } = useEnrollmentContext();
 
     return (
-        <Section title={"Personal Information"} description={""}>
+        <Section aside title={"Student"} description={"As written on the birth certificate."}>
             <>
                 <>
                     <TextInput input={{

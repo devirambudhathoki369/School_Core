@@ -6,7 +6,7 @@ import { useEnrollmentContext } from "@/contexts/EnrollmentContext";
 function TransportationInformationSection() {
     const { student, errors, methods } = useEnrollmentContext();
     return (
-        <Section title="Transportation Information">
+        <Section aside title="Transport" description="Leave it empty if the student does not ride the bus.">
             <BusStationInput input={{ label: 'Bus Station', name: 'bus_station' }} error={errors?.bus_station}
                 value={student?.bus_station} {...methods} />
             <TextInput input={{ label: 'Start Date (BS)', name: 'start_date' }} error={errors?.start_date}

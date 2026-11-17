@@ -8,7 +8,32 @@ import { sentenceCase } from "@/methods/sentenceCase";
 // then sits a line higher than the ones beside it, and the row reads as broken.
 // Such a form passes `!items-start` — labels are one line everywhere, so tops
 // align exactly and the hint hangs below where it belongs.
-export function Section({ title, description, children, grid = true, actions, className = '' }) {
+//
+// `aside` lays a section out the way the design system draws a long form
+// (Admit a student): its title and one line on what it is for in a column on
+// the left, its fields in a card on the right. On a phone the two stack. It
+// is opt-in, because a section holding a wide table needs the full width.
+export function Section({ title, description, children, grid = true, actions, className = '', aside = false }) {
+    if (aside) {
+        return (
+            <div className="app-section-row">
+                <div className="app-section-row-head">
+                    {title && <h2 className="app-section-row-title">{sentenceCase(title)}</h2>}
+                    {description && <p className="app-section-row-desc">{description}</p>}
+                    {actions?.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            {actions.map((action, i) => <span key={i}>{action}</span>)}
+                        </div>
+                    )}
+                </div>
+                <div className="app-section app-section-row-body">
+                    <div className={`${grid ? 'mygrid' : ''} ${className}`}>
+                        {children}
+                    </div>
+                </div>
+            </div>
+        )
+    }
     return (
         <div className="app-section border-b border-blue-gray-100 pb-6 mb-6">
             {(title || description || actions) && (

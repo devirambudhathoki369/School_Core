@@ -6,7 +6,7 @@ function GradeInformationSection() {
     const { student, errors, methods } = useEnrollmentContext();
     return (
         <>
-            <Section title={"Class/Grade Information"}>
+            <Section aside title={"Class"} description={"Where the student starts. Their fees follow from it."}>
                 <>
                     {/* school-level */}
                     <EducationLevelInput data={student} detailed={true} input={{

@@ -19,7 +19,7 @@ function GuardianInformationSection() {
     }
     // 
     return (
-        <Section title={"Guardian Information"} description={""}>
+        <Section aside title={"Guardian"} description={"Absence and fee messages go to the guardian's number."}>
             <>
                 <TextInput input={{
                     label: "Father's Full Name", name: 'father_name'

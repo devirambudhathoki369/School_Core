@@ -139,6 +139,64 @@
 }
 :root :is(.viewc, .app-dialog) ul[role="tablist"] > li[role="tab"]:has(> div.absolute) { color: var(--t-brand-ink) !important; }
 
+/* ---- a long form, settings style (Section aside) -------------------------------- */
+
+/* Admit a student: each section's title and purpose on the left, its fields in a
+   card on the right, a hairline between sections, and the form ending on the
+   right under one more hairline. */
+.app-form-rows { display: flex; flex-direction: column; gap: 24px; }
+.app-section-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+}
+.app-form-rows > .app-section-row:last-child { padding-bottom: 0; border-bottom: 0; }
+.app-section-row-head {
+    flex: 1 1 220px;
+    max-width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.app-section-row-title {
+    margin: 0;
+    font-size: 16px !important;
+    line-height: 24px;
+    font-weight: 700;
+    color: var(--ink-900);
+}
+.app-section-row-desc {
+    margin: 0;
+    font-size: 13px !important;
+    line-height: 20px;
+    color: var(--ink-500);
+}
+:root .app-section.app-section-row-body {
+    flex: 999 1 480px;
+    min-width: 0;
+    margin: 0 !important;
+    padding: 24px !important;
+    background: #fff;
+    box-shadow: var(--shadow-card) !important;
+}
+.app-form-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+    padding: 16px 0;
+    border-top: 1px solid var(--line);
+}
+@media (max-width: 760px) {
+    .app-section-row-head { max-width: none; }
+    :root .app-section.app-section-row-body { padding: 16px !important; }
+}
+:root[data-ui-mode="dark"] .app-section.app-section-row-body { background-color: var(--d-surface) !important; }
+:root[data-ui-mode="dark"] :is(.app-section-row, .app-form-footer) { border-color: var(--d-line); }
+
 /* ---- the fee list (School setup > Fees) ---------------------------------------- */
 
 /* A list, not a stack of tinted bars: a table-style heading row, then white
