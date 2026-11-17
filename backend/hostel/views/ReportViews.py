@@ -26,7 +26,7 @@ by the accounts, not by a second set of books kept alongside them.
 """
 
 from collections import defaultdict
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 from django.db.models import CharField, Count, F, Q, Sum, Value
 from django.db.models.functions import Concat
@@ -57,9 +57,9 @@ from main.constants.payment import (
     HOSTEL_ADMISSION,
     HOSTEL_DEPOSIT,
     HOSTEL_TITLES,
-    INVOICE_DETAILS,
 )
 from main.models.Invoice import StudentInvoice
+from main.services.fee_lines import student_invoice_totals, student_ledger_totals
 from main.models.Ledger import StudentLedger
 from ..models.Allocation import HostelAllocation
 from ..models.Hostel import Hostel, HostelRoom
@@ -70,16 +70,6 @@ from ..models.Operations import (
     HostelVisitor,
 )
 from .BaseViews import HostelBaseView
-
-def _money(value):
-    """A ledger/invoice JSON amount as a Decimal. These arrive as strings, ints
-    or floats depending on how they were written, and a bad one must contribute
-    zero rather than break a whole report."""
-    try:
-        return Decimal(str(value or 0))
-    except (InvalidOperation, TypeError, ValueError):
-        return Decimal(0)
-
 
 STUDENT_NAME = Concat(
     "student__first_name", Value(" "), "student__last_name", output_field=CharField()
@@ -549,22 +539,15 @@ class HostelReportsView(HostelBaseView):
             ledger_q &= Q(academic_year_id=academic_year)
             invoice_q &= Q(academic_year_id=academic_year)
 
-        for row in StudentLedger.objects.filter(ledger_q).values("student_id", "details"):
-            for title, amount in (row["details"] or {}).items():
-                if title not in HOSTEL_TITLES:
-                    continue
-                billed[row["student_id"]][title] += _money(amount)
-
-        for row in StudentInvoice.objects.filter(invoice_q).values("student_id", "details"):
-            for title, detail in (row["details"] or {}).items():
-                if title not in HOSTEL_TITLES or not isinstance(detail, dict):
-                    continue
-                # AMOUNT already includes any discount, so a discount settles
-                # the bill exactly as cash does: the same arithmetic the
-                # student ledger uses (LedgerViews).
-                paid[row["student_id"]][title] += _money(
-                    detail.get(INVOICE_DETAILS["AMOUNT"])
-                )
+        # The JSON or the line tables, by NORMALIZED_READS (main/services/
+        # fee_lines.py). A receipt's amount already includes any discount, so
+        # a discount settles the bill exactly as cash does: the same arithmetic
+        # the student ledger uses (LedgerViews).
+        billed_by = student_ledger_totals(StudentLedger.objects.filter(ledger_q), keys=HOSTEL_TITLES)
+        paid_by = student_invoice_totals(StudentInvoice.objects.filter(invoice_q), keys=HOSTEL_TITLES)
+        for sid in student_ids:
+            billed[sid].update(billed_by.get(sid, {}))
+            paid[sid].update(paid_by.get(sid, {}))
 
         rows = []
         for r in residents:

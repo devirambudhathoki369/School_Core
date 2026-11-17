@@ -443,6 +443,11 @@ FIELD_ENCRYPTION_KEYS = [
 # Off until every reader (and its Device row) has a key: a keyless device is
 # identified only by its serial, so anyone who knows it can read the card
 # numbers and PINs queued for it and post punches as it. Turn on with
+# Phase 3 of the normalization (main/services/fee_lines.py): fee sums read
+# from the line tables instead of the JSON. Leave it off until
+# `manage.py normalization_audit` is clean on this database.
+NORMALIZED_READS = os.environ.get("NORMALIZED_READS", "false").lower() == "true"
+
 # ICLOCK_REQUIRE_PUSH_KEY=true once the fleet is keyed.
 ICLOCK_REQUIRE_PUSH_KEY = (
     os.environ.get("ICLOCK_REQUIRE_PUSH_KEY", "false").lower() == "true"
