@@ -559,11 +559,12 @@ class HostelReportsView(HostelBaseView):
             for title, detail in (row["details"] or {}).items():
                 if title not in HOSTEL_TITLES or not isinstance(detail, dict):
                     continue
-                # A discount settles the bill exactly as cash does — the same
-                # arithmetic the student ledger uses (LedgerViews).
-                amount = _money(detail.get(INVOICE_DETAILS["AMOUNT"]))
-                discount = _money(detail.get(INVOICE_DETAILS["DISCOUNT"]))
-                paid[row["student_id"]][title] += amount
+                # AMOUNT already includes any discount, so a discount settles
+                # the bill exactly as cash does: the same arithmetic the
+                # student ledger uses (LedgerViews).
+                paid[row["student_id"]][title] += _money(
+                    detail.get(INVOICE_DETAILS["AMOUNT"])
+                )
 
         rows = []
         for r in residents:

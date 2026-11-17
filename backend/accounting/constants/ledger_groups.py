@@ -323,7 +323,8 @@ LEDGER_GROUPS_OPTIONS: List[LedgerGroupOption] = [
 
 __all__ = [
     "BalanceType",
-    "BALANCE_TYPES" "LedgerGroupCategory",
+    "BALANCE_TYPES",
+    "LedgerGroupCategory",
     "LEDGER_GROUP_CATEGORIES",
     "CashFlowCategory",
     "CASH_FLOW_CATEGORIES",

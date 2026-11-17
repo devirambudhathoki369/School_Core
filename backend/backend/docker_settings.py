@@ -1,4 +1,5 @@
 """Container-specific paths and explicit localhost HTTP support."""
+import os
 from urllib.parse import urlsplit
 
 from django.core.exceptions import ImproperlyConfigured

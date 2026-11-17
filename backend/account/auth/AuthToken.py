@@ -159,7 +159,6 @@ class StudentAuthToken(AuthToken):
 
 
 # ---
-from django.utils import timezone
 
 
 class AuthTokenAdmin(admin.ModelAdmin):

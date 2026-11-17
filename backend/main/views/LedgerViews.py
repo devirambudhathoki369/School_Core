@@ -38,7 +38,6 @@ from ..methods.genClassname import getClassDetails
 from ..methods.push import notify_students
 from ..methods.extractTitleIds import extractTitleIdsFromLedgers
 from ..methods.getFeeDetails import getFeeTitlesFromTitleIds
-from ..methods.genClassname import getClassDetails
 from ..methods.getStudentLedgerDetails import formatStudentLedgerDetails
 from ..methods.carriedOverPostings import carriedOverPostings
 from ..methods.classPostedMonths import classPostedMonths, findClass

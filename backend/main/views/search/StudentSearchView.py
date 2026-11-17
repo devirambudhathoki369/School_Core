@@ -9,7 +9,6 @@ from django.db.models import (
     DecimalField,
     Case,
     When,
-    CharField,
     QuerySet,
 )
 from django.db.models.functions import Coalesce, Concat, Lower, Collate
