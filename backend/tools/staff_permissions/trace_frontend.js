@@ -379,7 +379,12 @@ walkMenu(menuMod.program.scope.getBinding("adminMenu").path.get("init"), "", tru
 // ---- the app shell: every staff session runs it ------------------------------
 const STOP = [path.join(SRC, "configs/views"), path.join(SRC, "configs/menus.jsx")];
 const globalCalls = new Set();
-const shellEntries = ["pages/_app.js", "pages/[role].jsx"].map((f) => path.join(SRC, f));
+// The portal's page moved to pages/[role]/[[...view]].jsx with path routing;
+// the old name is kept so a trace of an older checkout still works. A shell
+// file that is missing is skipped, never silently treated as empty.
+const shellEntries = ["pages/_app.js", "pages/[role].jsx", "pages/[role]/[[...view]].jsx"]
+  .map((f) => path.join(SRC, f))
+  .filter((f) => fs.existsSync(f));
 // The shell imports the view maps; cut those edges so screens stay screens,
 // and start over so nothing memoised through them leaks in.
 memo.clear(); topMemo.clear();
