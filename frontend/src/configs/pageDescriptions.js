@@ -7,6 +7,7 @@
 const SCHOOL = {
     'view-bus-tracking': "Where each school bus is right now.",
 
+    'enrollment.students': "Find a student, open their profile, or collect their fees.",
     'enrollment.student': "Admit a new student into the current academic year.",
     'enrollment.staff': "Add a new member of staff.",
     'enrollment.class-promotion': "Move students up to their next class for the new year.",

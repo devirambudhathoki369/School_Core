@@ -44,6 +44,13 @@ const STUDENTS_API = "/api/students";
 /**
  * GET : /api/student/?student_id=?&school_id=?
  */
+// The Students page: a page of one school's students, with a total and
+// per-status counts (StudentListView).
+const STUDENT_LIST_API = "/api/students/list";
+export async function fetchStudentList(params) {
+    return __fetch(STUDENT_LIST_API, params);
+}
+
 export async function getStudentDetails(student_id, school_id) {
     const data = await __fetch(STUDENTS_API, { student: student_id, school: school_id });
     return data?.first_name ? data : null;

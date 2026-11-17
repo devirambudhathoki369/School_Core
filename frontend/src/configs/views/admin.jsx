@@ -4,6 +4,7 @@ import SchoolSummary from "@/components/views/reports/dashboards/school/summary"
 import ClasswiseStudentStatistics from "@/components/views/reports/dashboards/class/classwise_student_statistics";
 // 
 import StudentEnrollment from "@/components/views/enrollments/student";
+const StudentList = dynamic(() => import("@/components/views/enrollments/students_list"));
 const StaffEnrollment = dynamic(() => import("@/components/views/enrollments/staff"));
 const ClassPromotion = dynamic(() => import("@/components/views/enrollments/class_promotion"));
 import BulkStudentEnrollment from "@/components/views/enrollments/bulk/student_enroll";
@@ -113,6 +114,7 @@ const adminViews = {
     'dashboard': () => <SchoolSummary />,
     // Legacy addresses are normalized by methods/portalRoutes before lookup.
     // enrollment
+    'enrollment.students': () => <StudentList />,
     'enrollment.student': () => <StudentEnrollment />,
     'enrollment.classwise-student-statistics': () => <ClasswiseStudentStatistics />,
     'enrollment.staff': () => <StaffEnrollment />,

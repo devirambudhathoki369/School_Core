@@ -94,7 +94,14 @@ const adminMenu = [
         name: "Students & staff", view: "enrollment",
         prefix: <IdentificationIcon className="icon" />,
         submenu: [
-            { id: PERMISSIONS.STUDENT.ENROLLMENT, name: "Students", prefix: <UserGroupIcon className="icon" />, view: 'student' },
+            // The list comes first: finding a student is what the office does
+            // most. Admitting one keeps its address (enrollment.student), so the
+            // dashboard's "Admit student" and the setup guide still land on it.
+            // It opens a student's profile and the payment form in place, the
+            // same actions as Collect fees, so it takes the same permission:
+            // the staff permission map is traced from what a screen can reach.
+            { id: PERMISSIONS.STUDENT.PAYMENT, name: "Students", prefix: <UserGroupIcon className="icon" />, view: 'students' },
+            { id: PERMISSIONS.STUDENT.ENROLLMENT, name: "Admit a student", prefix: <UserPlusIcon className="icon" />, view: 'student' },
             { id: PERMISSIONS.STAFF.ENROLLMENT, name: 'Staff', prefix: <UserIcon className="icon" />, view: 'staff' },
             {
                 name: "Bulk import & update", prefix: <QueueListIcon className="icon" />, view: 'bulk',
