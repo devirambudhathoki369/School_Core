@@ -63,8 +63,8 @@ function AcademicYearManagementView() {
                     indicatorProps={{
                         className: "bg-transparent border-b-2 border-gray-900 shadow-none rounded-none",
                     }}>
-                    <Tab className="bg-table-header font-semibold" value={'academic-year-setup'}>Academic Years</Tab>
-                    <Tab className="bg-table-header font-semibold" value={'academic-year-mapping'}>Academic Year Mapping</Tab>
+                    <Tab className="bg-table-header font-semibold" value={'academic-year-setup'}>Academic years</Tab>
+                    <Tab className="bg-table-header font-semibold" value={'academic-year-mapping'}>Academic year mapping</Tab>
                 </TabsHeader>
                 <TabsBody animate={{
                     initial: { y: 250 },

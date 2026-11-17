@@ -1,6 +1,7 @@
 import { FunnelIcon, ChevronDownIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 import FormSaveButton from "@/components/buttons/FormSaveButton";
+import { sentenceCase } from "@/methods/sentenceCase";
 import ResetButton from "@/components/buttons/ResetButton";
 
 /**
@@ -53,7 +54,7 @@ function SearchPanel({
                     square on every card is decoration, not information. */}
                 <FunnelIcon className="h-5 w-5 shrink-0 text-gray-500" aria-hidden="true" />
                 <span className="min-w-0 flex-1">
-                    <span className="app-search-title block text-gray-900">{title}</span>
+                    <span className="app-search-title block text-gray-900">{sentenceCase(title)}</span>
                     <span className="app-search-sub block text-gray-500">
                         {open ? "Fill what you know, then search." : "Open to change the filters."}
                     </span>

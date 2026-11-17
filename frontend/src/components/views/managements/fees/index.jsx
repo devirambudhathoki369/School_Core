@@ -16,8 +16,8 @@ function ManageFees() {
                     indicatorProps={{
                         className: "bg-transparent border-b-2 border-gray-900 shadow-none rounded-none",
                     }}>
-                    <Tab className="bg-table-header font-semibold" value={'fee-title-setup'}>Fee Title Setup</Tab>
-                    <Tab className="bg-table-header font-semibold" value={'fee-setup'}>Fee Setup</Tab>
+                    <Tab className="bg-table-header font-semibold" value={'fee-title-setup'}>Fee title setup</Tab>
+                    <Tab className="bg-table-header font-semibold" value={'fee-setup'}>Fee setup</Tab>
                 </TabsHeader>
                 <TabsBody animate={{
                     initial: { y: 250 },

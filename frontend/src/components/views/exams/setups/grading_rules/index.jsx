@@ -18,8 +18,8 @@ function ManageGradingRules() {
                     indicatorProps={{
                         className: "bg-transparent border-b-2 border-gray-900 shadow-none rounded-none",
                     }}>
-                    <Tab className="bg-table-header font-semibold" value={'number-system-rules'}>Number System rules</Tab>
-                    <Tab className="bg-table-header font-semibold" value={'grading-system-rules'}>Letter Grading System rules</Tab>
+                    <Tab className="bg-table-header font-semibold" value={'number-system-rules'}>Number system rules</Tab>
+                    <Tab className="bg-table-header font-semibold" value={'grading-system-rules'}>Letter grading system rules</Tab>
                     <Tab className="bg-table-header font-semibold" value={'division-rules'}>Division rules</Tab>
                 </TabsHeader>
                 <TabsBody animate={{

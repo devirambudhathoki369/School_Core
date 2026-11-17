@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 // 
 import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { sentenceCase } from "@/methods/sentenceCase";
 import { Error } from "../Error";
 import { TRANSPORTATION, HOSTEL, HOSTEL_ADMISSION, HOSTEL_DEPOSIT, OLD_DUES } from "@/configs/payment";
 
@@ -101,8 +102,8 @@ function _TextInput({ input, value, error, info, onChange = () => null, onBlur =
     return (
         <div className={`sm:col-span-${grid}`} hidden={input?.hidden}>
             <label hidden={input?.hideLabel} htmlFor={fieldId}
-                className={`app-field-label text-sm font-medium leading-6 text-gray-900 capitalize ${requiredCls}`}>
-                {input?.label}
+                className={`app-field-label text-sm font-medium leading-6 text-gray-900 ${requiredCls}`}>
+                {sentenceCase(input?.label)}
             </label>
             <div className={`app-field-shell p-0 m-0 mt-1 w-full flex items-center shadow-sm border bg-white/40
                 border-blue-gray-200 rounded-[7px] transition-all duration-150
@@ -218,7 +219,7 @@ function SelectInput({ input, value, error, info, onChange = () => null, onBlur 
         <div className={`sm:col-span-${grid}`}>
             <label hidden={input?.hideLabel} htmlFor={fieldId}
                 className={`app-field-label text-sm font-medium leading-6 text-gray-900 ${requiredCls}`}>
-                {input?.label}
+                {sentenceCase(input?.label)}
             </label>
             <div className="mt-1">
                 <select id={fieldId} onChange={(e) => {
@@ -240,7 +241,7 @@ function SelectInput({ input, value, error, info, onChange = () => null, onBlur 
                     className="app-select capitalize text-gray-800 w-full text-base focus:outline-none p-2 bg-white/40 border border-blue-gray-200 rounded-[7px] cursor-pointer shadow-sm transition-all duration-150 hover:border-blue-gray-300 focus:!border-teal-400 focus:ring-2 focus:ring-teal-400/40 focus:bg-white/70">
                     <>
                         {!hasOwnEmptyOption &&
-                            <option value="">Select {input?.placeholder || input?.label}</option>}
+                            <option value="">{sentenceCase(`Select ${input?.placeholder || input?.label || ""}`)}</option>}
                         {input.options
                             .map((option, oi) => (
                                 <option className="uppercase text-base" key={oi} value={`${option.value}`}
@@ -474,8 +475,8 @@ function _SearchInput({ input, value, error, info, onChange = () => null, onBlur
         // Same `grid` escape hatch TextInput and SelectInput carry.
         <div className={`sm:col-span-${grid}`}>
             <label hidden={input?.hideLabel} htmlFor={fieldId}
-                className={`app-field-label text-sm font-medium leading-6 text-gray-900 capitalize ${requiredCls}`}>
-                {label}
+                className={`app-field-label text-sm font-medium leading-6 text-gray-900 ${requiredCls}`}>
+                {sentenceCase(label)}
             </label>
             {/* A dropdown belongs under its field; floating-ui flips it above on
                 its own when there is no room below (a phone keyboard). */}

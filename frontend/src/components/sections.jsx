@@ -1,5 +1,6 @@
 import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
 import { Button, Chip, Typography } from "@material-tailwind/react";
+import { sentenceCase } from "@/methods/sentenceCase";
 
 // `className` lands on the GRID, not on the section — it exists so a form can
 // correct its own row alignment. `.mygrid` bottom-aligns (`items-end`), which is
@@ -24,7 +25,7 @@ export function Section({ title, description, children, grid = true, actions, cl
                                     this span to body size whatever the <h2>
                                     asked for. */}
                                 <span className="app-section-accent inline-block h-4 w-1 rounded-full shrink-0" aria-hidden="true"></span>
-                                <span className="truncate">{title}</span>
+                                <span className="truncate">{sentenceCase(title)}</span>
                             </h2>
                         )}
                         {description && (
@@ -113,7 +114,7 @@ export function FilterSection({ children, title }) {
                 the SIZING changed here, and it changed for every palette. */}
             <div className="app-filter-divider shrink-0 pb-1.5 md:w-44 md:pb-0 md:pr-4 md:mr-4 md:border-r-2 md:border-black border-b-2 md:border-b-0 border-black/30">
                 <Typography className="app-filter-label text-sm font-semibold">
-                    {title}
+                    {sentenceCase(title)}
                 </Typography>
             </div>
             <div className="min-w-0 flex-1 flex flex-wrap pt-2 md:pt-0">
