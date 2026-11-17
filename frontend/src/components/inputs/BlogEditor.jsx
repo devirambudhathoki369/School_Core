@@ -46,7 +46,10 @@ const BlogEditor = ({ content, onChange, onFileInsert, placeholder = 'Start writ
             const url = await onFileInsert(file);
             if (url) insertImage(url);
         } else {
-            insertImage(imageUrl);
+            // no upload handler: embed the picture in the post itself
+            const reader = new FileReader();
+            reader.onload = () => insertImage(reader.result);
+            reader.readAsDataURL(file);
         }
         e.target.value = '';
     };

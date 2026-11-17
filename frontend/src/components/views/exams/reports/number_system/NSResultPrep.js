@@ -156,7 +156,7 @@ class NSResultPrep extends CommonResultPrep {
                         const { id } = subject;
                         if (id in finalResult) {
                             _hasFailed = false;
-                            const { theory, practical, absent, result: passed } = finalResult?.[id];
+                            const { theory, practical, absent, result: passed } = finalResult[id] || {};
                             const finalCriteria = subject?.criteria?.[finalResultId];
                             const { pm_th, pm_pr } = finalCriteria || {};
                             let isFail = (absent === true || passed === false);

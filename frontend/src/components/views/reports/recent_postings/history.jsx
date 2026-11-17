@@ -25,7 +25,7 @@ const VIEWS = {
 
 const schema = {
     school: '', class_info: '', start_date: '', end_date: '', status: true, student_status: '',
-    education_level: null, grade: null, faculty: '', year: null, semester: null, course: null, school: '',
+    education_level: null, grade: null, faculty: '', year: null, semester: null, course: null,
     months: [],
 };
 function LedgerPostingHistoryView() {

@@ -8,7 +8,7 @@ const extractYear = (str) => {
 };
 
 const getYearFromDate = (date) => {
-    const [year, month, day] = date?.split("-");
+    const [year] = (date || "").split("-");
     return year;
 }
 

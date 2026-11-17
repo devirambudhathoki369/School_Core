@@ -145,7 +145,7 @@ function ChooseClass({ children, title, selectedClass, actions, onSelect: onSele
                                 {/* course */}
                                 <>
                                     {[4, 5, 8, 9].includes(data?.education_level) &&
-                                        (coursesBackup?.[data.education_level]).map(option => (
+                                        (coursesBackup?.[data.education_level] || []).map(option => (
                                             <FilterItem onClick={onChange} label={option?.name} value={option?.value}
                                                 name={'course'} selectedOption={data?.course} key={option?.value} />
                                         ))

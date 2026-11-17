@@ -29,7 +29,7 @@ export async function fetchClassPeriodSubjects(class_info_id, detailed = '', as_
     if (as_options) return __fetchAsOptions(CLASS_PERIODS_API, params, { name: 'subject' });
     return __fetch(CLASS_PERIODS_API, params);
 }
-export async function fetchClassPeriodTeachers(class_info_id, detailed = '') {
+export async function fetchClassPeriodTeachers(class_info_id, detailed = '', as_options = '') {
     const params = { class_info: class_info_id, teachers: true, detailed };
     if (as_options) return __fetchAsOptions(CLASS_PERIODS_API, params, { name: 'name' });
     return __fetch(CLASS_PERIODS_API, params);

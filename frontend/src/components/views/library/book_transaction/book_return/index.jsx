@@ -54,8 +54,8 @@ function BookReturnForm({ userType, selectedUser }) {
     }
     async function onBookIssueRenew(e) {
         e.preventDefault();
-        // BS dates are zero-padded YYYY-MM-DD, so string order is date order
-        // (the same comparison canRenew already relies on). A renewal that does
+        // BS dates are zero-padded YYYY-MM-DD, so string order is date order.
+        // A renewal that does
         // not move the return date forward is a shortening of the loan, which is
         // never what the button is for — and it used to be the default.
         const currentDue = selectedRow?.due_date || '';
@@ -177,13 +177,10 @@ function BookReturnForm({ userType, selectedUser }) {
         })();
     }, []);
     // 
-    function canRenew(selectedRow) {
-        let stat = false;
-        if (selectedRow?.due_date && user?.today) {
-            stat = user.today <= selectedRow.due_date;
-        }
+    function canRenew() {
+        // Every issued book can be renewed, overdue ones too. A rule allowing it
+        // only up to the due date was switched off long ago and has been removed.
         return true;
-        return stat;
     }
 
     return (

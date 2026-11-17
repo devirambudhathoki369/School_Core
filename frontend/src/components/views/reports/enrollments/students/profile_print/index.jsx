@@ -83,7 +83,7 @@ function StudentsProfilePrint() {
                 </>
                 <div ref={printRef}>
                     {
-                        generatedStudents?.map((std) => <EnrollmentProfile student={std} />)
+                        generatedStudents?.map((std, i) => <EnrollmentProfile key={std?.id ?? i} student={std} />)
                     }
                 </div>
             </ChooseClass>

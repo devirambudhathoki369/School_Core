@@ -124,7 +124,7 @@ function SalaryPosting() {
             const [status, message, res] = await saveSalaryPostings(uploadData);
             updateNotification(status, message);
             if (status === 200) {
-                salaryPostingSchema["postedMonths"] = [...salaryPostingSchema?.postedMonths, ...data.months];
+                salaryPostingSchema["postedMonths"] = [...(salaryPostingSchema?.postedMonths || []), ...data.months];
                 reset();
                 setEditable(false);
             }

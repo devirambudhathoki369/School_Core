@@ -3,7 +3,7 @@ import { __save, __fetch, __search, __update, __delete } from ".";
 function cleanFalsyFields(data) {
     for (let [key, value] of Object.entries(data)) {
         if (value && value.constructor === Object) {
-            Object.assign(data[key], cleanEmptyFields(value));
+            cleanFalsyFields(value);
             if (Object.keys(data[key]).length === 0) delete data[key]; // remove {} as well;
         }
         else if (value === false) delete data[key];
