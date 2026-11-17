@@ -1,0 +1,174 @@
+/* ==========================================================================
+   SchoolCore design system: the last layer.
+
+   The rules drawn on the 4 November design-system canvas, for the shared parts
+   that still did not follow them. It loads after globals.css and tables.css, so
+   what it says wins, and it reads only the theme variables, so every palette
+   and Night mode keep working.
+
+     - labels are 13px semibold, in sentence case (methods/sentenceCase.js);
+     - the class picker is a card: a heading, two tools, then the tiles;
+     - tabs are a left-aligned row with a 2px brand line under the chosen one.
+
+   Flat colour only: no gradients, glows or lifts (see the "no AI look" rule).
+   ========================================================================== */
+
+/* ---- labels ---------------------------------------------------------------- */
+
+/* A field's label: 13px, semibold, the label ink. The `capitalize` that turned
+   "Date of birth" into "Date Of Birth" is gone from the markup. */
+.app-field-label {
+    font-size: 13px !important;
+    line-height: 20px !important;
+    font-weight: 600 !important;
+    color: var(--ink-700) !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
+
+/* The label in front of a row of choices ("Education level", "Student"). It was
+   11px tracked capitals, a voice the system keeps for nothing. */
+.app-filter-label,
+.app-student-search .app-filter-label {
+    font-size: 13px !important;
+    line-height: 20px !important;
+    font-weight: 600 !important;
+    color: var(--ink-700) !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
+
+/* ---- the class picker -------------------------------------------------------- */
+
+.app-classpick {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px 24px 24px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: var(--shadow-card);
+}
+.app-classpick-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.app-classpick-heading {
+    margin: 0;
+    font-size: 16px !important;
+    line-height: 24px;
+    font-weight: 700;
+    color: var(--ink-900);
+}
+.app-classpick-tools {
+    display: flex;
+    flex: none;
+    gap: 4px;
+}
+.app-classpick-tools button {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    color: var(--ink-500);
+}
+.app-classpick-tools button:hover { background: var(--surface-soft); color: var(--ink-900); }
+/* the rows of tiles sit on the card's own 12px rhythm */
+.app-classpick > div:empty { display: none; }
+.app-classpick-chosen {
+    margin: 24px 0 8px;
+    font-size: 14px;
+    color: var(--ink-500);
+}
+.app-classpick-chosen b {
+    margin-left: 6px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink-900);
+}
+@media (max-width: 640px) {
+    .app-classpick { padding: 16px; }
+}
+
+/* ---- tabs --------------------------------------------------------------------- */
+
+/* material-tailwind's tabs, everywhere in a page or a dialog: a row of words on
+   a hairline, the chosen one in brand ink over a 2px brand line. Pages used to
+   stretch each tab to half the width and paint the strip grey. The chosen tab
+   is the one holding the library's indicator. */
+:root :is(.viewc, .app-dialog) ul[role="tablist"] {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    gap: 24px;
+    padding: 0 !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--line) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    overflow-x: auto;
+}
+/* Specific enough to beat the themed `.bg-table-header` that some pages put
+   on their tabs, which painted each one as a grey table heading. */
+:root :is(.viewc, .app-dialog) ul[role="tablist"] > li[role="tab"] {
+    flex: none !important;
+    width: auto !important;
+    min-height: 40px;
+    padding: 0 2px 10px !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--ink-500) !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    white-space: nowrap;
+    align-items: flex-end !important;
+}
+:root :is(.viewc, .app-dialog) ul[role="tablist"] > li[role="tab"] * { color: inherit !important; }
+:root :is(.viewc, .app-dialog) ul[role="tablist"] > li[role="tab"]:hover { color: var(--ink-900) !important; }
+:root :is(.viewc, .app-dialog) ul[role="tablist"] > li[role="tab"] > div.absolute {
+    border: 0 !important;
+    border-bottom: 2px solid var(--t-brand-solid) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+:root :is(.viewc, .app-dialog) ul[role="tablist"] > li[role="tab"]:has(> div.absolute) { color: var(--t-brand-ink) !important; }
+
+/* ---- the fee list (School setup > Fees) ---------------------------------------- */
+
+/* A list, not a stack of tinted bars: a table-style heading row, then white
+   rows on a hairline. Class names are in their own case, not shouted. */
+:root .app-feerow {
+    margin: 0 !important;
+    padding: 12px 16px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--line-soft) !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    color: var(--ink-900) !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+:root .app-feerow * { font-size: inherit !important; }
+:root .app-feerow-item:hover { background: var(--surface-soft) !important; }
+:root .app-feerow-head {
+    background: var(--t-thead-bg, #F9FAFB) !important;
+    border-bottom-color: var(--line) !important;
+    color: var(--ink-500) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+:root .app-feerow-head * { color: inherit !important; text-transform: none !important; }
+:root[data-ui-mode="dark"] .app-feerow { background: var(--d-surface) !important; border-color: var(--d-line) !important; }
+
+/* ---- Night ---------------------------------------------------------------------- */
+
+:root[data-ui-mode="dark"] .app-classpick {
+    background-color: var(--d-surface) !important;
+    border-color: var(--d-line) !important;
+}

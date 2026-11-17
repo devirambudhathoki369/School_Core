@@ -2,7 +2,8 @@ import { useAppContext } from "@/contexts/AppContext";
 import { useEffect, useState } from "react";
 import ClassnameButton from "../buttons/ClassNameButton";
 import Loader from "../Loader";
-import { BookmarkIcon, ArrowPathIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { sentenceCase } from "@/methods/sentenceCase";
 import classPickerSchema from "@/schemas/class-picker";
 import { gradeOptions, gradeOptions2, options } from "./options/education";
 import FilterItem from "./FilterItem";
@@ -92,6 +93,10 @@ function ChooseClass({ children, title, selectedClass, actions, onSelect: onSele
         resetSelection();
     }, [reset]);
 
+    // Said as a heading, in sentence case and without the exclamation mark
+    // ("Select class to take attendance!" -> "Select class to take attendance").
+    const pickerHeading = sentenceCase(String(info || "Choose a saved class").replace(/\s*!+\s*$/, ""));
+
     return (
         <>
             {!classesLoaded ? <Loader /> : classesBackup?.length > 0 ?
@@ -99,23 +104,25 @@ function ChooseClass({ children, title, selectedClass, actions, onSelect: onSele
                     {title &&
                         <h2 className="text-xl font-semibold leading-7 text-gray-900">{title}</h2>
                     }
-                    <div className="flex items-center">
-                        <span className="w-full my-3 flex gap-x-3 text-base items-center font-semibold">
-                            <BookmarkIcon className="icon" />
-                            {info || "Filter and select a saved class"}
-                        </span>
-                        <div className="flex w-max justify-end items-center">
-                            <Tooltip content="Refresh Classes">
-                                <Button variant="text" className="m-0 p-2" onClick={async () => {
+                    {/* The picker is a card of its own: a heading that says what the
+                        class is for, the two tools beside it, then the tiles. What the
+                        page shows once a class is chosen comes after the card, so it
+                        never ends up as a card inside a card. */}
+                    <section className="app-classpick" aria-label={pickerHeading}>
+                    <div className="app-classpick-head">
+                        <h3 className="app-classpick-heading">{pickerHeading}</h3>
+                        <div className="app-classpick-tools">
+                            <Tooltip content="Reload classes">
+                                <Button variant="text" className="m-0 p-2" aria-label="Reload classes" onClick={async () => {
                                     await loadClasses();
                                     resetSelection();
                                 }}>
-                                    <ArrowPathIcon className="icon" />
+                                    <ArrowPathIcon className="icon" aria-hidden="true" />
                                 </Button>
                             </Tooltip>
-                            <Tooltip content="Reset Selection">
-                                <Button variant="text" className="m-0 p-2" onClick={resetSelection}>
-                                    <XMarkIcon className="icon" />
+                            <Tooltip content="Clear selection">
+                                <Button variant="text" className="m-0 p-2" aria-label="Clear selection" onClick={resetSelection}>
+                                    <XMarkIcon className="icon" aria-hidden="true" />
                                 </Button>
                             </Tooltip>
                         </div>
@@ -168,11 +175,12 @@ function ChooseClass({ children, title, selectedClass, actions, onSelect: onSele
                             }
                         </>
                     </>
+                    </section>
                     <>
                         {
                             (selectedClass && !disabled) &&
                             <>
-                                <span className="text-lg font-semibold text-center capitalize mt-4">class : {selectedClass.classname}</span>
+                                <p className="app-classpick-chosen">Class <b className="capitalize">{selectedClass.classname}</b></p>
                                 {children}
                             </>
                         }

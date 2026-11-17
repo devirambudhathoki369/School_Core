@@ -38,11 +38,11 @@ function FeeRow({ frIndex, cid, cls }) {
         }>
             <AccordionHeader onClick={() => {
                 setOpen(state => !state);
-            }} className={`bg-teal-100 ${cid && 'hover:bg-teal-200'} font-semibold rounded-md flex flex-row !justify-between p-3 my-0.5`}>
+            }} className={`app-feerow ${cid ? 'app-feerow-item' : 'app-feerow-head'} flex flex-row !justify-between`}>
                 <span className={`flex justify-between items-center w-full`}>
                     <span className="flex gap-x-2 items-center">
                         {count > 0 ?
-                            <Tooltip content={"Click to add fee in this class!"}>
+                            <Tooltip content={"Add a fee to this class"}>
                                 <EyeDropperIcon className="icon min-w-[1.15rem]" onClick={(e) => {
                                     e.stopPropagation();
                                     const { id, school, ...class_info_details } = class_info;
@@ -52,7 +52,7 @@ function FeeRow({ frIndex, cid, cls }) {
                             </Tooltip> :
                             <span className="min-w-[1.15rem]"></span>
                         }
-                        <span className="uppercase">{class_name}</span>
+                        <span className={cid ? "capitalize" : ""}>{class_name}</span>
                     </span>
                     <Chip value={count} size="sm" variant="ghost" color="blue-gray" className="rounded-full m-0 p-0 bg-transparent" />
                 </span>
