@@ -12,7 +12,7 @@ import { searchListViewOptions } from "@/components/searchbars/SearchListViews";
 import { USER_TYPES, USER_TYPE_OPTIONS } from "@/components/views/library/book_transaction";
 import { useAppContext } from "@/contexts/AppContext";
 import useRequestStatus from "@/hooks/requestStatus";
-import { UsingSharedLibraryAlert, isUsingSharedLibrary } from "@/methods/library/isUsingSharedLibrary";
+import { ownLibraryOnly } from "@/methods/library/isUsingSharedLibrary";
 import { libraryReport } from "@/services/functions/library/reports";
 import { fetchGuestSchools } from "@/services/functions/library";
 
@@ -20,7 +20,6 @@ const VIEWS = { SEARCH: 'SEARCH', PROFILE: 'PROFILE' };
 
 function MemberProfile() {
     const { user: { user } } = useAppContext();
-    if (isUsingSharedLibrary(user)) return <UsingSharedLibraryAlert />;
     const schoolId = user?.profile?.school || user?.profile?.id;
 
     const [userType, setUserType] = useState(USER_TYPES.STUDENT);
@@ -119,4 +118,4 @@ const HISTORY_COLUMNS = [
     ['fine_amount', "Fine"],
 ];
 
-export default MemberProfile;
+export default ownLibraryOnly(MemberProfile);

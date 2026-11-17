@@ -10,7 +10,7 @@ import { editAction } from "@/components/tables/actions";
 import Loader from "@/components/Loader";
 import { useAppContext } from "@/contexts/AppContext";
 import useRequestStatus from "@/hooks/requestStatus";
-import { UsingSharedLibraryAlert, isUsingSharedLibrary } from "@/methods/library/isUsingSharedLibrary";
+import { ownLibraryOnly } from "@/methods/library/isUsingSharedLibrary";
 import { getCursor, getURL } from "@/methods/pagination";
 import { fetchBooks, fetchBook } from "@/services/functions/library/book";
 import { fetchLibraries } from "@/services/functions/library";
@@ -42,9 +42,6 @@ function formatAccessionNos(nos) {
 
 function BooksView() {
     const { user: { user }, notification: { updateNotification } } = useAppContext();
-    if (isUsingSharedLibrary(user)) {
-        return <UsingSharedLibraryAlert />;
-    }
     const schoolId = user?.profile?.school || user?.profile?.id;
 
     const [books, setBooks] = useState({});
@@ -242,4 +239,4 @@ const BookListTableColumns = [
     ['call_no', "Call No."],
 ];
 
-export default BooksView;
+export default ownLibraryOnly(BooksView);

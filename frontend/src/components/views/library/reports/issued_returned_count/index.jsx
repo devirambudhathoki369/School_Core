@@ -6,12 +6,11 @@ import { ButtonsSecion, Section } from "@/components/sections";
 import BasicTable from "@/components/tables/BasicTable";
 import { useAppContext } from "@/contexts/AppContext";
 import useRequestStatus from "@/hooks/requestStatus";
-import { UsingSharedLibraryAlert, isUsingSharedLibrary } from "@/methods/library/isUsingSharedLibrary";
+import { ownLibraryOnly } from "@/methods/library/isUsingSharedLibrary";
 import { libraryReport } from "@/services/functions/library/reports";
 
 function IssuedReturnedCount() {
     const { user: { user } } = useAppContext();
-    if (isUsingSharedLibrary(user)) return <UsingSharedLibraryAlert />;
     const schoolId = user?.profile?.school || user?.profile?.id;
 
     const [range, setRange] = useState({ start: '', end: '' });
@@ -51,4 +50,4 @@ const COLUMNS = [
     ['value', "Count"],
 ];
 
-export default IssuedReturnedCount;
+export default ownLibraryOnly(IssuedReturnedCount);

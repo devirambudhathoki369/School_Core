@@ -7,12 +7,11 @@ import { ButtonsSecion, Section } from "@/components/sections";
 import BasicTable from "@/components/tables/BasicTable";
 import { useAppContext } from "@/contexts/AppContext";
 import useRequestStatus from "@/hooks/requestStatus";
-import { UsingSharedLibraryAlert, isUsingSharedLibrary } from "@/methods/library/isUsingSharedLibrary";
+import { ownLibraryOnly } from "@/methods/library/isUsingSharedLibrary";
 import { libraryReport } from "@/services/functions/library/reports";
 
 function DailyReport() {
     const { user: { user } } = useAppContext();
-    if (isUsingSharedLibrary(user)) return <UsingSharedLibraryAlert />;
     const schoolId = user?.profile?.school || user?.profile?.id;
 
     const [date, setDate] = useState(user?.today || '');
@@ -58,4 +57,4 @@ const COLUMNS = [
     ['fine_amount', "Fine"],
 ];
 
-export default DailyReport;
+export default ownLibraryOnly(DailyReport);

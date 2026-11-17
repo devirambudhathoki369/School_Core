@@ -4,7 +4,7 @@ import { ButtonsSecion, PaginationSection, Section } from "@/components/sections
 import BasicTable from "@/components/tables/BasicTable";
 import { useAppContext } from "@/contexts/AppContext";
 import useRequestStatus from "@/hooks/requestStatus";
-import { UsingSharedLibraryAlert, isUsingSharedLibrary } from "@/methods/library/isUsingSharedLibrary";
+import { ownLibraryOnly } from "@/methods/library/isUsingSharedLibrary";
 import { getCursor, getURL } from "@/methods/pagination";
 import { fetchBooks } from "@/services/functions/library/book";
 import { Button } from "@material-tailwind/react";
@@ -16,9 +16,6 @@ const searchSchema = { title: '' };
 function BookList() {
     const { user: { user }, notification: { updateNotification } } = useAppContext();
     // 
-    if (isUsingSharedLibrary(user)) {
-        return <UsingSharedLibraryAlert />
-    }
     // 
     const schoolId = user?.profile?.school || user?.profile?.id;
     const [books, setBooks] = useState({});
@@ -117,4 +114,4 @@ const BookListTableColumns = [
     ['call_no', "Call No."],
 ];
 
-export default BookList;
+export default ownLibraryOnly(BookList);

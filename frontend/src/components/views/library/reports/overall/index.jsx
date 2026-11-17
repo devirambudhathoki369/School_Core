@@ -4,12 +4,11 @@ import { Button } from "@material-tailwind/react";
 import BasicTable from "@/components/tables/BasicTable";
 import { useAppContext } from "@/contexts/AppContext";
 import useRequestStatus from "@/hooks/requestStatus";
-import { UsingSharedLibraryAlert, isUsingSharedLibrary } from "@/methods/library/isUsingSharedLibrary";
+import { ownLibraryOnly } from "@/methods/library/isUsingSharedLibrary";
 import { libraryReport } from "@/services/functions/library/reports";
 
 function OverallLibraryReport() {
     const { user: { user } } = useAppContext();
-    if (isUsingSharedLibrary(user)) return <UsingSharedLibraryAlert />;
     const schoolId = user?.profile?.school || user?.profile?.id;
 
     const [rows, setRows] = useState([]);
@@ -35,4 +34,4 @@ const COLUMNS = [
     ['value', "Count"],
 ];
 
-export default OverallLibraryReport;
+export default ownLibraryOnly(OverallLibraryReport);

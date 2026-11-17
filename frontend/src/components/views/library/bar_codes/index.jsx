@@ -5,7 +5,7 @@ import Checkbox from "@/components/inputs/Checkbox";
 import { ButtonsSecion, Section } from "@/components/sections";
 import { useAppContext } from "@/contexts/AppContext";
 import useRequestStatus from "@/hooks/requestStatus";
-import { UsingSharedLibraryAlert, isUsingSharedLibrary } from "@/methods/library/isUsingSharedLibrary";
+import { ownLibraryOnly } from "@/methods/library/isUsingSharedLibrary";
 import { fetchBooks } from "@/services/functions/library/book";
 import { Button } from "@material-tailwind/react";
 import { Fragment, useEffect, useRef, useState } from "react";
@@ -20,11 +20,6 @@ const filtersSchema = { show_hide_table: true, select_all_books: false };
 const MAX_BAR_CODES = 2000;
 function BarCodesPrintView() {
     const { user: { user }, notification: { updateNotification } } = useAppContext();
-    // 
-    if (isUsingSharedLibrary(user)) {
-        return <UsingSharedLibraryAlert />;
-    }
-    // 
     const schoolId = user?.profile?.school || user?.profile?.id;
     const [input, setInput] = useState({ ...searchSchema });
     const [range, setRange] = useState({ ...rangeSchema });
@@ -282,4 +277,4 @@ function BookSelectionView({ books, onSelect, selectedBooks = [] }) {
     )
 }
 
-export default BarCodesPrintView;
+export default ownLibraryOnly(BarCodesPrintView);

@@ -6,7 +6,7 @@ import { editAction } from "@/components/tables/actions";
 import { useAppContext } from "@/contexts/AppContext";
 import useRequestStatus from "@/hooks/requestStatus";
 import { fillData, flattenSchema } from "@/methods/FlattenSchema";
-import { UsingSharedLibraryAlert, isUsingSharedLibrary } from "@/methods/library/isUsingSharedLibrary";
+import { ownLibraryOnly } from "@/methods/library/isUsingSharedLibrary";
 import librarySchema from "@/schemas/library";
 import libraryValidationSchema from "@/schemas/validations/library/library";
 import { fetchLibraries, saveLibrary } from "@/services/functions/library";
@@ -16,9 +16,6 @@ import { useEffect, useState } from "react";
 function LibrarySetup() {
     const { user: { user }, notification: { updateNotification } } = useAppContext();
     // 
-    if (isUsingSharedLibrary(user)) {
-        return <UsingSharedLibraryAlert />
-    }
     // 
     const schoolId = user?.profile?.school || user?.profile?.id;
     librarySchema['school'] = schoolId;
@@ -127,4 +124,4 @@ const COLS = [
     ['fine_per_day', "Fine per day"],
 ];
 
-export default LibrarySetup;
+export default ownLibraryOnly(LibrarySetup);

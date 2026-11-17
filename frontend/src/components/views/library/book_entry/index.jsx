@@ -3,7 +3,7 @@ import { SelectInput, TextInput } from "@/components/inputs";
 import { ButtonsSecion, Section } from "@/components/sections";
 import { useAppContext } from "@/contexts/AppContext";
 import useRequestStatus from "@/hooks/requestStatus";
-import { UsingSharedLibraryAlert, isUsingSharedLibrary } from "@/methods/library/isUsingSharedLibrary";
+import { ownLibraryOnly } from "@/methods/library/isUsingSharedLibrary";
 import { bookEntrySchema } from "@/schemas/library/book";
 import { bookEntryValidationSchema } from "@/schemas/validations/library/bookValidations";
 import { fetchLibraries } from "@/services/functions/library";
@@ -14,9 +14,6 @@ import { useEffect, useState } from "react";
 function BookEntryView() {
     const { user: { user }, notification: { updateNotification } } = useAppContext();
     // 
-    if (isUsingSharedLibrary(user)) {
-        return <UsingSharedLibraryAlert />
-    }
     // 
     const schoolId = user?.profile?.school || user?.profile?.id;
     bookEntrySchema['school'] = schoolId;
@@ -129,4 +126,4 @@ function BookEntryView() {
     )
 }
 
-export default BookEntryView;
+export default ownLibraryOnly(BookEntryView);
