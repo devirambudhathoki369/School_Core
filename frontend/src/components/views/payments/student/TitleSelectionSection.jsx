@@ -18,23 +18,23 @@ function TitleSelectionSection() {
     const totalSelected = Object.keys(selectedBills || {})
         .reduce((acc, titleId) => acc + (Number(studentLedger?.bill_amount?.[titleId]) || 0), 0);
     return (
-        <Section title={`Student's Ledger`}
-            description={"Select titles below to proceed with payment"} grid={false}
+        <Section title={`Student's ledger`}
+            description={"Tick the fees to collect now. The total to pay is at the foot."} grid={false}
             actions={[
                 // <Button variant="outlined" onClick={resetLedgerSelection}>Reset</Button>
             ]}>
-            <div className="w-full flex flex-col items-start justify-between overflow-x-auto mb-3">
+            <div className="app-ledgerlist w-full flex flex-col items-start justify-between overflow-x-auto mb-3">
                 {
                     (Object.keys(studentLedger?.titles || {})?.length > 0) ?
                         <>
                             <HeaderCard grid={3}>
                                 <span className="flex gap-x-2 pl-[1.85rem]">
-                                    title
+                                    Fee title
                                 </span>
                                 <span>
-                                    rate
+                                    Rate
                                 </span>
-                                <span>bill amount</span>
+                                <span className="text-right">Amount due</span>
                             </HeaderCard>
                             {
                                 Object.entries(studentLedger?.titles || {})
@@ -51,8 +51,8 @@ function TitleSelectionSection() {
                                         />
                                     ))
                             }
-                            <TitleBill title={'TOTAL'} billAmount={studentLedger?.total} disableClick={true} />
-                            <TitleBill title={'TOTAL SELECTED'} billAmount={totalSelected} disableClick={true} />
+                            <TitleBill title={'Total due'} billAmount={studentLedger?.total} disableClick={true} />
+                            <TitleBill title={'Selected to pay'} billAmount={totalSelected} disableClick={true} />
                         </> :
                         <Loader />
                 }

@@ -339,6 +339,66 @@
 :root[data-ui-mode="dark"] .app-slist-table th { background: var(--d-surface); border-color: var(--d-line); }
 :root[data-ui-mode="dark"] .app-slist-table td { border-color: var(--d-line); }
 
+/* ---- row lists (HeaderCard) and the student ledger on Collect fees ---------------- */
+
+/* A list's heading row reads like a table's: a neutral band, 12px semibold
+   labels, no capitals. Labels typed in lower case ("bill amount") get their
+   first letter raised; the rest stays as written. */
+:root .app-rowhead {
+    background: var(--t-thead-bg, #F9FAFB) !important;
+    border: 1px solid var(--line) !important;
+    color: var(--ink-500) !important;
+}
+:root .app-rowhead,
+:root .app-rowhead * {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0 !important;
+    line-height: 16px;
+    text-transform: none !important;
+    color: var(--ink-500) !important;
+}
+:root .app-rowhead > *::first-letter { text-transform: uppercase; }
+
+/* The student ledger is one table: rows on hairlines inside one frame, the
+   chosen rows tinted, the two totals in bold at the foot, every amount on
+   the right so the figures line up. */
+:root .app-ledgerlist {
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+}
+:root .app-ledgerlist > * { margin: 0 !important; border-radius: 0 !important; }
+:root .app-ledgerlist .app-rowhead { border: 0 !important; border-bottom: 1px solid var(--line) !important; }
+:root .app-ledgerlist .app-titlebill {
+    border: 0 !important;
+    border-bottom: 1px solid var(--line-soft) !important;
+    box-shadow: none !important;
+    padding-block: 12px !important;
+}
+:root .app-ledgerlist .app-titlebill.is-selected { box-shadow: inset 3px 0 0 var(--t-brand-solid) !important; }
+:root .app-ledgerlist .app-titlebill > span:last-child { text-align: right; }
+:root .app-ledgerlist .app-titlebill.is-total { background: var(--surface-soft) !important; }
+:root .app-ledgerlist .app-titlebill.is-total > span:first-child { padding-left: 1.85rem; }
+:root .app-ledgerlist .app-titlebill.is-total:last-child {
+    border-bottom: 0 !important;
+    border-top: 1px solid var(--line) !important;
+    background: var(--t-brand-tint) !important;
+}
+:root .app-ledgerlist .app-titlebill.is-total:last-child * { color: var(--t-brand-ink) !important; }
+:root[data-ui-mode="dark"] .app-ledgerlist { border-color: var(--d-line); }
+:root[data-ui-mode="dark"] .app-rowhead { background: var(--d-surface) !important; border-color: var(--d-line) !important; }
+
+/* "To collect" at the foot of the payment form: the figure the cashier reads out */
+:root .app-collect-total {
+    border-top: 1px solid var(--t-brand-line);
+    background: var(--t-brand-tint);
+    color: var(--t-brand-ink);
+}
+:root .app-collect-total span:first-child { font-size: 14px; }
+:root .app-collect-total span:last-child { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
 /* ---- the fee list (School setup > Fees) ---------------------------------------- */
 
 /* A list, not a stack of tinted bars: a table-style heading row, then white

@@ -153,7 +153,7 @@ function StudentPaymentHistory({ selectedStudent = null }) {
                 <AccordionHeader onClick={() => {
                     setOpen(state => !state);
                 }}>
-                    <h2 className="text-xl font-semibold leading-7 text-gray-900">Student's Trial Balance</h2>
+                    <h2 className="text-xl font-semibold leading-7 text-gray-900">Student's trial balance</h2>
                 </AccordionHeader>
                 <AccordionBody>
                     {fetching ? <Loader /> :

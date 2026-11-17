@@ -30,8 +30,8 @@ function BillEntrySection() {
         <>
             {Object.keys(selectedBills)?.length > 0 &&
                 <>
-                    <Section title={"Guardian Paying Amount Distribution"}
-                        description={"Distributes guardian paying amount to the selected titles!"} >
+                    <Section title={"Split what the guardian pays"}
+                        description={"Type the amount handed over, then Split spreads it across the ticked fees."} >
                         <TextInput value={guardianPayingSplit?.guardianPayingAmount} onChange={guardianPayingSplit.onGuardianPayingAmountChange}
                             input={{ name: "guardianPayingAmount", label: "Guardian Paying Amount", type: "number" }} />
                         <TextInput value={guardianPayingSplit.remainingToDistribute} onChange={() => null}
@@ -49,13 +49,13 @@ function BillEntrySection() {
                                   <div className="min-w-[600px] w-full flex flex-col">
                                 <HeaderCard grid={cols}>
                                     <span className="font-semibold flex gap-x-2">
-                                        title
+                                        Fee title
                                     </span>
-                                    <span className="font-semibold">rate</span>
-                                    <span className={`text-left font-semibold`}>paying amount</span>
-                                    <span className={`text-left font-semibold`}>discount amount</span>
-                                    <span className={`text-left font-semibold`}>due</span>
-                                    <span className={`text-left font-semibold`}>total</span>
+                                    <span className="font-semibold">Rate</span>
+                                    <span className={`text-left font-semibold`}>Paying</span>
+                                    <span className={`text-left font-semibold`}>Discount</span>
+                                    <span className={`text-left font-semibold`}>Still due</span>
+                                    <span className={`text-left font-semibold`}>Total</span>
                                 </HeaderCard>
                                 {
                                     Object.keys(selectedBills)
@@ -103,8 +103,9 @@ function BillEntrySection() {
                                             <span className="text-blue-gray-600">Total remaining (due)</span>
                                             <span className={`font-semibold ${Number(remainingTotal) < 0 ? 'text-red-600' : 'text-blue-gray-900'}`}>{rs(remainingTotal)}</span>
                                         </div>
-                                        <div className="flex items-center justify-between px-4 py-3 border-t-2 border-blue-gray-200 bg-blue-gray-900 text-white">
-                                            <span className="font-semibold uppercase tracking-wide text-xs">Grand total to collect</span>
+                                        {/* the figure the cashier says out loud: the brand's tint, not a black slab */}
+                                        <div className="app-collect-total flex items-center justify-between px-4 py-3">
+                                            <span className="font-semibold">To collect</span>
                                             <span className="font-bold text-lg whitespace-nowrap">
                                                 {rs(payingTotal)}
                                             </span>
@@ -114,7 +115,7 @@ function BillEntrySection() {
                                 <>
                                     {/* month selection */}
                                     <div className="flex flex-col my-2 w-full">
-                                        <Typography variant="h6">Upto the month</Typography>
+                                        <Typography variant="h6">Paid up to the month</Typography>
                                         <MonthPicker onSelect={
                                             ({ value }) => {
                                                 setSelectedMonths(value);

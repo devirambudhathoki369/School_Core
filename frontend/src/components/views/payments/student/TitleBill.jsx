@@ -38,7 +38,8 @@ export default function TitleBill({ title, rate, billAmount, onSelect, isSelecte
             }}
             className={`app-titlebill grid gap-x-3 rounded-lg grid-cols-3 justify-between items-center w-full py-2.5 my-1 px-4 sm:px-8
                 ${selectable ? 'is-selectable' : 'is-total'} ${checked ? 'is-selected' : ''}`}>
-            <span className="capitalize font-semibold flex items-center gap-x-2.5 min-w-0">
+            {/* a fee's name is data and is title-cased; the two totals are words we wrote */}
+            <span className={`${selectable ? 'capitalize ' : ''}font-semibold flex items-center gap-x-2.5 min-w-0`}>
                 {selectable &&
                     <span className="app-check" aria-hidden="true">
                         {checked && <CheckIcon />}
