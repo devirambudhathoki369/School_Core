@@ -263,9 +263,9 @@ class ClassViews(SecuredAPIView):
         update_periods = request.data.pop("update_periods", False)
         update_periods = self.getBooleanValue(update_periods)
         data = request.data.pop("data", [])
-        status = self.updateAcademicYears(data, update_periods)
-        if status:
+        if self.updateAcademicYears(data, update_periods):
             return Response({"message": "Update successfull!"})
+        return self.RESPONSE__INVALID_REQUEST
 
     def updateAcademicYears(self, data, update_periods=False):
         """update class-infos academic years!"""
