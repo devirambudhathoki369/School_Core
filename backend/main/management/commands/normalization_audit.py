@@ -74,6 +74,41 @@ RECONCILE += [
 ]
 
 
+# The same comparison per JSON key, which is what a screen reading fee sums per
+# title from the lines needs (Phase 3, main/services/fee_lines.py). A line's key
+# is its title's id, or else its code. Amounts are compared to the paisa, as a
+# line stores them. Run this, and see nothing, before NORMALIZED_READS goes on.
+KEYED_RECONCILE = [
+    (
+        "main_studentledger",
+        """SELECT count(*) FROM main_studentledger p WHERE EXISTS (
+             SELECT 1 FROM (
+                 SELECT e.key AS k, round(norm_numeric(e.value), 2) AS a
+                   FROM jsonb_each(CASE WHEN jsonb_typeof(p.details) = 'object' THEN p.details ELSE '{}'::jsonb END) e
+                  WHERE e.key <> '__titles'
+                 UNION ALL
+                 SELECT coalesce(x.title_id::text, x.code), -x.amount FROM main_studentledgerline x WHERE x.ledger_id = p.id
+             ) u WHERE a IS NOT NULL GROUP BY k HAVING abs(sum(a)) > 0.005)""",
+    ),
+    (
+        "main_studentinvoice",
+        """SELECT count(*) FROM main_studentinvoice p WHERE EXISTS (
+             SELECT 1 FROM (
+                 SELECT e.key AS k,
+                        round(CASE WHEN jsonb_typeof(e.value) = 'object' THEN norm_numeric(e.value -> 'amt')
+                                   ELSE norm_numeric(e.value) END, 2) AS a
+                   FROM jsonb_each(CASE WHEN jsonb_typeof(p.details) = 'object' THEN p.details ELSE '{}'::jsonb END) e
+                  WHERE e.key <> '__titles'
+                 UNION ALL
+                 SELECT 'cash', round(norm_numeric(e -> 'AMT'), 2)
+                   FROM jsonb_array_elements(CASE WHEN jsonb_typeof(p.details) = 'array' THEN p.details ELSE '[]'::jsonb END) e
+                 UNION ALL
+                 SELECT coalesce(x.title_id::text, x.code), -x.amount FROM main_studentinvoiceline x WHERE x.invoice_id = p.id
+             ) u WHERE a IS NOT NULL GROUP BY k HAVING abs(sum(a)) > 0.005)""",
+    ),
+]
+
+
 def scalar(cursor, sql, params=None):
     cursor.execute(sql, params or [])
     return cursor.fetchone()[0]
@@ -91,6 +126,10 @@ def audit():
                 differ = scalar(cursor, sql)
                 if differ:
                     findings.append(f"{table}: {differ} row(s) whose lines differ from their JSON")
+            for table, sql in KEYED_RECONCILE:
+                differ = scalar(cursor, sql)
+                if differ:
+                    findings.append(f"{table}: {differ} row(s) whose lines differ from their JSON for a fee title")
         else:
             findings.append("Normalized tables are not installed yet (run migrate to 0109).")
         rules = [rule[:4] for rule in (*integrity.UNIQUE_RULES, *later.UNIQUE_RULES)]
