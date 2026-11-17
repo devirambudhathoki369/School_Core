@@ -31,6 +31,7 @@ from ..views.school.DocumentViews import StudentDocumentView
 from ..views.school.PublicProfileViews import DigitalIdCodeView, PublicProfileView
 from ..views.school.SchoolAdminView import SchoolAdminView
 from ..views.StudentViews import StudentsView, StudentDiscountView
+from ..views.StudentListView import StudentListView
 from ..views.StaffViews import StaffRoleView, StaffView
 from ..views.StudentTransportationView import StudentTransportationView
 from ..views.StudentMedicalInfoView import StudentMedicalInfoView
@@ -207,6 +208,7 @@ urlpatterns = [
     ),
     path("school/images", SchoolImageView.as_view(), name="school images"),
     path("students", StudentsView.as_view(), name="students"),
+    path("students/list", StudentListView.as_view(), name="student list"),
     path(
         "students/transportations",
         StudentTransportationView.as_view(),
