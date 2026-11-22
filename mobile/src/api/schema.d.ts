@@ -1383,9 +1383,8 @@ export interface components {
             /** @description Today's attendance is saved */
             attendance_taken: boolean;
             id: number;
-            /** @description The staff member teaches a period of it */
-            in_timetable: boolean;
             name: string;
+            /** @description The periods they teach in it */
             periods: number[];
             students: number;
             subjects: components["schemas"]["SubjectOut"][];

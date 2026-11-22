@@ -2136,14 +2136,11 @@
           "id": {
             "type": "integer"
           },
-          "in_timetable": {
-            "description": "The staff member teaches a period of it",
-            "type": "boolean"
-          },
           "name": {
             "type": "string"
           },
           "periods": {
+            "description": "The periods they teach in it",
             "items": {
               "type": "integer"
             },
@@ -2162,7 +2159,6 @@
         "required": [
           "attendance_taken",
           "id",
-          "in_timetable",
           "name",
           "periods",
           "students",

@@ -6,9 +6,11 @@ from django.test import TestCase
 
 from main.methods.nepaliDatetime import ndt_today
 from main.models.Attendance import ClassAttendance, StaffAttendance, StudentAttendance
+from main.models.ClassInfo import ClassInfo
 from main.models.ClassPeriod import ClassPeriod
 from main.models.Homework import Homework, HomeworkSubmission
 from main.models.Staff import Staff, StaffRole
+from main.models.Student import Student
 from main.models.Subject import Subject
 from account.models import StaffAccount
 from mobileapi.models import AppSession
@@ -35,6 +37,11 @@ class StaffFixtures(MobileTestMixin, WriteMixin):
         cls.parent_token = session_token(AppSession.PARENT, cls.guardian, cls.school)
         cls.far = MobileFixtures.student(cls.other, "Dev", last_name="Lama")
         cls.klass = cls.school.klass.id
+        # The teacher teaches the class's first period.
+        cls.timetable = ClassPeriod.objects.create(
+            class_info=cls.school.klass, period_count=2, subjects={"1": cls.english.id, "2": cls.english.id},
+            teachers={"1": cls.staff.id}, academic_year=cls.school.year,
+        )
 
     def put_day(self, marks, token=None, date=None, key=None):
         path = f"staff/classes/{self.klass}/attendance" + (f"?date={date}" if date else "")
@@ -48,22 +55,49 @@ class StaffFixtures(MobileTestMixin, WriteMixin):
 @mock.patch("mobileapi.views.staff.notify_class_students")
 @mock.patch("main.views.AttendanceViews.notify_attendance_marked")
 class ClassesTests(StaffFixtures, TestCase):
-    def test_staff_who_may_take_attendance_see_the_schools_classes(self, *_):
+    def test_a_teacher_sees_the_classes_they_teach(self, *_):
         body = self.get("staff/classes", self.teacher_token).json()
-        self.assertEqual([c["id"] for c in body["items"]], [self.klass])
+        self.assertEqual([(c["id"], c["periods"]) for c in body["items"]], [(self.klass, [1])])
         self.assertEqual(body["items"][0]["students"], 2)
         self.assertEqual(body["items"][0]["subjects"], [{"id": self.english.id, "name": "English"}])
         self.assertTrue(body["can_take_attendance"])
         self.assertFalse(body["can_change_attendance"])
 
-    def test_other_staff_see_only_the_classes_they_teach(self, *_):
+    def test_staff_in_no_timetable_see_no_classes(self, *_):
         self.assertEqual(self.get("staff/classes", self.clerk_token).json()["items"], [])
-        ClassPeriod.objects.create(class_info=self.school.klass, period_count=2, subjects={"2": self.english.id},
-                                   teachers={"2": self.clerk.id}, academic_year=self.school.year)
+        self.timetable.teachers = {"1": self.staff.id, "2": self.clerk.id}
+        self.timetable.save(update_fields=["teachers"])
         item = self.get("staff/classes", self.clerk_token).json()["items"][0]
-        self.assertEqual((item["id"], item["in_timetable"], item["periods"]), (self.klass, True, [2]))
+        self.assertEqual((item["id"], item["periods"]), (self.klass, [2]))
         today = self.get("staff/today", self.clerk_token).json()
         self.assertEqual([(p["period"], p["subject"]) for p in today["periods"]], [(2, "English")])
+
+    def test_a_class_they_do_not_teach_is_closed_to_them(self, *_):
+        # Every attendance right still opens only the classes they teach.
+        self.staff.permissions = [1501, 1502, 1503, 1504]
+        self.staff.save(update_fields=["permissions"])
+        second = ClassInfo.objects.create(school=self.school, academic_year=self.school.year, education_level=2,
+                                          grade=5)
+        pupil = MobileFixtures.student(self.school, "Chet")
+        Student.objects.filter(pk=pupil.pk).update(class_info=second)
+        science = Subject.objects.create(subject="Science", credit_hours=Decimal("4"), school=self.school,
+                                         class_info=second)
+        listed = self.get("staff/classes", self.teacher_token).json()["items"]
+        self.assertEqual([c["id"] for c in listed], [self.klass])
+        path = f"staff/classes/{second.id}/attendance"
+        self.assertEqual(self.get(path, self.teacher_token).status_code, 404)
+        answer = self.write("put", path, {"marks": [{"student": pupil.id, "present": True}]}, self.teacher_token)
+        self.assertEqual(answer.status_code, 404)
+        homework = {"class_id": second.id, "subject_id": science.id, "title": "Plants", "description": "Read.",
+                    "due_date": FUTURE}
+        answer = self.write("post", "staff/homework", homework, self.teacher_token, fmt="multipart")
+        self.assertEqual(answer.status_code, 404)
+        self.assertFalse(ClassAttendance.objects.exists())
+        self.assertFalse(Homework.objects.exists())
+        # Put in that class's timetable, they may open it.
+        ClassPeriod.objects.create(class_info=second, period_count=1, subjects={"1": science.id},
+                                   teachers={"1": self.staff.id}, academic_year=self.school.year)
+        self.assertEqual(self.get(path, self.teacher_token).status_code, 200)
 
     def test_parents_cannot_open_staff_screens(self, *_):
         for path in ("staff/today", "staff/classes", "staff/homework", f"staff/classes/{self.klass}/attendance"):

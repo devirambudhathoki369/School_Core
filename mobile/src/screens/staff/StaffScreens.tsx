@@ -149,15 +149,18 @@ export function StaffClassesScreen() {
         query={classes}
         empty={(data) =>
           data.items.length ? null : (
-            <Empty icon="users" title="No classes" body="Classes you teach in the timetable show here." />
+            <Empty
+              icon="users"
+              title="No classes yet"
+              body="The classes you teach show here once the school puts you in their timetable."
+            />
           )
         }>
-        {(data) => {
-          const mine = data.items.filter((c) => c.in_timetable);
-          const others = data.items.filter((c) => !c.in_timetable);
-          const list = (items: typeof data.items) => (
+        {(data) => (
+          <>
+            <SectionLabel>Your classes</SectionLabel>
             <Card padded={false}>
-              {items.map((klass, i) => (
+              {data.items.map((klass, i) => (
                 <View key={klass.id}>
                   {i ? <Divider inset={70} /> : null}
                   <ListRow
@@ -176,29 +179,13 @@ export function StaffClassesScreen() {
                 </View>
               ))}
             </Card>
-          );
-          return (
-            <>
-              {mine.length ? (
-                <>
-                  <SectionLabel>Your classes</SectionLabel>
-                  {list(mine)}
-                </>
-              ) : null}
-              {others.length ? (
-                <>
-                  <SectionLabel>{mine.length ? 'Other classes' : 'All classes'}</SectionLabel>
-                  {list(others)}
-                </>
-              ) : null}
-              {!data.can_see_attendance ? (
-                <T v="small" tone="quiet">
-                  Attendance needs a permission from the school admin.
-                </T>
-              ) : null}
-            </>
-          );
-        }}
+            {!data.can_see_attendance ? (
+              <T v="small" tone="quiet">
+                Attendance needs a permission from the school admin.
+              </T>
+            ) : null}
+          </>
+        )}
       </Loaded>
     </Screen>
   );

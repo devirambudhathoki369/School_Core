@@ -282,6 +282,9 @@ Base `/api/mobile/v1/`. These conventions hold everywhere:
   link, and a student may open only their own record.
 - Every staff path checks the same permission ids the portal uses
   (`main/constants/staff_permissions.py`).
+- A teacher works only with the classes they teach in the current
+  timetable. Any other class is `404`, whatever their permissions: they
+  don't see it, take or change its attendance, or set it homework.
 - Each response has its own serializer. The OpenAPI 3 schema at
   `/api/mobile/v1/schema` is generated from them, and the app's TypeScript
   types are generated from that schema.
@@ -312,7 +315,7 @@ Base `/api/mobile/v1/`. These conventions hold everywhere:
 | `GET /students/{id}/timetable` | parent, student | The class's periods with subjects and teachers |
 | `GET /notices` · `GET /calendar?from=&to=` | signed in | The school's notices and events |
 | `GET /staff/today` | staff | Today's periods, attendance still to take, own check-in |
-| `GET /staff/classes` | staff | The classes in the staff member's timetable |
+| `GET /staff/classes` | staff | The classes the staff member teaches in the timetable, and no others |
 | `GET /staff/classes/{id}/attendance?date=` | staff 1503/1504 | Roster with each student's mark for that day |
 | `PUT /staff/classes/{id}/attendance?date=` | staff 1501 (new) / 1502 (change) | Save the day's marks; can be sent later from the offline queue |
 | `GET /staff/homework` · `POST /staff/homework` | staff | Homework set by me; set new homework with files |
@@ -406,6 +409,7 @@ Rules every look keeps:
   - Refuses another school's session.
   - Refuses another family's child (parent) and another student's record (student).
   - Refuses a staff token without the permission.
+  - Refuses a class the teacher doesn't teach.
 - **Token tests:** refresh rotation, reuse ending the session, the 5-phone
   limit, and the email-code limits.
 - **Database tests:** each `CHECK`, unique index and the same-school trigger

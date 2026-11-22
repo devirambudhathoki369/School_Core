@@ -5,6 +5,11 @@ portal's ClassAttendanceSerializer, so the absent-student SMS and the push to
 parents fire exactly as they do from the web; a correction changes only the
 mark and the reason, as the portal's PUT does. The permission ids are the
 portal's: 1501 to take a day, 1502 to change one, 1503/1504 to look.
+
+A staff member works only with the classes they teach in the current
+timetable. Any other class is "not found" to them, whatever their
+permissions: they don't see it, take or change its attendance, or set it
+homework.
 """
 from django.db import transaction
 from django.db.models import Count, Q
@@ -55,8 +60,7 @@ class StaffClassOut(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
     students = serializers.IntegerField()
-    in_timetable = serializers.BooleanField(help_text="The staff member teaches a period of it")
-    periods = serializers.ListField(child=serializers.IntegerField())
+    periods = serializers.ListField(child=serializers.IntegerField(), help_text="The periods they teach in it")
     subjects = SubjectOut(many=True)
     attendance_taken = serializers.BooleanField(help_text="Today's attendance is saved")
 
@@ -255,9 +259,17 @@ def day_of(class_info, date):
     )
 
 
+def my_classes(staff) -> tuple[list, dict]:
+    """The classes the staff member teaches, and {class id: [(period, subject name)]} for them."""
+    classes = list(school_classes(staff.school_id))
+    mine = teaching(staff, classes, current_timetables(classes))
+    return [c for c in classes if c.id in mine], mine
+
+
 def class_for(staff, class_id) -> ClassInfo:
+    """A class the staff member teaches; any other is not found."""
     klass = school_classes(staff.school_id).filter(pk=class_id).first()
-    if klass is None:
+    if klass is None or klass.id not in teaching(staff, [klass], current_timetables([klass])):
         raise not_found("That class was not found.")
     return klass
 
@@ -352,9 +364,8 @@ class StaffTodayView(MobileAPIView):
     def get(self, request):
         staff = staff_of(request)
         today = ndt_today()
-        classes = list(school_classes(staff.school_id))
+        classes, mine = my_classes(staff)
         by_id = {c.id: c for c in classes}
-        mine = teaching(staff, classes, current_timetables(classes))
         own = (
             StaffAttendance.objects.filter(staff=staff, date=today, is_active=True)
             .order_by("id")
@@ -392,17 +403,13 @@ class StaffClassesView(MobileAPIView):
     def get(self, request):
         staff = staff_of(request)
         perms = staff_permissions(staff)
-        classes = list(school_classes(staff.school_id))
-        mine = teaching(staff, classes, current_timetables(classes))
-        # Staff who may take or see attendance can open any class, as in the
-        # portal; everyone else sees the classes they teach.
-        if not perms & set(ANY_ATTENDANCE):
-            classes = [c for c in classes if c.id in mine]
+        classes, mine = my_classes(staff)
         subjects = {}
         for subject in Subject.objects.filter(class_info__in=classes, is_active=True).order_by("order", "id"):
             subjects.setdefault(subject.class_info_id, []).append({"id": subject.id, "name": subject.subject})
         taken = set(
-            ClassAttendance.objects.filter(school=staff.school_id, date=ndt_today(), is_active=True)
+            ClassAttendance.objects.filter(school=staff.school_id, date=ndt_today(), is_active=True,
+                                           class_info__in=classes)
             .values_list("class_info", flat=True)
         )
         items = [
@@ -410,14 +417,12 @@ class StaffClassesView(MobileAPIView):
                 "id": c.id,
                 "name": class_name(c),
                 "students": c.enrolled,
-                "in_timetable": c.id in mine,
-                "periods": sorted(n for n, _ in mine.get(c.id, [])),
+                "periods": sorted(n for n, _ in mine[c.id]),
                 "subjects": subjects.get(c.id, []),
                 "attendance_taken": c.id in taken,
             }
             for c in classes
         ]
-        items.sort(key=lambda item: not item["in_timetable"])  # their own classes first
         body = {
             "items": items,
             "can_take_attendance": TAKE_ATTENDANCE in perms,
