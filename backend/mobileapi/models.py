@@ -208,3 +208,21 @@ class FamilyCode(Model):
                 name="mobileapi_familycode_one_live",
             ),
         ]
+
+
+class PushTicket(Model):
+    """A push Expo accepted, kept until its receipt is read (`manage.py
+    mobile_push_receipts`, from cron every 15 minutes). The receipt says
+    whether the phone's push service took it. A phone that is gone loses its
+    token, and any other error goes to the log and Sentry."""
+
+    id = UUIDField(primary_key=True)  # Expo's ticket id
+    push_token = CharField(max_length=255)
+    sent_at = DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "mobileapi_pushticket"
+        indexes = [Index(fields=["sent_at"], name="mobileapi_pushticket_sent")]
+        constraints = [
+            CheckConstraint(condition=Q(push_token__regex=PUSH_TOKEN_REGEX), name="mobileapi_pushticket_token_format"),
+        ]

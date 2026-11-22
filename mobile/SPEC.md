@@ -2,7 +2,7 @@
 
 Status: signed off 2026-11-05. Phases 1 to 6 are built as far as code can go:
 the backend in `backend/mobileapi/` (migrations `main/0117`, `mobileapi/0001`
-to `0003`), and the app in this folder with every role's screens, push
+to `0004`), and the app in this folder with every role's screens, push
 notifications, its icons and its build profiles. The app's types are
 generated from the API's OpenAPI schema (`src/api/README.md`). What is left
 needs your Expo, Firebase, Apple and Play accounts and a package name: see
@@ -235,9 +235,15 @@ Index `(email, created_at DESC)`; the email limits count rows in it.
 A partial unique index on `(guardian_id) WHERE used_at IS NULL AND
 revoked_at IS NULL` allows one live code per guardian.
 
-### Later (push notifications)
+### Push notifications
 
-`mobileapi_pushdevice` holds a session, the platform and the push token.
+- `mobileapi_session.push_token` holds the phone's Expo push token. A check
+  keeps it in Expo's format.
+- `mobileapi_pushticket` holds each push Expo accepted, as (Expo's ticket
+  id, token, sent at), until `manage.py mobile_push_receipts` reads its
+  receipt. That command runs from cron every 15 minutes. A phone reported
+  gone loses its token. Other errors go to the log and Sentry. A ticket is
+  dropped after 24 hours, as Expo drops its receipts by then.
 
 ### Filling `main_guardian` from student records
 

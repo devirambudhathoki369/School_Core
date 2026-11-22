@@ -1,18 +1,24 @@
 """Phase 6: push notifications to the app (mobile/SPEC.md §6, §8)."""
+from datetime import timedelta
 from unittest import mock
 
+import requests
 from django.test import TestCase
+from django.utils import timezone
 
 from main.methods import push as portal_push
 from main.models.Guardian import Guardian, StudentGuardian
 from mobileapi import push
-from mobileapi.models import AppSession
+from mobileapi.models import AppSession, PushTicket
 
 from .helpers import MobileFixtures, MobileTestMixin, WriteMixin, session_token
 
 TOKEN = "ExponentPushToken[parentPhone0001]"
 OTHER = "ExponentPushToken[studentPhone002]"
 STAFF = "ExponentPushToken[staffPhone00003]"
+TICKET_A = "0f8fad5b-d9cb-469f-a165-70867728950e"
+TICKET_B = "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+TICKET_C = "16fd2706-8baf-433b-82eb-8c7fada847da"
 
 
 def sync(fn, *args, **kwargs):
@@ -129,6 +135,25 @@ class PushRoutingTests(MobileTestMixin, TestCase):
         self.assertIsNone(self.own.push_token)
         self.assertEqual(self.parent.push_token, TOKEN)
 
+    def test_accepted_pushes_are_kept_for_their_receipts(self, post, _):
+        ids = iter([TICKET_A, "not-a-uuid"])
+        post.side_effect = lambda messages: [{"status": "ok", "id": next(ids)} for _ in messages]
+        portal_push.notify_students_absent(self.school.id, [self.student.id])
+        self.assertEqual([(str(t.id), t.push_token in (TOKEN, OTHER)) for t in PushTicket.objects.all()],
+                         [(TICKET_A, True)])
+
+    def test_a_refused_push_is_reported(self, post, _):
+        post.side_effect = lambda messages: [
+            {"status": "error", "details": {"error": "InvalidCredentials"}} for _ in messages
+        ]
+        with mock.patch("mobileapi.push.sentry_sdk.capture_message") as sentry, \
+                self.assertLogs("mobileapi.push", "ERROR") as logs:
+            portal_push.notify_students_absent(self.school.id, [self.student.id])
+        self.assertIn("InvalidCredentials x2", logs.output[0])
+        sentry.assert_called_once()
+        self.parent.refresh_from_db()
+        self.assertEqual(self.parent.push_token, TOKEN)  # a setup error is not a phone that is gone
+
     def test_a_failing_push_service_never_breaks_the_portal(self, post, _):
         post.side_effect = OSError("no network")
         portal_push.notify_students_absent(self.school.id, [self.student.id])  # no exception
@@ -137,6 +162,94 @@ class PushRoutingTests(MobileTestMixin, TestCase):
         AppSession.objects.update(push_token=None)
         portal_push.notify_school_students(self.school.id, "Sports day", "On Friday.")
         post.assert_not_called()
+
+
+@mock.patch("mobileapi.push._expo")
+class ReceiptTests(MobileTestMixin, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        MobileFixtures.build(cls)
+        cls.parent = AppSession.objects.create(
+            role=AppSession.PARENT, guardian=cls.guardian, school=cls.school, platform=1, app_version="1.0.0",
+            push_token=TOKEN,
+        )
+        cls.own = AppSession.objects.create(
+            role=AppSession.STUDENT, student_account=cls.student_account, school=cls.school, platform=1,
+            app_version="1.0.0", push_token=OTHER,
+        )
+
+    def ticket(self, ticket_id, token, minutes_ago):
+        PushTicket.objects.create(id=ticket_id, push_token=token,
+                                  sent_at=timezone.now() - timedelta(minutes=minutes_ago))
+
+    def test_receipts_clear_gone_phones_and_report_errors(self, expo):
+        self.ticket(TICKET_A, OTHER, 20)
+        self.ticket(TICKET_B, TOKEN, 20)
+        self.ticket(TICKET_C, TOKEN, 5)  # too new to read
+        expo.return_value = {"data": {
+            TICKET_A: {"status": "error", "details": {"error": "DeviceNotRegistered"}},
+            TICKET_B: {"status": "error", "details": {"error": "MismatchSenderId"}},
+        }}
+        with self.assertLogs("mobileapi.push", "ERROR") as logs:
+            result = push.check_receipts()
+        self.assertEqual(sorted(expo.call_args.args[1]["ids"]), sorted([TICKET_A, TICKET_B]))
+        self.assertEqual((result["read"], result["gone"], result["failed"]), (2, 1, 1))
+        self.assertIn("MismatchSenderId", logs.output[0])
+        self.own.refresh_from_db()
+        self.parent.refresh_from_db()
+        self.assertIsNone(self.own.push_token)
+        self.assertEqual(self.parent.push_token, TOKEN)
+        self.assertEqual([str(t.id) for t in PushTicket.objects.all()], [TICKET_C])
+
+    def test_a_receipt_not_ready_waits_and_a_day_old_ticket_is_dropped(self, expo):
+        self.ticket(TICKET_A, TOKEN, 20)
+        self.ticket(TICKET_B, TOKEN, 25 * 60)
+        expo.return_value = {"data": {}}
+        result = push.check_receipts()
+        self.assertEqual((result["read"], result["waiting"], result["dropped"]), (0, 1, 1))
+        self.assertEqual([str(t.id) for t in PushTicket.objects.all()], [TICKET_A])
+
+    def test_an_ok_receipt_is_done_with(self, expo):
+        self.ticket(TICKET_A, TOKEN, 20)
+        expo.return_value = {"data": {TICKET_A: {"status": "ok"}}}
+        push.check_receipts()
+        self.assertFalse(PushTicket.objects.exists())
+
+    def test_expo_down_leaves_the_tickets_for_the_next_run(self, expo):
+        self.ticket(TICKET_A, TOKEN, 20)
+        expo.side_effect = requests.ConnectionError("down")
+        with self.assertLogs("mobileapi.push", "ERROR"):
+            push.check_receipts()
+        self.assertTrue(PushTicket.objects.exists())
+
+
+def answer(status, body=None):
+    response = mock.Mock(status_code=status, text=str(body))
+    response.json.return_value = body or {}
+    return response
+
+
+@mock.patch("mobileapi.push.time.sleep")
+@mock.patch("mobileapi.push.requests.post")
+class RetryTests(TestCase):
+    def test_a_busy_expo_is_tried_again_after_a_wait(self, post, sleep):
+        post.side_effect = [answer(503), answer(429), answer(200, {"data": [{"status": "ok"}]})]
+        self.assertEqual(push._post([{"to": TOKEN}]), [{"status": "ok"}])
+        self.assertEqual(post.call_count, 3)
+        self.assertEqual([c.args[0] for c in sleep.call_args_list], [2, 4])
+
+    def test_a_bad_request_is_not_repeated_and_says_why(self, post, sleep):
+        post.return_value = answer(400, {"errors": [{"code": "PUSH_TOO_MANY_EXPERIENCE_IDS"}]})
+        with self.assertRaisesRegex(requests.HTTPError, "PUSH_TOO_MANY_EXPERIENCE_IDS"):
+            push._post([{"to": TOKEN}])
+        self.assertEqual(post.call_count, 1)
+        sleep.assert_not_called()
+
+    def test_it_gives_up_after_three_tries(self, post, sleep):
+        post.side_effect = requests.ConnectionError("no network")
+        with self.assertRaises(requests.ConnectionError):
+            push._post([{"to": TOKEN}])
+        self.assertEqual(post.call_count, 3)
 
 
 class DatabaseTests(MobileTestMixin, TestCase):

@@ -32,6 +32,23 @@ key for Android and the Apple push key for iPhone. Both are kept by EAS. If
 you turn on "enhanced push security" at expo.dev, put its access token in
 the server's `EXPO_ACCESS_TOKEN`.
 
+**Firebase, for push on Android.** Without these steps Android phones get no
+push token at all:
+
+1. At console.firebase.google.com, make a project and add an Android app
+   with the package name from step 1.
+2. Download its `google-services.json` into `mobile/`. Add
+   `"googleServicesFile": "./google-services.json"` under `android` in
+   `app.json`. Expo says this file may be committed, since it holds only
+   public identifiers. It is not the secret key in step 3.
+3. In Firebase, go to Project settings → Service accounts → Generate new
+   private key. Upload that JSON with `eas credentials` (Android →
+   production → Google Service Account → FCM V1). This key is secret:
+   never commit it.
+4. If you restrict the Firebase API key, allow the FCM Registration API and
+   the Firebase Installations API. Restrict it to the SHA-1 of Play's
+   **app signing** key, not the upload key.
+
 ## 3. Server
 
 1. **Back up the database**, then deploy this repo's code.
@@ -68,7 +85,7 @@ the server's `EXPO_ACCESS_TOKEN`.
 
    ```sh
    python manage.py migrate canteen 0004_canteen_users --fake   # the tables exist and match
-   python manage.py migrate                                     # the rest, to mobileapi 0003
+   python manage.py migrate                                     # the rest, to mobileapi 0004
    ```
 
    On the copy the canteen tables matched this repo's column for column, and
@@ -87,6 +104,15 @@ the server's `EXPO_ACCESS_TOKEN`.
    | `EXPO_ACCESS_TOKEN` | Only with enhanced push security (step 2). |
 
    Check the email with `python manage.py sendtestemail you@example.com`.
+
+   Add the push receipt check to root's crontab. Expo reports whether each
+   push reached Firebase or Apple about 15 minutes after it is sent. This
+   job reads those reports, clears phones that uninstalled the app, and
+   sends any other failure to Sentry, such as a wrong Firebase key:
+
+   ```
+   */15 * * * * /path/to/backend/check_push_receipts.sh >> /var/log/schoolcore-push-receipts.log 2>&1
+   ```
 4. For each school that will use the app: give it an `app_code` and turn on
    `uses_mobile_app`. Then link its parents. Read the report first and apply
    only after it looks right:
@@ -114,6 +140,18 @@ npx eas-cli@latest submit --profile production --platform android
 `preview` and `production` talk to `https://backend.nirsabi.com`, as set in
 `eas.json`. A development build (`--profile development`) is needed to try
 push notifications, because Expo Go cannot receive them.
+
+Before the first store upload, install the `preview` APK and check push end
+to end:
+
+1. Sign in, and allow notifications. Account → Notifications says On.
+2. On the server, `python manage.py mobile_status --school <id>` counts the
+   phone under "notify".
+3. Publish a notice from the portal. The phone shows it, and tapping it
+   opens Notices.
+4. 15 minutes later, `python manage.py mobile_push_receipts` shows the push
+   as read, with nothing failed. "failed" means a Firebase setup problem,
+   and Sentry names the error.
 
 ## 5. Store listing
 
