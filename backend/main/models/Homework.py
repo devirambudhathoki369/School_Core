@@ -1,3 +1,6 @@
+import os
+import secrets
+
 from django.db.models import (
     Model,
     TextField,
@@ -6,6 +9,7 @@ from django.db.models import (
     ForeignKey,
     CASCADE,
 )
+from django.utils import timezone
 
 
 #
@@ -39,6 +43,23 @@ class HomeworkFile(Model):
     file = FileField(upload_to="homework_files/%Y/%m/")
 
 
+HAND_IN_PREFIX = 16  # characters of randomness before the original name
+
+
+def hand_in_file_path(instance, filename):
+    """Where a handed-in file is saved. /media/ is served to anyone with the
+    link, and these are students' own pages and photos, so each name starts
+    with 16 random characters that nobody can guess (a phone camera names
+    every photo alike). The original name follows, cut to fit the column."""
+    name = os.path.basename(filename)
+    if len(name) > 40:
+        stem, ext = os.path.splitext(name)
+        ext = ext[:10]
+        name = stem[: 40 - len(ext)] + ext
+    token = secrets.token_urlsafe(12)  # 16 characters, 96 bits
+    return f"homework_submission_files/{timezone.now():%Y/%m}/{token}-{name}"
+
+
 class HomeworkSubmissionFile(Model):
     homework_submission = ForeignKey("main.HomeworkSubmission", on_delete=CASCADE)
-    file = FileField(upload_to="homework_submission_files/%Y/%m/")
+    file = FileField(upload_to=hand_in_file_path)

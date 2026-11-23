@@ -5,6 +5,7 @@ their linked children and a student only themself. The numbers come from the
 portal's own calculations (dues, payment history, receipts, results), so the
 app always shows what the school office sees.
 """
+import re
 from decimal import Decimal, InvalidOperation
 
 from django.db import transaction
@@ -341,12 +342,16 @@ def timetable_periods(period) -> list[dict]:
     ]
 
 
+# A hand-in's saved name starts with 16 random characters (main.models.Homework).
+_RANDOM_PREFIX = re.compile(r"^[A-Za-z0-9_-]{16}-(?=.)")
+
+
 def _files(request, rows) -> list[dict]:
     out = []
     for row in rows:
         url = _media(request, row.file)
         if url:
-            out.append({"name": row.file.name.rsplit("/", 1)[-1], "url": url})
+            out.append({"name": _RANDOM_PREFIX.sub("", row.file.name.rsplit("/", 1)[-1]), "url": url})
     return out
 
 

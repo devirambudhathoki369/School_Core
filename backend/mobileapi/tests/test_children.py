@@ -11,7 +11,7 @@ from main.models.CalendarEvent import CalendarEvent
 from main.models.exams.Exam import Exam
 from main.models.exams.Result import ClassResult, StudentResult
 from main.models.Fee import FeeTitle
-from main.models.Homework import Homework, HomeworkSubmission
+from main.models.Homework import Homework, HomeworkSubmission, HomeworkSubmissionFile
 from main.models.Invoice import StudentInvoice
 from main.models.Ledger import LedgerPosting, StudentLedger
 from main.models.Notice import Notice
@@ -198,6 +198,22 @@ class HomeworkTests(ChildFixtures, TestCase):
         self.assertEqual(HomeworkSubmission.objects.filter(homework=self.open, student=self.student).count(), 1)
         # a new attempt, with a new key, is told it is already in
         self.assertEqual(self.error(self.hand_in(self.open)), "already_handed_in")
+
+    def test_a_handed_in_file_gets_a_name_nobody_can_guess(self):
+        first = self.hand_in(self.open, files=[self.pdf("photo-1.pdf")])
+        self.assertEqual(first.status_code, 201, first.content)
+        saved = HomeworkSubmissionFile.objects.get().file.name
+        self.assertRegex(saved, r"^homework_submission_files/\d{4}/\d{2}/[A-Za-z0-9_-]{16}-photo-1\.pdf$")
+        # the app still shows the name it was handed in under
+        self.assertEqual(first.json()["hand_in"]["files"][0]["name"], "photo-1.pdf")
+        self.assertTrue(first.json()["hand_in"]["files"][0]["url"].endswith(saved))
+
+    def test_a_long_file_name_is_cut_to_fit_and_keeps_its_type(self):
+        name = "a-very-long-name-from-a-phone-gallery-" + "x" * 80 + ".pdf"
+        self.assertEqual(self.hand_in(self.open, files=[self.pdf(name)]).status_code, 201)
+        saved = HomeworkSubmissionFile.objects.get().file.name
+        self.assertLessEqual(len(saved), 100)
+        self.assertTrue(saved.endswith(".pdf"))
 
     def test_a_parent_can_hand_in_for_their_child(self):
         self.assertEqual(self.hand_in(self.open, token=self.parent_token).status_code, 201)
