@@ -85,6 +85,7 @@ class MeOut(serializers.Serializer):
     profile = ProfileOut()
     children = MeChildOut(many=True, required=False, help_text="Parents only")
     permissions = serializers.ListField(child=serializers.IntegerField(), required=False, help_text="Staff only")
+    bus_tracking = serializers.BooleanField(help_text="The school's buses can be followed (parents and students)")
 
 
 class SignedInOut(serializers.Serializer):

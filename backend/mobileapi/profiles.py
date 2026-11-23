@@ -4,6 +4,7 @@ from main.models.Staff import Staff
 from main.models.Student import Student
 
 from .auth import linked_students
+from .buses import school_has_buses
 from .models import AppSession
 
 
@@ -55,6 +56,9 @@ def me_payload(session: AppSession, request) -> dict:
         "school": school_payload(session.school, request),
     }
     account = session.account
+    body["bus_tracking"] = (
+        session.role in (AppSession.PARENT, AppSession.STUDENT) and school_has_buses(session.school_id)
+    )
     if session.role == AppSession.PARENT:
         children = linked_students(account).select_related("class_info__section", "class_info__course").order_by(
             "first_name", "last_name", "id"
