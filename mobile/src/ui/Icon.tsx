@@ -48,7 +48,9 @@ export type IconName =
   | 'receipt'
   | 'chart'
   | 'edit'
-  | 'image';
+  | 'image'
+  | 'bus'
+  | 'map-pin';
 
 // Icons are decoration; the button or row around them carries the label.
 const HIDDEN =
@@ -349,6 +351,22 @@ function paths(name: IconName, fill: { fill: string; fillOpacity: number }) {
         <>
           <Circle cx={12} cy={12} r={4} {...fill} />
           <Path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+        </>
+      );
+    case 'bus':
+      return (
+        <>
+          <Rect x={4} y={3} width={16} height={15} rx={3} {...fill} />
+          <Path d="M4 11h16M8 18v3M16 18v3" />
+          <Circle cx={8} cy={14.5} r={0.6} />
+          <Circle cx={16} cy={14.5} r={0.6} />
+        </>
+      );
+    case 'map-pin':
+      return (
+        <>
+          <Path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z" {...fill} />
+          <Circle cx={12} cy={10} r={2.5} />
         </>
       );
     case 'receipt':

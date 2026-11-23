@@ -78,6 +78,59 @@
         ],
         "type": "object"
       },
+      "BusOut": {
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "latitude": {
+            "format": "double",
+            "nullable": true,
+            "type": "number"
+          },
+          "longitude": {
+            "format": "double",
+            "nullable": true,
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "speed_kmh": {
+            "format": "double",
+            "nullable": true,
+            "type": "number"
+          },
+          "stale": {
+            "description": "The position is older than two minutes",
+            "type": "boolean"
+          },
+          "status": {
+            "description": "Moving, Idling, Stopped, No signal, Offline or Tracking unavailable",
+            "type": "string"
+          },
+          "updated_at": {
+            "description": "When the position was taken, ISO 8601",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "address",
+          "id",
+          "latitude",
+          "longitude",
+          "name",
+          "speed_kmh",
+          "stale",
+          "status",
+          "updated_at"
+        ],
+        "type": "object"
+      },
       "CalendarEventOut": {
         "properties": {
           "end_date": {
@@ -1353,6 +1406,10 @@
       },
       "MeOut": {
         "properties": {
+          "bus_tracking": {
+            "description": "The school's buses can be followed (parents and students)",
+            "type": "boolean"
+          },
           "children": {
             "description": "Parents only",
             "items": {
@@ -1381,6 +1438,7 @@
           }
         },
         "required": [
+          "bus_tracking",
           "profile",
           "role",
           "school",
@@ -1966,6 +2024,20 @@
         ],
         "type": "object"
       },
+      "RideInRequest": {
+        "properties": {
+          "bus_id": {
+            "description": "null: no school bus",
+            "minimum": 1,
+            "nullable": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bus_id"
+        ],
+        "type": "object"
+      },
       "RoleEnum": {
         "description": "* `parent` - parent\n* `student` - student\n* `staff` - staff\n* `admin` - admin",
         "enum": [
@@ -2422,6 +2494,38 @@
           "review"
         ],
         "type": "string"
+      },
+      "StudentBusOut": {
+        "properties": {
+          "buses": {
+            "description": "The school's buses, the student's own first",
+            "items": {
+              "$ref": "#/components/schemas/BusOut"
+            },
+            "type": "array"
+          },
+          "following": {
+            "description": "The bus the student rides, when chosen",
+            "nullable": true,
+            "type": "integer"
+          },
+          "message": {
+            "description": "Why no bus or no position can be shown",
+            "nullable": true,
+            "type": "string"
+          },
+          "refresh_seconds": {
+            "description": "Ask again after this long while the screen is open",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "buses",
+          "following",
+          "message",
+          "refresh_seconds"
+        ],
+        "type": "object"
       },
       "StudentDueOut": {
         "properties": {
@@ -4391,6 +4495,96 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AttendanceMonthOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/students/{student_id}/bus": {
+      "get": {
+        "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
+        "operationId": "students_bus_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentBusOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "students"
+        ]
+      },
+      "put": {
+        "description": "Choose the bus the student rides: the student, or their parent.",
+        "operationId": "students_bus_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RideInRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/RideInRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/RideInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentBusOut"
                 }
               }
             },

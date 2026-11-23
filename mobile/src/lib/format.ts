@@ -118,6 +118,18 @@ export function money(value: number | string | null | undefined): string {
   return `${negative ? '-' : ''}Rs ${grouped}${cents}`;
 }
 
+/** "just now", "4 min ago", "2 h ago", or the day and time for anything older. */
+export function ago(iso: string | null | undefined, now: number = Date.now()): string {
+  if (!iso) return '';
+  const at = new Date(iso).getTime();
+  if (Number.isNaN(at)) return '';
+  const minutes = Math.round((now - at) / 60_000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  if (minutes < 24 * 60) return `${Math.round(minutes / 60)} h ago`;
+  return `${bsShort(bsFromIso(iso))}, ${clock(iso)}`;
+}
+
 /** "08:02" from an ISO time or "08:02:11". */
 export function clock(value: string | null | undefined): string {
   if (!value) return '';

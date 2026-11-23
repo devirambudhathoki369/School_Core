@@ -91,6 +91,9 @@ export function MoreScreen() {
       <Card padded={false}>
         {[
           ...LINKS[account.role],
+          ...((account.role === 'parent' || account.role === 'student') && me?.bus_tracking
+            ? ([['bus', 'School bus', '/bus']] as [IconName, string, string][])
+            : []),
           ...(account.role === 'staff' && me?.permissions?.includes(UPDATE_STUDENTS)
             ? ([['key', 'Parents and family codes', '/students']] as [IconName, string, string][])
             : []),

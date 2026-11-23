@@ -319,6 +319,7 @@ Base `/api/mobile/v1/`. These conventions hold everywhere:
 | `POST /students/{id}/homework/{hw}/hand-in` | parent, student | Hand in files (multipart; refused after the due date) |
 | `GET /students/{id}/results` · `…/results/{exam}` | parent, student | Published exams; one exam's marks |
 | `GET /students/{id}/timetable` | parent, student | The class's periods with subjects and teachers |
+| `GET /students/{id}/bus` · `PUT /students/{id}/bus` | parent, student | The school's buses, where each is now, and the one the student rides first; choose that bus, or none (see Bus below) |
 | `GET /notices` · `GET /calendar?from=&to=` | signed in | The school's notices and events |
 | `GET /staff/today` | staff | Today's periods, attendance still to take, own check-in |
 | `GET /staff/classes` | staff | The classes the staff member teaches in the timetable, and no others |
@@ -338,6 +339,21 @@ Base `/api/mobile/v1/`. These conventions hold everywhere:
 The admin's dashboard and student data reuse the portal's existing queries.
 None of its business rules are written twice.
 
+**Bus.** The portal already reads the school's buses from the GPS provider
+(`main/methods/busTracking.py`): the operator's links, the provider's groups
+named `<school>_<id>`, and buses followed from one school only. It keeps one
+shared answer a few seconds old, and the app reads that same answer, so
+phones add no load on the provider. The school comes from the session; a bus
+can be chosen only from the school's own list, and another school's bus is
+`400`. The bus a student rides is their `main_bustrackonalertinfo` row, the
+one the old app and the "bus is near" alert job use, so all three agree.
+Choosing in the app keeps an alert set up before; a bus chosen in the app
+alone has no alert (no home spot, no range: the database keeps the three
+together, and the alert job skips such rows). `/me` has `bus_tracking`, from
+memory only, so the app shows Bus only at schools with buses. The app asks
+again every `refresh_seconds` (at least 10) while the screen is open and the
+app is in front, and says "Seen 3 h ago" for an old position.
+
 ## 6. App
 
 - Expo SDK 58, TypeScript, Expo Router. Route groups: `(welcome)` for the
@@ -353,8 +369,8 @@ None of its business rules are written twice.
 
 | Role | Screens |
 |---|---|
-| Parent | Child switcher · Home · Attendance · Fees and receipts · Homework (hand in) · Results · Notices · Calendar · Child profile · Settings |
-| Student | Home · Timetable · Attendance · Homework (hand in) · Results · Fees · Notices · Calendar · Profile · Settings |
+| Parent | Child switcher · Home · Attendance · Fees and receipts · Homework (hand in) · Results · Bus · Notices · Calendar · Child profile · Settings |
+| Student | Home · Timetable · Attendance · Homework (hand in) · Results · Bus · Fees · Notices · Calendar · Profile · Settings |
 | Staff | Today · My classes → take attendance · Homework (set, check hand-ins) · Notices (with permission) · My attendance · Settings |
 | School admin | Dashboard · Students → student · Fees (dues, collections) · Staff (who is in) · Parents (review links, family codes) · Notices · Settings |
 

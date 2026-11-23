@@ -18,14 +18,21 @@ export function useSchool(code: string | undefined) {
 }
 
 /** One answer of the signed-in account. Every account's data is keyed by its
- *  id first, so switching accounts never shows another account's data. */
-export function useApi<T>(path: string | null | undefined, options: { staleTime?: number } = {}) {
+ *  id first, so switching accounts never shows another account's data.
+ *  `refetchEvery` asks again while the screen is open and the app is in front
+ *  (milliseconds, from the last answer; false to stop). */
+export function useApi<T>(
+  path: string | null | undefined,
+  options: { staleTime?: number; refetchEvery?: (data: T | undefined) => number | false } = {},
+) {
   const account = useActive();
+  const { refetchEvery, ...rest } = options;
   return useQuery({
     queryKey: [account.id, path],
     queryFn: () => api<T>(account.id, path!),
     enabled: !!path,
-    ...options,
+    refetchInterval: refetchEvery ? (query) => refetchEvery(query.state.data as T | undefined) : undefined,
+    ...rest,
   });
 }
 

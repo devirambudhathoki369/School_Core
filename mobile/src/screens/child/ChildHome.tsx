@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, View } from 'react-native';
 
 import { useActive } from '@/accounts/store';
-import { useApi } from '@/api/hooks';
+import { useApi, useMe } from '@/api/hooks';
 import type { components } from '@/api/schema';
 import type { StudentHome } from '@/api/types';
 import { bsShort, bsToday, clock, dueLabel, rupees } from '@/lib/format';
@@ -19,6 +19,7 @@ export function ChildHome() {
   const { child, children, choose } = useChild();
   const go = useGo();
   const home = useApi<StudentHome>(child ? `students/${child.id}/home` : null);
+  const buses = !!useMe().data?.bus_tracking;
   const parent = account.role === 'parent';
   // a student whose parent has not joined yet is asked to invite them
   const invite = useApi<components['schemas']['InviteStatusOut']>(parent ? null : 'me/parent-invite', {
@@ -101,7 +102,12 @@ export function ChildHome() {
                 <Shortcut icon="clock" label="Timetable" onPress={() => go('/timetable')} />
                 <Shortcut icon="receipt" label="Payments" onPress={() => go('/fees-history')} />
                 <Shortcut icon="bell" label="Notices" onPress={() => go('/notices')} />
-                <Shortcut icon="sun" label="Calendar" onPress={() => go('/calendar')} />
+                {/* six to a grid: the bus takes the calendar's place, which stays in More */}
+                {buses ? (
+                  <Shortcut icon="bus" label="Bus" onPress={() => go('/bus')} />
+                ) : (
+                  <Shortcut icon="sun" label="Calendar" onPress={() => go('/calendar')} />
+                )}
               </Shortcuts>
               {data.events.length ? (
                 <>

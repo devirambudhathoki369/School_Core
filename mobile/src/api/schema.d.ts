@@ -653,6 +653,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/students/{student_id}/bus": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Signed-in mobile endpoints: Bearer token, mobile error shape, version gate. */
+        get: operations["students_bus_retrieve"];
+        /** @description Choose the bus the student rides: the student, or their parent. */
+        put: operations["students_bus_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/students/{student_id}/fees": {
         parameters: {
             query?: never;
@@ -827,6 +845,23 @@ export interface components {
             absent: number;
             present: number;
             taken: number;
+        };
+        BusOut: {
+            address: string;
+            id: number;
+            /** Format: double */
+            latitude: number | null;
+            /** Format: double */
+            longitude: number | null;
+            name: string;
+            /** Format: double */
+            speed_kmh: number | null;
+            /** @description The position is older than two minutes */
+            stale: boolean;
+            /** @description Moving, Idling, Stopped, No signal, Offline or Tracking unavailable */
+            status: string;
+            /** @description When the position was taken, ISO 8601 */
+            updated_at: string | null;
         };
         CalendarEventOut: {
             end_date: string;
@@ -1169,6 +1204,8 @@ export interface components {
             roll_no: string | null;
         };
         MeOut: {
+            /** @description The school's buses can be followed (parents and students) */
+            bus_tracking: boolean;
             /** @description Parents only */
             children?: components["schemas"]["MeChildOut"][];
             /** @description Staff only */
@@ -1331,6 +1368,10 @@ export interface components {
         RefreshedOut: {
             tokens: components["schemas"]["TokensOut"];
         };
+        RideInRequest: {
+            /** @description null: no school bus */
+            bus_id: number | null;
+        };
         /**
          * @description * `parent` - parent
          *     * `student` - student
@@ -1454,6 +1495,16 @@ export interface components {
          * @enum {string}
          */
         StateEnum: "linked" | "rejected" | "review";
+        StudentBusOut: {
+            /** @description The school's buses, the student's own first */
+            buses: components["schemas"]["BusOut"][];
+            /** @description The bus the student rides, when chosen */
+            following: number | null;
+            /** @description Why no bus or no position can be shown */
+            message: string | null;
+            /** @description Ask again after this long while the screen is open */
+            refresh_seconds: number;
+        };
         StudentDueOut: {
             due_paisa: number;
             id: number;
@@ -2526,6 +2577,54 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AttendanceMonthOut"];
+                };
+            };
+        };
+    };
+    students_bus_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                student_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentBusOut"];
+                };
+            };
+        };
+    };
+    students_bus_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                student_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RideInRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["RideInRequest"];
+                "multipart/form-data": components["schemas"]["RideInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentBusOut"];
                 };
             };
         };
