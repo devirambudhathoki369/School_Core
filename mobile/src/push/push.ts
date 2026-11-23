@@ -81,8 +81,11 @@ export async function refreshPush(ask: boolean): Promise<void> {
 }
 
 /** Give the token to each account on the phone, or take it back from those
- *  that turned notifications off. */
-export async function syncPush(accountIds: string[]): Promise<void> {
+ *  that turned notifications off. `again` sends it even when this phone sent
+ *  the same token before: the server drops a token Expo reports as gone, and
+ *  Expo's token stays the same when Firebase's token under it is renewed, so
+ *  a phone that only sent changes could stay deaf for good. */
+export async function syncPush(accountIds: string[], again = false): Promise<void> {
   const off: Record<string, boolean> = {};
   for (const id of accountIds) {
     try {
@@ -93,7 +96,7 @@ export async function syncPush(accountIds: string[]): Promise<void> {
           await api(id, 'me/push-token', { method: 'DELETE' });
           await AsyncStorage.removeItem(sentKey(id));
         }
-      } else if (sent !== state.token) {
+      } else if (again || sent !== state.token) {
         await api(id, 'me/push-token', { method: 'PUT', body: { token: state.token } });
         await AsyncStorage.setItem(sentKey(id), state.token);
       }

@@ -3,10 +3,11 @@ import * as Device from 'expo-device';
 import { createContext, type ReactNode, use, useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
 
-import { accountEnded, api, APP_VERSION, forgetTokens, rememberTokens } from '@/api/client';
+import { accountEnded, APP_VERSION, forgetTokens, rememberTokens } from '@/api/client';
 import type { Me, Role, School, SignedIn } from '@/api/types';
 import { dropAccount } from '@/offline/queue';
 import { forgetPushFor } from '@/push/push';
+import { signOutOnServer } from './leaving';
 import { readSecret, writeSecret } from './secure';
 
 /** One signed-in account on this phone. Its id is the server's session id. */
@@ -108,9 +109,11 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
     void writeSecret(INDEX_KEY, JSON.stringify(next));
   }, []);
 
+  /** Forget an account on this phone. `serverHeard` false: its tokens stay
+   *  with the waiting sign-out (leaving.ts), which forgets them later. */
   const drop = useCallback(
-    async (id: string, message?: string) => {
-      await forgetTokens(id);
+    async (id: string, message?: string, serverHeard = true) => {
+      if (serverHeard) await forgetTokens(id);
       dropAccount(id);
       void forgetPushFor(id);
       queryClient.removeQueries({ queryKey: [id] });
@@ -158,18 +161,18 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
         if (saved.accounts.some((a) => a.id === id)) persist({ ...saved, activeId: id });
       },
       signOut: async (id) => {
-        await api(id, 'auth/signout', { method: 'POST', body: {} }).catch(() => undefined);
-        await drop(id);
+        await signOutOnServer(id, 'auth/signout');
+        await drop(id, undefined, false);
       },
       signOutEverywhere: async (id) => {
-        await api(id, 'auth/signout-all', { method: 'POST', body: {} }).catch(() => undefined);
-        await drop(id);
+        await signOutOnServer(id, 'auth/signout-all');
+        await drop(id, undefined, false);
       },
       forgetAll: async () => {
         for (const account of saved.accounts) {
-          await api(account.id, 'auth/signout', { method: 'POST', body: {} }).catch(() => undefined);
-          await forgetTokens(account.id);
+          await signOutOnServer(account.id, 'auth/signout');
           dropAccount(account.id);
+          void forgetPushFor(account.id);
         }
         queryClient.clear();
         persist({ accounts: [], activeId: null });

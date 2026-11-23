@@ -8,8 +8,8 @@ import type { Role } from '@/api/types';
 import { requestChild } from '@/screens/child/context';
 import { refreshPush, syncPush } from './push';
 
-/** Registers every account on the phone for notifications, at start and on
- *  return to the app. */
+/** Registers every account on the phone for notifications: in full at start,
+ *  and any change on return to the app. */
 export function PushRunner() {
   const { accounts } = useAccounts();
   const ids = accounts.map((a) => a.id).join(',');
@@ -17,7 +17,7 @@ export function PushRunner() {
   useEffect(() => {
     if (!ids) return;
     const all = ids.split(',');
-    void refreshPush(true).then(() => syncPush(all));
+    void refreshPush(true).then(() => syncPush(all, true));
     const subscription = AppState.addEventListener('change', (next) => {
       if (next === 'active') void refreshPush(false).then(() => syncPush(all));
     });
@@ -50,7 +50,9 @@ export function PushTaps() {
       session?: string;
       student?: string;
     };
-    const account = accounts.find((a) => a.id === data.session) ?? active;
+    // A notification for an account no longer on this phone just opens the
+    // app: it must not open another account's screens or child.
+    const account = data.session ? accounts.find((a) => a.id === data.session) : active;
     if (!account) return;
     if (data.student) requestChild(account.id, Number(data.student));
     if (account.id !== active?.id) switchTo(account.id);
