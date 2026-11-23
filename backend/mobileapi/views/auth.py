@@ -40,7 +40,7 @@ from ..throttles import (
     SchoolLookupThrottle,
     reserve_email_send,
 )
-from ..tokens import RefreshRefused, code_hash, refresh, start_session
+from ..tokens import RefreshRefused, code_hash, refresh, revoke, start_session
 from .base import PublicMobileView, school_for_code
 
 WRONG_LOGIN = "The username or password is not right."
@@ -164,6 +164,11 @@ class FamilyCodeView(PublicMobileView):
             )
             .first()
         )
+        if entry is not None and entry.issued_by_student_id and entry.guardian.email:
+            # A student's invite is for a parent who has not joined. Once the
+            # parent has an email (the office or the backfill added one while
+            # the invite was still open), it must not move their sign-in.
+            entry = None
         if entry is None:
             raise MobileError(
                 "wrong_family_code", "That family code is not right or has expired. Ask the school for a new one.",
@@ -221,6 +226,9 @@ class ParentVerifyView(PublicMobileView):
                     FamilyCode.objects.filter(guardian=guardian, used_at__isnull=True, revoked_at__isnull=True).update(
                         used_at=now
                     )
+                    # The school gave this parent's sign-in to the new email:
+                    # phones signed in with the old one are signed out.
+                    revoke(AppSession.objects.filter(guardian=guardian), AppSession.PASSWORD_CHANGED)
             except IntegrityError:
                 raise MobileError(
                     "email_taken", "Another parent at this school already uses this email.", status.HTTP_409_CONFLICT,

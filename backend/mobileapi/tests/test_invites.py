@@ -6,6 +6,7 @@ from django.db import IntegrityError, transaction
 from django.test import TestCase
 
 from main.models.Guardian import Guardian, StudentGuardian
+from mobileapi.guardians import issue_family_code
 from mobileapi.models import AppSession, FamilyCode
 
 from .helpers import DEVICE, MobileFixtures, MobileTestMixin, WriteMixin, session_token
@@ -43,6 +44,33 @@ class InviteTests(MobileTestMixin, WriteMixin, TestCase):
         # joined: the student can no longer make codes that would move the email
         self.assertEqual(self.error(self.invite()), "parent_joined")
         self.assertFalse(self.get("me/parent-invite", self.token).json()["can_invite"])
+
+    def join(self, code, email):
+        sent = self.post("auth/parent/family-code", {"school_code": "ONE001", "email": email, "family_code": code})
+        if sent.status_code != 202:
+            return sent
+        emailed = re.search(r"\b(\d{6})\b", mail.outbox[-1].body).group(1)
+        return self.post("auth/parent/verify", {"school_code": "ONE001", "email": email, "code": emailed,
+                                                "device": DEVICE})
+
+    def test_an_open_invite_stops_once_the_parent_has_an_email(self):
+        code = self.invite().json()["code"]
+        # meanwhile the office (or the backfill) puts the parent's own email on record
+        Guardian.objects.filter(pk=self.guardian.pk).update(email="dad@example.com")
+        answer = self.join(code, "someone-else@example.com")
+        self.assertEqual(self.error(answer), "wrong_family_code")
+        self.assertEqual(Guardian.objects.get(pk=self.guardian.pk).email, "dad@example.com")
+
+    def test_the_offices_code_moves_the_parent_to_a_new_email_and_signs_out_the_old_one(self):
+        Guardian.objects.filter(pk=self.guardian.pk).update(email="old@example.com")
+        old = session_token(AppSession.PARENT, self.guardian, self.school)
+        self.assertEqual(self.get("me", old).status_code, 200)
+        code = issue_family_code(self.guardian, admin=self.admin_account)
+        signed = self.join(code, "new@example.com")
+        self.assertEqual(signed.status_code, 200, signed.content)
+        self.assertEqual(self.get("me", old).status_code, 401)
+        self.assertEqual(AppSession.objects.filter(guardian=self.guardian, revoked_at__isnull=True).count(), 1)
+        self.assertEqual(Guardian.objects.get(pk=self.guardian.pk).email, "new@example.com")
 
     def test_a_new_invite_cancels_the_last(self):
         self.invite()
