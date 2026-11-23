@@ -8,10 +8,12 @@
     "scheme": "schoolcore",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "bundleIdentifier": "com.schoolcore.app",
       "supportsTablet": false,
       "icon": "./assets/images/icon.png"
     },
     "android": {
+      "package": "com.schoolcore.app",
       "adaptiveIcon": {
         "backgroundColor": "#142B6F",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

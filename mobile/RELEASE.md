@@ -5,14 +5,15 @@ decision of yours. Do the steps in this order.
 
 **The app is for students.** It is one app, on one store listing, that the
 students of every school install and open with their school's code. It is
-not the school's app, and there is no build per school as the old app had
-(`com.centit.<school>.app`). Parents use it to follow their children. Staff
-and the school office use it to serve their students.
+not the school's app, and there is no build per school. Parents use it to
+follow their children. Staff and the school office use it to serve their
+students.
 
 ## 1. Decide
 
-1. **The package name** of the one app, for example
-   `com.centit.schoolcore.app`. Set it in `app.json` as `android.package` and
+1. **The package name** of the one app, for example `com.schoolcore.app`.
+   SchoolCore is its own product, so the name carries no other company's
+   name. Set it in `app.json` as `android.package` and
    `ios.bundleIdentifier`. It cannot change after the first upload.
 2. **The email account** that sends parents their sign-in codes (step 3).
 
@@ -36,11 +37,20 @@ the server's `EXPO_ACCESS_TOKEN`.
 push token at all:
 
 1. At console.firebase.google.com, make a project and add an Android app
-   with the package name from step 1.
-2. Download its `google-services.json` into `mobile/`. Add
-   `"googleServicesFile": "./google-services.json"` under `android` in
-   `app.json`. Expo says this file may be committed, since it holds only
-   public identifiers. It is not the secret key in step 3.
+   with the package name from step 1. Done on 22 November 2026: the
+   project `schoolcore-74f72`, the app `com.schoolcore.app`.
+2. Download its `google-services.json` into `mobile/`. Local builds read
+   it from there (`app.config.js`). It holds only public identifiers, but
+   the repo is public, so git ignores it. EAS builds get it from a file
+   variable instead, set once after `eas init`:
+
+   ```sh
+   npx eas-cli@latest env:create --name GOOGLE_SERVICES_JSON --type file \
+     --value ./google-services.json --visibility sensitive \
+     --environment development --environment preview --environment production
+   ```
+
+   It is not the secret key in step 3.
 3. In Firebase, go to Project settings → Service accounts → Generate new
    private key. Upload that JSON with `eas credentials` (Android →
    production → Google Service Account → FCM V1). This key is secret:

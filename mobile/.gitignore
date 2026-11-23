@@ -17,6 +17,12 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+# Firebase's service-account key (Project settings → Service accounts) is
+# secret; it goes to `eas credentials`, never into the repo.
+*firebase-adminsdk*.json
+# Firebase's Android config. The repo is public, so it stays local; EAS
+# builds get it from the GOOGLE_SERVICES_JSON file variable (app.config.js).
+google-services.json
 
 # Metro
 .metro-health-check*

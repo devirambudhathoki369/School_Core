@@ -3,3 +3,10 @@
 /docker/secrets/*
 !/docker/secrets/.gitkeep
 /backups/
+
+# Firebase and Google keys, anywhere in the repo: never commit
+*firebase-adminsdk*.json
+*service-account*.json
+*service_account*.json
+google-services.json
+GoogleService-Info.plist
