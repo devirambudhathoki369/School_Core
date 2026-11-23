@@ -129,6 +129,9 @@ if __name__ == "__main__":
                 Q(is_active=True),
                 Q(alerted_date__isnull=True) | Q(alerted_date__lt=TODAY),
                 Q(bus_id__in=bus_ids),
+                # a bus followed in the SchoolCore app without an alert has
+                # no home spot to measure from
+                Q(latitude__isnull=False),
                 #
                 Q(
                     Q(
