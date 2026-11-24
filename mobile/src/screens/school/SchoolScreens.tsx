@@ -9,6 +9,7 @@ import type { Calendar, Notice } from '@/api/types';
 import { bsLong, bsShort, monthName } from '@/lib/format';
 import { radius, space } from '@/theme';
 import { Banner, Button, Card, Divider, Field, ListRow, Screen, SectionLabel, T } from '@/ui/kit';
+import { useLeaveGuard } from '@/ui/leaveGuard';
 import { Chip, Empty, LoadMore, Loaded, type Tone } from '@/ui/parts';
 import { back, useGo } from '../nav';
 import { PageHeader } from '../parts';
@@ -71,6 +72,7 @@ export function NewNoticeScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fields, setFields] = useState<Record<string, string>>({});
+  const release = useLeaveGuard(!!(title.trim() || body.trim()), 'This notice is not published yet.');
 
   async function publish() {
     setBusy(true);
@@ -78,6 +80,7 @@ export function NewNoticeScreen() {
     setFields({});
     try {
       await write('notices', 'POST', { title: title.trim(), body: body.trim() });
+      release();
       back();
     } catch (e) {
       if (e instanceof ApiError && e.fields) setFields(e.fields);

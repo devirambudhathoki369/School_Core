@@ -12,6 +12,7 @@ import { bsAddDays, bsLong, bsShort, bsToday, clock, dueLabel } from '@/lib/form
 import { enqueue, useQueue } from '@/offline/queue';
 import { radius, space, usePalette } from '@/theme';
 import { Banner, Button, Card, Divider, Field, ListRow, Screen, SectionLabel, T } from '@/ui/kit';
+import { useLeaveGuard } from '@/ui/leaveGuard';
 import { Avatar, Chip, Empty, LoadMore, Loaded, Row, Shortcut, Shortcuts, Tile } from '@/ui/parts';
 import { AttendanceMonthView } from '../child/ChildAttendance';
 import { FileList } from '../child/ChildHomework';
@@ -207,13 +208,17 @@ export function ClassAttendanceScreen() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ tone: 'ok' | 'bad' | 'warn'; text: string } | null>(null);
 
-  const marks = useMemo(() => {
+  // what is saved (or waiting to be sent), else everyone present
+  const saved = useMemo(() => {
     const out: Record<number, boolean> = {};
     const queuedMarks = (queued?.body as { marks?: { student: number; present: boolean }[] } | undefined)?.marks;
     for (const s of day.data?.students ?? []) out[s.id] = s.status ? s.status === 'present' : true;
     for (const m of queuedMarks ?? []) out[m.student] = m.present;
-    return { ...out, ...(edits[date] ?? {}) };
-  }, [day.data, edits, date, queued]);
+    return out;
+  }, [day.data, queued]);
+  const marks = useMemo(() => ({ ...saved, ...(edits[date] ?? {}) }), [saved, edits, date]);
+  const unsaved = Object.values(edits).some((changed) => Object.keys(changed).length > 0);
+  useLeaveGuard(unsaved, 'The marks you changed are not saved.');
 
   const data = day.data;
   const editable = !!data?.can_save;
@@ -222,7 +227,14 @@ export function ClassAttendanceScreen() {
   function toggle(studentId: number) {
     if (!editable) return;
     setMessage(null);
-    setEdits((all) => ({ ...all, [date]: { ...(all[date] ?? {}), [studentId]: !marks[studentId] } }));
+    const next = !marks[studentId];
+    setEdits((all) => {
+      const changed = { ...(all[date] ?? {}) };
+      // tapped back to what is saved: nothing left to save for this student
+      if (next === saved[studentId]) delete changed[studentId];
+      else changed[studentId] = next;
+      return { ...all, [date]: changed };
+    });
   }
 
   async function save() {
@@ -241,6 +253,8 @@ export function ClassAttendanceScreen() {
     } catch (e) {
       if (e instanceof ApiError && e.status === 0) {
         enqueue({ key, accountId: account.id, path, method: 'PUT', body, label: `${data.class_name}, ${bsShort(date)}` });
+        // kept on the phone now, and sent later: nothing is lost by leaving
+        setEdits((all) => ({ ...all, [date]: {} }));
         setMessage({ tone: 'warn', text: 'No connection. Saved on this phone; it is sent when you are back online.' });
       } else {
         setMessage({ tone: 'bad', text: (e as Error).message });
@@ -396,6 +410,7 @@ export function NewHomeworkScreen() {
   const [fields, setFields] = useState<Record<string, string>>({});
   const klass = classes.data?.items.find((k) => k.id === classId);
   const choices = (classes.data?.items ?? []).filter((k) => k.subjects.length);
+  const release = useLeaveGuard(!!(title.trim() || description.trim() || files.length), 'This homework is not set yet.');
 
   async function pick() {
     const result = await DocumentPicker.getDocumentAsync({ multiple: true, copyToCacheDirectory: true });
@@ -421,6 +436,7 @@ export function NewHomeworkScreen() {
         else form.append('files', { uri: f.uri, name: f.name, type: f.mimeType ?? 'application/octet-stream' } as never);
       }
       await write('staff/homework', 'POST', form);
+      release();
       back();
     } catch (e) {
       if (e instanceof ApiError && e.fields) setFields(e.fields);
@@ -539,6 +555,8 @@ export function HandInsScreen() {
   const [remarks, setRemarks] = useState<Record<number, string>>({});
   const [busy, setBusy] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const typed = (handIns.data?.items ?? []).some((item) => remarks[item.id] !== undefined && remarks[item.id] !== (item.remarks ?? ''));
+  useLeaveGuard(typed, 'A remark you wrote is not saved.');
 
   async function check(handInId: number, status: 'checked' | 'received') {
     setBusy(handInId);

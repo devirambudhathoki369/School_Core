@@ -11,6 +11,7 @@ import type { FileLink, Homework, HomeworkList } from '@/api/types';
 import { bsLong, bsToday, dueLabel } from '@/lib/format';
 import { space } from '@/theme';
 import { Banner, Button, Card, Divider, ListRow, Screen, SectionLabel, T } from '@/ui/kit';
+import { useLeaveGuard } from '@/ui/leaveGuard';
 import { Chip, Empty, LoadMore, Loaded, Segmented } from '@/ui/parts';
 import { useGo } from '../nav';
 import { PageHeader } from '../parts';
@@ -119,6 +120,7 @@ export function HomeworkDetail() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  useLeaveGuard(picked.length > 0, 'The files you added are not handed in yet.');
 
   async function pickFiles() {
     const result = await DocumentPicker.getDocumentAsync({ multiple: true, copyToCacheDirectory: true });
