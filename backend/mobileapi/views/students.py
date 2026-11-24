@@ -33,6 +33,7 @@ from main.views.exams.ResultViews import ResultView
 from main.views.InvoiceViews import InvoiceViews
 from main.views.LedgerViews import LedgerView
 
+from .. import threads
 from ..access import bs_month, check_file_sizes, month_names, not_found, page_by_id, paisa, student_for
 from ..auth import STUDENT_RUNNING
 from ..errors import MobileError
@@ -182,6 +183,8 @@ class HomeworkOut(serializers.Serializer):
     open = serializers.BooleanField(help_text="Hand-ins are taken until the end of the due date")
     files = FileOut(many=True)
     hand_in = HandInOut(allow_null=True)
+    messages = serializers.IntegerField(help_text="Messages in the student's thread with the teacher")
+    unread_messages = serializers.IntegerField(help_text="The teacher's messages the student has not opened")
 
 
 class HomeworkListOut(serializers.Serializer):
@@ -361,7 +364,7 @@ def hand_in_payload(request, submission) -> dict:
     }
 
 
-def homework_payload(request, homework, submission, today: str) -> dict:
+def homework_payload(request, homework, submission, today: str, counts=(0, 0)) -> dict:
     return {
         "id": homework.id,
         "title": homework.title,
@@ -372,6 +375,8 @@ def homework_payload(request, homework, submission, today: str) -> dict:
         "open": str(homework.due_date) >= today,
         "files": _files(request, homework.homeworkfile_set.all()),
         "hand_in": hand_in_payload(request, submission) if submission else None,
+        "messages": counts[0],
+        "unread_messages": counts[1],
     }
 
 
@@ -535,7 +540,8 @@ class StudentHomeworkView(MobileAPIView):
         else:
             rows, cursor = page_by_id(homework.filter(due_date__lt=today), request)
         hand_ins = _latest_hand_ins(student, [hw.id for hw in rows])
-        items = [homework_payload(request, hw, hand_ins.get(hw.id), today) for hw in rows]
+        counts = threads.student_counts(student, [hw.id for hw in rows])
+        items = [homework_payload(request, hw, hand_ins.get(hw.id), today, counts.get(hw.id, (0, 0))) for hw in rows]
         return Response(HomeworkListOut({"items": items, "next_cursor": cursor}).data)
 
 
@@ -573,7 +579,8 @@ class StudentHandInView(MobileAPIView):
         with transaction.atomic():
             saved = submission.save()
         saved = HomeworkSubmission.objects.prefetch_related("homeworksubmissionfile_set").get(pk=saved.pk)
-        body = homework_payload(request, homework, saved, today)
+        counts = threads.student_counts(student, [homework.id]).get(homework.id, (0, 0))
+        body = homework_payload(request, homework, saved, today, counts)
         return Response(HomeworkOut(body).data, status=status.HTTP_201_CREATED)
 
 

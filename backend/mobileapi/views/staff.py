@@ -33,6 +33,7 @@ from main.serializers.AttendanceSerializer import ClassAttendanceSerializer
 from main.serializers.HomeworkSerializer import HomeworkSerializer
 from main.views.AttendanceViews import ClassAttendanceView
 
+from .. import threads
 from ..access import (
     ANY_ATTENDANCE, CHANGE_ATTENDANCE, TAKE_ATTENDANCE, bs_date, bs_month, check_file_sizes, not_found, page_by_id,
     require_permission, staff_of, staff_permissions,
@@ -91,6 +92,7 @@ class StaffTodayOut(serializers.Serializer):
     periods = TodayPeriodOut(many=True)
     attendance = ToTakeOut(many=True)
     hand_ins_to_check = serializers.IntegerField()
+    messages_to_read = serializers.IntegerField(help_text="Students' homework messages not opened yet")
 
 
 class RosterRowOut(serializers.Serializer):
@@ -146,6 +148,7 @@ class StaffHomeworkOut(serializers.Serializer):
     files = FileOut(many=True)
     hand_ins = HandInCountsOut()
     students = serializers.IntegerField()
+    unread_messages = serializers.IntegerField(help_text="Students' messages on it the teacher has not opened")
 
 
 class StaffHomeworkListOut(serializers.Serializer):
@@ -180,10 +183,28 @@ class MissingOut(serializers.Serializer):
     roll_no = serializers.CharField(allow_null=True)
 
 
+class MessageOut(serializers.Serializer):
+    id = serializers.IntegerField()
+    sender = serializers.ChoiceField(choices=["student", "teacher"])
+    body = serializers.CharField()
+    sent_at = serializers.DateTimeField()
+    seen = serializers.BooleanField(help_text="The other side has opened it")
+
+
+class ThreadBriefOut(serializers.Serializer):
+    student_id = serializers.IntegerField()
+    student_name = serializers.CharField()
+    roll_no = serializers.CharField(allow_null=True)
+    photo_url = serializers.CharField(allow_null=True)
+    last = MessageOut()
+    unread = serializers.IntegerField(help_text="Messages from the student the teacher has not opened")
+
+
 class HandInsOut(serializers.Serializer):
     homework = StaffHomeworkOut()
     items = StaffHandInOut(many=True)
     missing = MissingOut(many=True)
+    threads = ThreadBriefOut(many=True, help_text="Message threads on it, the latest first")
 
 
 class HandInPatchIn(serializers.Serializer):
@@ -307,7 +328,7 @@ def class_day_payload(request, staff, klass, date) -> dict:
     }
 
 
-def staff_homework_payload(request, homework, counts, enrolled, today) -> dict:
+def staff_homework_payload(request, homework, counts, enrolled, today, unread=0) -> dict:
     return {
         "id": homework.id,
         "title": homework.title,
@@ -320,6 +341,7 @@ def staff_homework_payload(request, homework, counts, enrolled, today) -> dict:
         "files": _files(request, homework.homeworkfile_set.all()),
         "hand_ins": {"received": counts.get(1, 0), "checked": counts.get(2, 0)},
         "students": enrolled,
+        "unread_messages": unread,
     }
 
 
@@ -394,7 +416,7 @@ class StaffTodayView(MobileAPIView):
             homework__staff=staff, homework__is_active=True, is_active=True, status=1
         ).count()
         body = {"date": today, "check_in": check_in, "periods": periods, "attendance": to_take,
-                "hand_ins_to_check": waiting}
+                "hand_ins_to_check": waiting, "messages_to_read": threads.teacher_unread_total(staff)}
         return Response(StaffTodayOut(body).data)
 
 
@@ -519,8 +541,10 @@ class StaffHomeworkView(MobileAPIView):
         rows, cursor = page_by_id(_own_homework(staff), request)
         counts = _hand_in_counts([hw.id for hw in rows])
         enrolled = _enrolled({hw.class_info_id for hw in rows})
+        unread = threads.teacher_unread([hw.id for hw in rows])
         items = [
-            staff_homework_payload(request, hw, counts.get(hw.id, {}), enrolled.get(hw.class_info_id, 0), today)
+            staff_homework_payload(request, hw, counts.get(hw.id, {}), enrolled.get(hw.class_info_id, 0), today,
+                                   unread.get(hw.id, 0))
             for hw in rows
         ]
         return Response(StaffHomeworkListOut({"items": items, "next_cursor": cursor}).data)
@@ -597,10 +621,12 @@ class HandInsView(MobileAPIView):
             {"id": s.id, "name": _name(s), "roll_no": s.roll_no or None} for s in enrolled if s.id not in latest
         ]
         counts = _hand_in_counts([homework.id]).get(homework.id, {})
+        unread = threads.teacher_unread([homework.id]).get(homework.id, 0)
         body = {
-            "homework": staff_homework_payload(request, homework, counts, len(enrolled), ndt_today()),
+            "homework": staff_homework_payload(request, homework, counts, len(enrolled), ndt_today(), unread),
             "items": items,
             "missing": missing,
+            "threads": threads.threads_of(request, homework),
         }
         return Response(HandInsOut(body).data)
 

@@ -279,6 +279,25 @@ def staff_messages(school_id, staff_ids, title, body, kind):
     return [_message(token, session_id, title, body, {"type": kind}) for token, session_id in rows]
 
 
+def homework_message_messages(school_id, homework_id, student_id, teacher_id, title, body):
+    """A homework message, to the teacher's phones (`teacher_id`) or else to
+    the student's own: a thread is between the two of them, so parents are
+    not sent it. The tap opens the thread."""
+    if teacher_id:
+        sessions = _live(
+            school_id=school_id, role=AppSession.STAFF, staff_account__staff__id=teacher_id,
+            staff_account__staff__is_active=True, staff_account__staff__status=STAFF_EMPLOYED,
+        )
+    else:
+        sessions = _live(
+            school_id=school_id, role=AppSession.STUDENT, student_account__student__id=student_id,
+            student_account__student__is_active=True, student_account__student__status=STUDENT_RUNNING,
+        )
+    data = {"type": "homework_message", "homework": str(homework_id), "student": str(student_id)}
+    rows = _one_per_phone(sessions.order_by("-last_seen_at").values_list("push_token", "id"))
+    return [_message(token, session_id, title, body, data) for token, session_id in rows]
+
+
 ATTENDANCE_TITLE = "हाजिरी"
 PRESENT = "{name} आज उपस्थित जनाइएको छ।"
 ABSENT = "{name} आज अनुपस्थित जनाइएको छ।"
@@ -319,3 +338,8 @@ def on_students(school_id, student_ids, title, body, kind):
 
 def on_staff(school_id, staff_ids, title, body, kind):
     _background(staff_messages, school_id, staff_ids, title, body, kind)
+
+
+# --- called from the app's own writes ------------------------------------------
+def on_homework_message(school_id, homework_id, student_id, teacher_id, title, body):
+    _background(homework_message_messages, school_id, homework_id, student_id, teacher_id, title, body)

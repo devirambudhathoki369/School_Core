@@ -1018,12 +1018,20 @@
               "$ref": "#/components/schemas/MissingOut"
             },
             "type": "array"
+          },
+          "threads": {
+            "description": "Message threads on it, the latest first",
+            "items": {
+              "$ref": "#/components/schemas/ThreadBriefOut"
+            },
+            "type": "array"
           }
         },
         "required": [
           "homework",
           "items",
-          "missing"
+          "missing",
+          "threads"
         ],
         "type": "object"
       },
@@ -1153,6 +1161,10 @@
           "id": {
             "type": "integer"
           },
+          "messages": {
+            "description": "Messages in the student's thread with the teacher",
+            "type": "integer"
+          },
           "open": {
             "description": "Hand-ins are taken until the end of the due date",
             "type": "boolean"
@@ -1165,6 +1177,10 @@
           },
           "title": {
             "type": "string"
+          },
+          "unread_messages": {
+            "description": "The teacher's messages the student has not opened",
+            "type": "integer"
           }
         },
         "required": [
@@ -1173,10 +1189,12 @@
           "files",
           "hand_in",
           "id",
+          "messages",
           "open",
           "subject",
           "teacher",
-          "title"
+          "title",
+          "unread_messages"
         ],
         "type": "object"
       },
@@ -1443,6 +1461,48 @@
           "role",
           "school",
           "session_id"
+        ],
+        "type": "object"
+      },
+      "MessageInRequest": {
+        "properties": {
+          "body": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "body"
+        ],
+        "type": "object"
+      },
+      "MessageOut": {
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "seen": {
+            "description": "The other side has opened it",
+            "type": "boolean"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/SenderEnum"
+          },
+          "sent_at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "body",
+          "id",
+          "seen",
+          "sender",
+          "sent_at"
         ],
         "type": "object"
       },
@@ -2157,6 +2217,14 @@
         ],
         "type": "object"
       },
+      "SenderEnum": {
+        "description": "* `student` - student\n* `teacher` - teacher",
+        "enum": [
+          "student",
+          "teacher"
+        ],
+        "type": "string"
+      },
       "SignInMethodsOut": {
         "properties": {
           "admin": {
@@ -2391,6 +2459,10 @@
           },
           "title": {
             "type": "string"
+          },
+          "unread_messages": {
+            "description": "Students' messages on it the teacher has not opened",
+            "type": "integer"
           }
         },
         "required": [
@@ -2404,7 +2476,8 @@
           "open",
           "students",
           "subject",
-          "title"
+          "title",
+          "unread_messages"
         ],
         "type": "object"
       },
@@ -2470,6 +2543,10 @@
           "hand_ins_to_check": {
             "type": "integer"
           },
+          "messages_to_read": {
+            "description": "Students' homework messages not opened yet",
+            "type": "integer"
+          },
           "periods": {
             "items": {
               "$ref": "#/components/schemas/TodayPeriodOut"
@@ -2482,6 +2559,7 @@
           "check_in",
           "date",
           "hand_ins_to_check",
+          "messages_to_read",
           "periods"
         ],
         "type": "object"
@@ -2756,6 +2834,85 @@
         "required": [
           "id",
           "name"
+        ],
+        "type": "object"
+      },
+      "ThreadBriefOut": {
+        "properties": {
+          "last": {
+            "$ref": "#/components/schemas/MessageOut"
+          },
+          "photo_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "roll_no": {
+            "nullable": true,
+            "type": "string"
+          },
+          "student_id": {
+            "type": "integer"
+          },
+          "student_name": {
+            "type": "string"
+          },
+          "unread": {
+            "description": "Messages from the student the teacher has not opened",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "last",
+          "photo_url",
+          "roll_no",
+          "student_id",
+          "student_name",
+          "unread"
+        ],
+        "type": "object"
+      },
+      "ThreadOut": {
+        "properties": {
+          "can_write": {
+            "description": "False for parents, who read the thread only",
+            "type": "boolean"
+          },
+          "homework_id": {
+            "type": "integer"
+          },
+          "homework_title": {
+            "type": "string"
+          },
+          "items": {
+            "description": "Newest first, 30 at a time",
+            "items": {
+              "$ref": "#/components/schemas/MessageOut"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "nullable": true,
+            "type": "string"
+          },
+          "student_id": {
+            "type": "integer"
+          },
+          "student_name": {
+            "type": "string"
+          },
+          "teacher_name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "can_write",
+          "homework_id",
+          "homework_title",
+          "items",
+          "next_cursor",
+          "student_id",
+          "student_name",
+          "teacher_name"
         ],
         "type": "object"
       },
@@ -4405,6 +4562,121 @@
         ]
       }
     },
+    "/staff/homework/{homework_id}/messages/{student_id}": {
+      "get": {
+        "description": "The teacher's thread with one student on their own homework.",
+        "operationId": "staff_homework_messages_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "homework_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The student of the thread",
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "staff"
+        ]
+      },
+      "post": {
+        "description": "The teacher's thread with one student on their own homework.",
+        "operationId": "staff_homework_messages_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "homework_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The student of the thread",
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageInRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageInRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "staff"
+        ]
+      }
+    },
     "/staff/me/attendance": {
       "get": {
         "description": "Signed-in mobile endpoints: Bearer token, mobile error shape, version gate.",
@@ -4801,6 +5073,119 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HomeworkOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/students/{student_id}/homework/{homework_id}/messages": {
+      "get": {
+        "description": "The student's thread with the teacher; their parents read it too.",
+        "operationId": "students_homework_messages_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "homework_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadOut"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "MobileBearer": []
+          }
+        ],
+        "tags": [
+          "students"
+        ]
+      },
+      "post": {
+        "description": "The student's thread with the teacher; their parents read it too.",
+        "operationId": "students_homework_messages_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "homework_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "student_id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageInRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageInRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageOut"
                 }
               }
             },

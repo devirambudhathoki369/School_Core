@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .schema import MobileSchemaView
-from .views import admin, bus, invites, school, staff, students
+from .views import admin, bus, invites, messages, school, staff, students
 from .views.auth import (
     FamilyCodeView,
     ParentCodeView,
@@ -49,6 +49,8 @@ urlpatterns = [
     path("students/<int:student_id>/homework", students.StudentHomeworkView.as_view(), name="student-homework"),
     path("students/<int:student_id>/homework/<int:homework_id>/hand-in", students.StudentHandInView.as_view(),
          name="student-hand-in"),
+    path("students/<int:student_id>/homework/<int:homework_id>/messages", messages.StudentThreadView.as_view(),
+         name="student-homework-messages"),
     path("students/<int:student_id>/results", students.StudentResultsView.as_view(), name="student-results"),
     path("students/<int:student_id>/results/<int:exam_id>", students.StudentExamResultView.as_view(),
          name="student-result"),
@@ -64,6 +66,8 @@ urlpatterns = [
     path("staff/homework/<int:homework_id>/hand-ins", staff.HandInsView.as_view(), name="staff-hand-ins"),
     path("staff/homework/<int:homework_id>/hand-ins/<int:hand_in_id>", staff.HandInDetailView.as_view(),
          name="staff-hand-in"),
+    path("staff/homework/<int:homework_id>/messages/<int:student_id>", messages.StaffThreadView.as_view(),
+         name="staff-homework-messages"),
     path("staff/me/attendance", staff.StaffOwnAttendanceView.as_view(), name="staff-own-attendance"),
     # school admin (phase 5)
     path("admin/dashboard", admin.AdminDashboardView.as_view(), name="admin-dashboard"),

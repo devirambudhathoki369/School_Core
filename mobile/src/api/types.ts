@@ -38,6 +38,11 @@ export type Calendar = S['CalendarOut'];
 export type CalendarEvent = S['CalendarEventOut'];
 export type FileLink = S['FileOut'];
 
+// homework messages (a student and the teacher who set the homework)
+export type Message = S['MessageOut'];
+export type Thread = S['ThreadOut'];
+export type ThreadBrief = S['ThreadBriefOut'];
+
 // staff
 export type StaffToday = S['StaffTodayOut'];
 export type StaffClasses = S['StaffClassesOut'];

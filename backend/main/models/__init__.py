@@ -45,3 +45,4 @@ from .Normalized import (  # noqa: F401
     SubjectAssignmentStudent,
 )
 from .Guardian import Guardian, StudentGuardian  # noqa: F401
+from .Homework import HomeworkMessage  # noqa: F401

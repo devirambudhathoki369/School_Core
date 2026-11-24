@@ -602,6 +602,24 @@ export interface paths {
         patch: operations["staff_homework_hand_ins_partial_update"];
         trace?: never;
     };
+    "/staff/homework/{homework_id}/messages/{student_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The teacher's thread with one student on their own homework. */
+        get: operations["staff_homework_messages_retrieve"];
+        put?: never;
+        /** @description The teacher's thread with one student on their own homework. */
+        post: operations["staff_homework_messages_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/staff/me/attendance": {
         parameters: {
             query?: never;
@@ -750,6 +768,24 @@ export interface paths {
         put?: never;
         /** @description Signed-in mobile endpoints: Bearer token, mobile error shape, version gate. */
         post: operations["students_homework_hand_in_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/students/{student_id}/homework/{homework_id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The student's thread with the teacher; their parents read it too. */
+        get: operations["students_homework_messages_retrieve"];
+        put?: never;
+        /** @description The student's thread with the teacher; their parents read it too. */
+        post: operations["students_homework_messages_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1099,6 +1135,8 @@ export interface components {
             homework: components["schemas"]["StaffHomeworkOut"];
             items: components["schemas"]["StaffHandInOut"][];
             missing: components["schemas"]["MissingOut"][];
+            /** @description Message threads on it, the latest first */
+            threads: components["schemas"]["ThreadBriefOut"][];
         };
         HeadcountOut: {
             absent: number;
@@ -1129,11 +1167,15 @@ export interface components {
             files: components["schemas"]["FileOut"][];
             hand_in: components["schemas"]["HandInOut"] | null;
             id: number;
+            /** @description Messages in the student's thread with the teacher */
+            messages: number;
             /** @description Hand-ins are taken until the end of the due date */
             open: boolean;
             subject: string;
             teacher: string;
             title: string;
+            /** @description The teacher's messages the student has not opened */
+            unread_messages: number;
         };
         InviteOut: {
             /** @description Shown once; only its hash is kept */
@@ -1214,6 +1256,18 @@ export interface components {
             role: components["schemas"]["RoleEnum"];
             school: components["schemas"]["SchoolOut"];
             session_id: string;
+        };
+        MessageInRequest: {
+            body: string;
+        };
+        MessageOut: {
+            body: string;
+            id: number;
+            /** @description The other side has opened it */
+            seen: boolean;
+            sender: components["schemas"]["SenderEnum"];
+            /** Format: date-time */
+            sent_at: string;
         };
         MissingOut: {
             id: number;
@@ -1406,6 +1460,12 @@ export interface components {
             logo_url: string | null;
             name: string;
         };
+        /**
+         * @description * `student` - student
+         *     * `teacher` - teacher
+         * @enum {string}
+         */
+        SenderEnum: "student" | "teacher";
         SignInMethodsOut: {
             /** @description password */
             admin: string;
@@ -1468,6 +1528,8 @@ export interface components {
             students: number;
             subject: string;
             title: string;
+            /** @description Students' messages on it the teacher has not opened */
+            unread_messages: number;
         };
         StaffRowOut: {
             /** Format: date-time */
@@ -1486,6 +1548,8 @@ export interface components {
             check_in: components["schemas"]["DayMarkOut"];
             date: string;
             hand_ins_to_check: number;
+            /** @description Students' homework messages not opened yet */
+            messages_to_read: number;
             periods: components["schemas"]["TodayPeriodOut"][];
         };
         /**
@@ -1556,6 +1620,27 @@ export interface components {
         SubjectOut: {
             id: number;
             name: string;
+        };
+        ThreadBriefOut: {
+            last: components["schemas"]["MessageOut"];
+            photo_url: string | null;
+            roll_no: string | null;
+            student_id: number;
+            student_name: string;
+            /** @description Messages from the student the teacher has not opened */
+            unread: number;
+        };
+        ThreadOut: {
+            /** @description False for parents, who read the thread only */
+            can_write: boolean;
+            homework_id: number;
+            homework_title: string;
+            /** @description Newest first, 30 at a time */
+            items: components["schemas"]["MessageOut"][];
+            next_cursor: string | null;
+            student_id: number;
+            student_name: string;
+            teacher_name: string;
         };
         TimetableOut: {
             class_name: string;
@@ -2516,6 +2601,60 @@ export interface operations {
             };
         };
     };
+    staff_homework_messages_retrieve: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                homework_id: number;
+                /** @description The student of the thread */
+                student_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadOut"];
+                };
+            };
+        };
+    };
+    staff_homework_messages_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                homework_id: number;
+                /** @description The student of the thread */
+                student_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageInRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["MessageInRequest"];
+                "multipart/form-data": components["schemas"]["MessageInRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageOut"];
+                };
+            };
+        };
+    };
     staff_me_attendance_retrieve: {
         parameters: {
             query?: {
@@ -2738,6 +2877,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HomeworkOut"];
+                };
+            };
+        };
+    };
+    students_homework_messages_retrieve: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                homework_id: number;
+                student_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadOut"];
+                };
+            };
+        };
+    };
+    students_homework_messages_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                homework_id: number;
+                student_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageInRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["MessageInRequest"];
+                "multipart/form-data": components["schemas"]["MessageInRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageOut"];
                 };
             };
         };
