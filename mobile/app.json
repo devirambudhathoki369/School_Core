@@ -29,6 +29,8 @@
     },
     "plugins": [
       "expo-router",
+      "expo-status-bar",
+      "expo-web-browser",
       [
         "expo-splash-screen",
         {
