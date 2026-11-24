@@ -15,6 +15,11 @@ import type { Tokens } from './types';
 
 const ORIGIN = (process.env.EXPO_PUBLIC_API_URL ?? 'http://127.0.0.1:8000').replace(/\/+$/, '');
 export const API_BASE = `${ORIGIN}/api/mobile/v1/`;
+// A release build talks to the server over HTTPS only, so passwords, tokens,
+// marks and fees never cross the network in the clear. A build made with an
+// http:// address fails closed: it sends nothing. Development (__DEV__) may
+// use the laptop's http:// address.
+const SAFE_ORIGIN = __DEV__ || ORIGIN.startsWith('https://');
 export const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 const TIMEOUT_MS = 20_000;
 const UPLOAD_TIMEOUT_MS = 120_000;
@@ -62,6 +67,9 @@ type Options = {
 };
 
 async function request<T>(path: string, { method = 'GET', body, token, idempotencyKey }: Options = {}): Promise<T> {
+  if (!SAFE_ORIGIN) {
+    throw new ApiError(0, 'insecure_server', 'This copy of the app is set up wrongly. Please install SchoolCore again from the store.');
+  }
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'X-App-Version': APP_VERSION,
