@@ -1,4 +1,3 @@
-import { type Href, router } from 'expo-router';
 import NepaliDate from 'nepali-date-converter';
 import { Pressable, View } from 'react-native';
 
@@ -7,6 +6,7 @@ import { ApiError } from '@/api/client';
 import { bsLong, bsShort, bsToday, bsWeekday } from '@/lib/format';
 import { font, space, usePalette } from '@/theme';
 import { Banner, Header, T } from '@/ui/kit';
+import { openTab } from '@/ui/RoleTabs';
 import { initials } from '@/ui/SchoolCard';
 import { back as goBack } from './nav';
 
@@ -23,7 +23,7 @@ export function HomeHeader({ name, sub, school }: { name: string; sub: string; s
     <Header>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
         <Pressable
-          onPress={() => router.navigate(`/${account.role}/more` as Href)}
+          onPress={() => openTab(account.role, 'more')}
           accessibilityRole="button"
           accessibilityLabel="Your account"
           style={{

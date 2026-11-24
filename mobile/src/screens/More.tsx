@@ -175,7 +175,7 @@ export function MoreScreen() {
           </>
         ) : null}
         <Divider inset={70} />
-        <ListRow icon="phone" title="Phones signed in" sub="See them, and sign one out" onPress={() => router.push('/sessions')} />
+        <ListRow icon="phone" title="Phones signed in" sub="See them, and sign one out" onPress={() => go('/sessions')} />
       </Card>
 
       <Card padded={false}>

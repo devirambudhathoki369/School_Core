@@ -117,9 +117,6 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
           <Stack.Protected guard={inApp && role === 'admin'} redirectTo="/">
             <Stack.Screen name="admin" />
           </Stack.Protected>
-          <Stack.Protected guard={inApp} redirectTo="/">
-            <Stack.Screen name="sessions" />
-          </Stack.Protected>
         </Stack>
       </View>
       {Platform.OS !== 'web' ? <PushTaps /> : null}

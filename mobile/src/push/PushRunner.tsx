@@ -6,6 +6,7 @@ import { AppState } from 'react-native';
 import { useAccounts } from '@/accounts/store';
 import type { Role } from '@/api/types';
 import { requestChild } from '@/screens/child/context';
+import { openTab, tabAt } from '@/ui/RoleTabs';
 import { refreshPush, syncPush } from './push';
 
 /** Registers every account on the phone for notifications: in full at start,
@@ -56,9 +57,11 @@ export function PushTaps() {
     if (!account) return;
     if (data.student) requestChild(account.id, Number(data.student));
     if (account.id !== active?.id) switchTo(account.id);
-    const screen = SCREENS[account.role][data.type ?? ''] ?? '';
+    const path = `/${account.role}${SCREENS[account.role][data.type ?? ''] ?? ''}`;
+    // A tab is switched to, not opened again on top of the tabs.
+    const tab = tabAt(account.role, path);
     // after the switch has moved the app into the account's screens
-    setTimeout(() => router.push(`/${account.role}${screen}` as Href), 300);
+    setTimeout(() => (tab ? openTab(account.role, tab.name) : router.push(path as Href)), 300);
   }, [response, accounts, active, switchTo]);
 
   return null;

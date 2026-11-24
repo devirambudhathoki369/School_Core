@@ -1,14 +1,14 @@
-import { Stack } from 'expo-router';
-
 import { ChildProvider } from '@/screens/child/context';
-import { usePalette } from '@/theme';
+import { RoleShell } from '@/ui/RoleTabs';
 
-/** The student's screens: the tabs, and the screens opened from them. */
+// A screen opened straight from a link still has the tabs under it.
+export const unstable_settings = { anchor: '(tabs)' };
+
+/** The student's screens: the tabs, the screens opened from them, and the bar under all of them. */
 export default function Layout() {
-  const c = usePalette();
   return (
     <ChildProvider>
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.page } }} />
+      <RoleShell role="student" />
     </ChildProvider>
   );
 }

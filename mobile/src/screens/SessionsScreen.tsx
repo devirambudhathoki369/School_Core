@@ -1,12 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { router } from 'expo-router';
 import { View } from 'react-native';
 
 import { useActive } from '@/accounts/store';
 import { api } from '@/api/client';
 import { usePhones } from '@/api/hooks';
-import { space, usePalette } from '@/theme';
-import { Banner, Button, Card, Divider, Header, ListRow, Loading, Screen, T } from '@/ui/kit';
+import { usePalette } from '@/theme';
+import { Banner, Button, Card, Divider, ListRow, Loading, Screen, T } from '@/ui/kit';
+import { PageHeader } from './parts';
 
 function when(iso: string) {
   const d = new Date(iso);
@@ -14,7 +14,8 @@ function when(iso: string) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export default function Sessions() {
+/** The phones this account is signed in on. */
+export function SessionsScreen() {
   const c = usePalette();
   const account = useActive();
   const phones = usePhones();
@@ -30,16 +31,7 @@ export default function Sessions() {
     <Screen
       onRefresh={() => void phones.refetch()}
       refreshing={phones.isRefetching}
-      header={
-        <Header onBack={() => router.back()}>
-          <View style={{ gap: space.xs }}>
-            <T v="title" tone="onHeader">
-              Phones signed in
-            </T>
-            <T tone="onHeaderSoft">{`${account.name} is signed in on these phones. Up to five at a time.`}</T>
-          </View>
-        </Header>
-      }>
+      header={<PageHeader title="Phones signed in" sub={`${account.name} is signed in on these phones. Up to five at a time.`} />}>
       {phones.isLoading ? <Loading /> : null}
       {phones.error ? <Banner tone="bad">{(phones.error as Error).message}</Banner> : null}
       {items.length ? (

@@ -1,9 +1,11 @@
-import { type ReactNode, useState } from 'react';
+import { useIsFocused } from 'expo-router';
+import { type ReactNode, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
   RefreshControl,
   ScrollView,
+  type ScrollViewInstance,
   StyleSheet,
   Text,
   TextInput,
@@ -16,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { font, radius, space, type, usePalette, type Palette } from '@/theme';
 import { Icon, type IconName } from './Icon';
+import { useTabReselect } from './reselect';
 
 type Variant = keyof typeof type;
 type Tone = 'text' | 'soft' | 'quiet' | 'blue' | 'ok' | 'bad' | 'marigold' | 'onHeader' | 'onHeaderSoft';
@@ -119,9 +122,13 @@ export function Screen({
 }) {
   const c = usePalette();
   const insets = useSafeAreaInsets();
+  const scroller = useRef<ScrollViewInstance>(null);
+  // only the screen in view goes back to the top, not the tabs kept behind it
+  useTabReselect(() => scroller.current?.scrollTo({ y: 0, animated: true }), useIsFocused());
   return (
     <View style={{ flex: 1, backgroundColor: c.page }}>
       <ScrollView
+        ref={scroller}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[
           { paddingBottom: footer ? space.lg : insets.bottom + space.xxxl },
