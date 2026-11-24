@@ -1,17 +1,14 @@
-"""The interface themes a school's screens can be drawn in.
+"""The interface themes a school's screens could be drawn in. RETIRED.
 
-This is PRESENTATION ONLY, exactly like the printed-document styling next door:
-a theme decides colour and surface, never what a page shows, filters or totals.
+Since 2026-11-24 every school is drawn in one palette, the Himalayan blue of
+the mobile app, and the superadmin no longer picks a theme per school: the
+picker, its endpoint (/api/manage/ui-themes) and `ui_theme` in the profile are
+gone, and the frontend ignores whatever is stored.
 
-`classic` is the default. The first five keys predate the current palettes,
-which repainted them without renaming any -- so no stored value had to move:
-`classic` draws Ocean, `vivid` Violet, `daylight` Graphite, `evergreen`
-Emerald and `laliguras` Berry. The five after them are the dark-menu themes. Anything other than the default is chosen per school by the
-superadmin.
-
-The palettes themselves live in the frontend (one CSS variable block per key);
-the backend only owns the list of valid keys and how they are described, so the
-picker and the validator can never drift apart.
+`SchoolAdmin.ui_theme` is kept for ONE release so the previous code still finds
+its column during the migrate-then-reload window or after a rollback
+(expand/contract). The release after this one is deployed drops the column, and
+this module with it.
 """
 
 UI_THEME_CLASSIC = "classic"

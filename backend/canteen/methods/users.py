@@ -49,7 +49,6 @@ SCHOOL_FIELDS = {
     "school_logo": "logo",
     "school_award_logo": "award_logo",
     "school_slogan": "slogan",
-    "ui_theme": "ui_theme",
     "renew_date": "renew_date",
     "economic_year": "economic_year",
     "economic_year__name": "economic_year__name",

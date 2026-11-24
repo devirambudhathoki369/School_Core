@@ -111,16 +111,11 @@ ADMIN_PROFILE_RETURN_FIELDS = (
     "exam_coordinator_sign",
     "account",
     "preferences",
-    # The interface theme rides along with the profile so the app can draw its
-    # first paint in the right colours — fetching it separately would show every
-    # school the default palette for a moment before correcting itself.
-    "ui_theme",
     "test_account",
     "uses_mobile_app",
     # MODULE ACCESS (`uses_hostel`, `uses_exams`, ...) is not a column: it is
     # added to the profile from main.SchoolModule by `with_module_flags`. It
-    # rides along for the same reason `ui_theme` does -- the rail is drawn on
-    # first paint. The frontend gates each menu AND its view map on it
+    # rides along with the profile because the rail is drawn on first paint. The frontend gates each menu AND its view map on it
     # (configs/moduleGates.js); the backend refuses the endpoints regardless,
     # so the flags are convenience, never the protection.
     "time_set_required",

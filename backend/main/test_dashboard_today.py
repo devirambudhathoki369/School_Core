@@ -155,11 +155,13 @@ class ConsoleSchoolListTests(TestCase):
         SchoolAdmin.objects.create(
             name="School one", address="Test address", estd_date="2080-01-01", renew_date="2083-07-20",
             pan_no="123", email="one@example.com", account=AdminAccount.objects.create(username="admin-one"),
-            economic_year=fy, uses_sms=True, ui_theme="laliguras",
+            economic_year=fy, uses_sms=True,
         )
         row = dict(SchoolAdminView().get(SimpleNamespace(query_params={})).data[0])
+        # Every school is drawn in one palette, so the console counts no themes.
+        self.assertNotIn("ui_theme", row)
         self.assertEqual(
-            {key: row.get(key) for key in ("renew_date", "uses_sms", "uses_mobile_app", "test_account", "ui_theme", "uses_hostel")},
+            {key: row.get(key) for key in ("renew_date", "uses_sms", "uses_mobile_app", "test_account", "uses_hostel")},
             {"renew_date": "2083-07-20", "uses_sms": True, "uses_mobile_app": False,
-             "test_account": False, "ui_theme": "laliguras", "uses_hostel": False},
+             "test_account": False, "uses_hostel": False},
         )

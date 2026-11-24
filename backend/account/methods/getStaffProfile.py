@@ -46,9 +46,6 @@ def getStaffProfile(user):
             school_sign=F("school__sign"),
             school_exam_coordinator_sign=F("school__exam_coordinator_sign"),
             school_slogan=F("school__slogan"),
-            # Staff see their school's interface theme too — a school's look
-            # must be the same whoever signs in.
-            ui_theme=F("school__ui_theme"),
             economic_year=F("school__economic_year"),
             economic_year__name=F("school__economic_year__name"),
             renew_date=F("school__renew_date"),

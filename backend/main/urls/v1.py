@@ -149,7 +149,6 @@ from ..views.superadmin.DocumentStyleView import (
     ManageDocumentStylesView,
     CopyDocumentStyleView,
 )
-from ..views.superadmin.UiThemeView import ManageUiThemesView
 from ..views.superadmin.SchoolEducationLevelView import (
     SchoolHiddenEducationLevelsView,
     ManageSchoolEducationLevelsView,
@@ -472,11 +471,6 @@ urlpatterns = [
         "manage/document-styles/copy",
         CopyDocumentStyleView.as_view(),
         name="copy document style",
-    ),
-    path(
-        "manage/ui-themes",
-        ManageUiThemesView.as_view(),
-        name="manage ui themes",
     ),
     path("backup", DatabaseBackupView.as_view(), name="database backup"),
 ]
