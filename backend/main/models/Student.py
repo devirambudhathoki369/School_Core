@@ -1,4 +1,4 @@
-from main.methods.uploads import private_documents
+from main.methods.uploads import private_documents, student_photo_path
 from django.db.models import (
     Model,
     IntegerField,
@@ -71,7 +71,7 @@ class Student(BaseModel):
         verbose_name="Registration Number",
     )
     emis = CustomCharField(min_length=1, max_length=50, **_allow_empty)
-    image = ImageField(upload_to="student_profiles/%Y/", **_allow_empty)
+    image = ImageField(upload_to=student_photo_path, **_allow_empty)
     birth_certificate = ImageField(upload_to="student_documents/%Y/", storage=private_documents, **_allow_empty)
     nid = ImageField(upload_to="student_documents/%Y/", storage=private_documents, **_allow_empty)
     citizenship_front = ImageField(upload_to="student_documents/%Y/", storage=private_documents, **_allow_empty)

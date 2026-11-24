@@ -14,6 +14,7 @@ from customs.NepaliDateField import NepaliDateField
 
 #
 from .BaseModel import BaseModel, CustomCharField, CustomEmailField
+from ..methods.uploads import staff_photo_path
 from .base_models.OtherInfo import BaseOtherInfo
 from ..choices import GENDER_CHOICES
 from ..constants.name_sizes import NAME_CONFIG, FULL_NAME_CONFIG, SALARY_CONFIG
@@ -113,7 +114,7 @@ class Staff(BaseModel):
     # RFID card number, storable independently of any attendance device so it
     # can be recorded before a device is registered and synced once one is.
     rfid_card = CustomCharField(max_length=32, null=True, blank=True)
-    image = ImageField(upload_to="staff_profiles", null=True, blank=True)
+    image = ImageField(upload_to=staff_photo_path, null=True, blank=True)
     other_info = OneToOneField(
         "main.StaffOtherInfo", on_delete=CASCADE, null=True, blank=True
     )

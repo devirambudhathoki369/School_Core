@@ -12,13 +12,15 @@ Lifecycle:
      storage).
   4. DELETE /api/students/pending-photos?id=… — discard an unwanted upload.
 
-The image lives on disk under `pending_student_photos/<year>/`; nothing in
+The image lives on disk under `pending_student_photos/<year>/`, its name
+starting with 16 random characters; nothing in
 this model is academic-year scoped because the photo is just an artifact.
 """
 
 from django.db.models import ForeignKey, ImageField, CASCADE, SET_NULL
 
 from .BaseModel import BaseModel, CustomCharField, _allow_empty
+from ..methods.uploads import pending_photo_path
 
 
 class PendingStudentPhoto(BaseModel):
@@ -26,7 +28,7 @@ class PendingStudentPhoto(BaseModel):
     # see all rows with this FK in the pairing UI.
     class_info = ForeignKey("main.ClassInfo", on_delete=CASCADE)
     school = ForeignKey("main.SchoolAdmin", on_delete=CASCADE)
-    image = ImageField(upload_to="pending_student_photos/%Y/")
+    image = ImageField(upload_to=pending_photo_path)
     # Optional caption uploaders can attach if a face is hard to recognise
     # without context (e.g. "back row, blue shirt"). Free-text.
     note = CustomCharField(min_length=1, max_length=120, **_allow_empty)

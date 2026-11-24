@@ -1,10 +1,13 @@
 import mimetypes
 import os
+import re
+import secrets
 
 from django.conf import settings
 from django.core import signing
 from django.core.exceptions import SuspiciousFileOperation
 from django.core.files.storage import FileSystemStorage
+from django.utils import timezone
 
 # File types a browser will RUN rather than display. Uploads are served from
 # the API's own origin (formatImagePath prefixes NEXT_PUBLIC_BASE_URL), so an
@@ -192,3 +195,45 @@ def reject_non_homework(files):
         if hasattr(f, "name")
         and os.path.splitext(str(f.name).strip().rstrip("."))[1].lower().lstrip(".") not in HOMEWORK_EXTENSIONS
     ]
+
+
+# The 16 random characters an unguessable name starts with, and the dash after.
+UNGUESSABLE_NAME = re.compile(r"^[A-Za-z0-9_-]{16}-(?=.)")
+
+
+def unguessable_name(folder, filename, keep=40):
+    """`<folder>/<16 random characters>-<the sender's file name>`.
+
+    Media is served by its address, so people's own files (photos, handed-in
+    work) are saved under addresses that cannot be worked out: 96 random bits
+    come first. `folder` may hold strftime codes ("student_profiles/%Y"). The
+    sender's name is kept, cut to `keep` characters, for whoever downloads it;
+    its extension is the one the upload checks read (trailing dots dropped, as
+    they drop them), so cutting a long name can never give it another type.
+    """
+    name = os.path.basename(str(filename or "")).strip().rstrip(".") or "file"
+    if len(name) > keep:
+        stem, ext = os.path.splitext(name)
+        ext = ext[:10]
+        name = stem[: max(0, keep - len(ext))] + ext
+    return f"{timezone.now().strftime(folder)}/{secrets.token_urlsafe(12)}-{name}"
+
+
+# upload_to for people's own photos. They live here, not beside their models:
+# migrations name them by module path, and `main.models.PendingStudentPhoto`
+# is the model class, not its module.
+def student_photo_path(instance, filename):
+    return unguessable_name("student_profiles/%Y", filename)
+
+
+def staff_photo_path(instance, filename):
+    return unguessable_name("staff_profiles", filename)
+
+
+def pending_photo_path(instance, filename):
+    return unguessable_name("pending_student_photos/%Y", filename)
+
+
+def shown_name(stored):
+    """The name a file was sent with, without its random start."""
+    return UNGUESSABLE_NAME.sub("", os.path.basename(str(stored or "")))
