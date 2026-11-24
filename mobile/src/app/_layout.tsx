@@ -22,6 +22,7 @@ import { LockProvider, useLock } from '@/lock/store';
 import { QueueRunner } from '@/offline/QueueRunner';
 import { PushRunner, PushTaps } from '@/push/PushRunner';
 import { LockScreen } from '@/screens/LockScreen';
+import { Mark } from '@/ui/Mark';
 import { UpdateRequired } from '@/screens/UpdateRequired';
 import { usePalette } from '@/theme';
 
@@ -125,6 +126,12 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
       {locked ? (
         <View style={StyleSheet.absoluteFill}>
           <LockScreen />
+        </View>
+      ) : lock.covered ? (
+        // the app switcher's picture of the app: nothing behind the lock
+        <View
+          style={[StyleSheet.absoluteFill, { backgroundColor: c.header, alignItems: 'center', justifyContent: 'center' }]}>
+          <Mark size={52} onDark />
         </View>
       ) : null}
     </View>
