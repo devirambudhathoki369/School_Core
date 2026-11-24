@@ -84,6 +84,16 @@ export function StaffTodayScreen() {
                 onPress={() => go('/homework')}
               />
             </Row>
+            {data.messages_to_read ? (
+              <Card padded={false}>
+                <ListRow
+                  icon="message"
+                  title={`${data.messages_to_read} new message${data.messages_to_read === 1 ? '' : 's'} from students`}
+                  sub="About homework you set"
+                  onPress={() => go('/homework')}
+                />
+              </Card>
+            ) : null}
             {data.attendance.length ? (
               <>
                 <SectionLabel>Attendance to take</SectionLabel>
@@ -372,7 +382,9 @@ export function StaffHomeworkScreen() {
                   icon="book"
                   tint={hw.hand_ins.received ? 'marigold' : 'blue'}
                   title={hw.title}
-                  sub={`${hw.class_name} · ${hw.subject} · ${dueLabel(hw.due_date, bsToday())}`}
+                  sub={`${hw.class_name} · ${hw.subject} · ${dueLabel(hw.due_date, bsToday())}${
+                    hw.unread_messages ? ` · ${hw.unread_messages} new message${hw.unread_messages === 1 ? '' : 's'}` : ''
+                  }`}
                   onPress={() => go(`/homework/${hw.id}`)}
                   trailing={
                     hw.hand_ins.received ? (
@@ -550,6 +562,7 @@ export function NewHomeworkScreen() {
 
 export function HandInsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const go = useGo();
   const write = useWrite();
   const handIns = useApi<HandIns>(id ? `staff/homework/${id}/hand-ins` : null);
   const [remarks, setRemarks] = useState<Record<number, string>>({});
@@ -594,6 +607,25 @@ export function HandInsScreen() {
               </Card>
             ) : null}
             <FileList files={data.homework.files} />
+            {data.threads.length ? (
+              <>
+                <SectionLabel>Messages</SectionLabel>
+                <Card padded={false}>
+                  {data.threads.map((t, i) => (
+                    <View key={t.student_id}>
+                      {i ? <Divider inset={70} /> : null}
+                      <ListRow
+                        icon="message"
+                        title={t.student_name}
+                        sub={`${t.last.sender === 'teacher' ? 'You: ' : ''}${t.last.body}`.slice(0, 90)}
+                        onPress={() => go(`/homework/${id}/messages/${t.student_id}`)}
+                        trailing={t.unread ? <Chip label={`${t.unread} new`} tone="blue" /> : undefined}
+                      />
+                    </View>
+                  ))}
+                </Card>
+              </>
+            ) : null}
             {data.items.length ? <SectionLabel>Handed in</SectionLabel> : null}
             {data.items.map((item) => (
               <Card key={item.id}>
@@ -608,6 +640,7 @@ export function HandInsScreen() {
                   <Chip label={item.status === 'checked' ? 'Checked' : 'To check'} tone={item.status === 'checked' ? 'ok' : 'warn'} />
                 </View>
                 <FileList files={item.files} />
+                <Button title="Message" kind="quiet" icon="message" onPress={() => go(`/homework/${id}/messages/${item.student_id}`)} />
                 <Field
                   label="Remarks for the student"
                   value={remarks[item.id] ?? item.remarks ?? ''}
@@ -628,7 +661,14 @@ export function HandInsScreen() {
                   {data.missing.map((s, i) => (
                     <View key={s.id}>
                       {i ? <Divider inset={70} /> : null}
-                      <ListRow icon="student" tint="bad" title={s.name} sub={s.roll_no ? `Roll ${s.roll_no}` : undefined} />
+                      <ListRow
+                        icon="student"
+                        tint="bad"
+                        title={s.name}
+                        sub={s.roll_no ? `Roll ${s.roll_no}` : undefined}
+                        onPress={() => go(`/homework/${id}/messages/${s.id}`)}
+                        accessibilityLabel={`Message ${s.name}`}
+                      />
                     </View>
                   ))}
                 </Card>

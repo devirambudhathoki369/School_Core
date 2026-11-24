@@ -36,18 +36,23 @@ export function useApi<T>(
   });
 }
 
-/** A list in pages of 30: `items` is every page so far. */
-export function usePages<T>(path: string | null | undefined) {
+/** A list in pages of 30: `items` is every page so far. `refetchEvery`
+ *  asks again while the screen is open and the app is in front (ms). */
+export function usePages<T, P extends Page<T> = Page<T>>(
+  path: string | null | undefined,
+  options: { refetchEvery?: number } = {},
+) {
   const account = useActive();
   const query = useInfiniteQuery({
     queryKey: [account.id, path, 'pages'],
     queryFn: ({ pageParam }) => {
       const join = path!.includes('?') ? '&' : '?';
-      return api<Page<T>>(account.id, pageParam ? `${path}${join}cursor=${encodeURIComponent(pageParam)}` : path!);
+      return api<P>(account.id, pageParam ? `${path}${join}cursor=${encodeURIComponent(pageParam)}` : path!);
     },
     initialPageParam: '',
     getNextPageParam: (last) => last.next_cursor || undefined,
     enabled: !!path,
+    refetchInterval: options.refetchEvery,
   });
   return { ...query, items: query.data?.pages.flatMap((page) => page.items) ?? [] };
 }

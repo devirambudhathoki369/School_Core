@@ -50,7 +50,8 @@ export type IconName =
   | 'edit'
   | 'image'
   | 'bus'
-  | 'map-pin';
+  | 'map-pin'
+  | 'message';
 
 // Icons are decoration; the button or row around them carries the label.
 const HIDDEN =
@@ -322,6 +323,13 @@ function paths(name: IconName, fill: { fill: string; fillOpacity: number }) {
         <>
           <Path d="m22 2-7 20-4-9-9-4z" {...fill} />
           <Path d="M22 2 11 13" />
+        </>
+      );
+    case 'message':
+      return (
+        <>
+          <Path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" {...fill} />
+          <Path d="M8 8h8M8 12h5" />
         </>
       );
     case 'search':

@@ -5,6 +5,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { Platform, View } from 'react-native';
 
+import { useActive } from '@/accounts/store';
 import { useApi, usePages, useWrite } from '@/api/hooks';
 import { ApiError } from '@/api/client';
 import type { FileLink, Homework, HomeworkList } from '@/api/types';
@@ -24,8 +25,41 @@ function handInChip(hw: Homework) {
   return <Chip label={dueLabel(hw.due_date, bsToday())} tone="warn" />;
 }
 
+/** " · 2 new messages" for a student with unread teacher messages. */
+function newMessages(hw: Homework, role: string): string {
+  if (role !== 'student' || !hw.unread_messages) return '';
+  return ` · ${hw.unread_messages} new message${hw.unread_messages === 1 ? '' : 's'}`;
+}
+
+/** The way into the homework's messages with the teacher. Parents see it
+ *  once there is something to read. */
+function MessagesRow({ homework }: { homework: Homework }) {
+  const { role } = useActive();
+  const go = useGo();
+  const student = role === 'student';
+  if (!student && !homework.messages) return null;
+  const count = homework.messages ? `${homework.messages} message${homework.messages === 1 ? '' : 's'}` : null;
+  return (
+    <>
+      <SectionLabel>Messages</SectionLabel>
+      <Card padded={false}>
+        <ListRow
+          icon="message"
+          title={student ? `Ask ${homework.teacher || 'the teacher'}` : 'Messages with the teacher'}
+          sub={count ?? 'A question about this homework'}
+          onPress={() => go(`/homework/${homework.id}/messages`)}
+          trailing={
+            student && homework.unread_messages ? <Chip label={`${homework.unread_messages} new`} tone="blue" /> : undefined
+          }
+        />
+      </Card>
+    </>
+  );
+}
+
 export function ChildHomework({ root }: { root?: boolean }) {
   const { child } = useChild();
+  const { role } = useActive();
   const go = useGo();
   const [state, setState] = useState<'open' | 'past'>('open');
   const base = child ? `students/${child.id}/homework` : null;
@@ -67,7 +101,7 @@ export function ChildHomework({ root }: { root?: boolean }) {
                   icon="book"
                   tint={hw.hand_in ? 'ok' : 'blue'}
                   title={hw.title}
-                  sub={`${hw.subject} · due ${bsLong(hw.due_date)}`}
+                  sub={`${hw.subject} · due ${bsLong(hw.due_date)}${newMessages(hw, role)}`}
                   onPress={() => go(`/homework/${hw.id}`)}
                   trailing={handInChip(hw)}
                 />
@@ -175,6 +209,7 @@ export function HomeworkDetail() {
             <T>{homework.description}</T>
           </Card>
           <FileList files={homework.files} />
+          <MessagesRow homework={homework} />
           {homework.hand_in ? (
             <>
               <SectionLabel>Handed in</SectionLabel>
