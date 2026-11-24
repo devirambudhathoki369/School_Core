@@ -418,6 +418,18 @@ header is a navy panel with rounded lower corners. The tab bar is white,
 with a soft blue pill behind the current tab. Dark mode uses the same hues
 and is defined with the app foundation.
 
+Getting around:
+
+- **The tab bar stays under every screen of a role**, also the screens
+  opened from a tab (a receipt, a notice, a homework). The tab a screen was
+  opened from stays lit. Tapping a tab from such a screen closes it and opens
+  the tab, so Back never leads to a second copy of the tabs. Android hides
+  the bar while the keyboard is open.
+- **Tapping the tab already shown** scrolls it back to the top.
+- **Unsaved work is not lost by a tap.** Leaving attendance marks, a new
+  homework, a notice, a teacher's remark or picked hand-in files unsaved
+  asks first, whether by Back, a swipe or a tab.
+
 Rules every look keeps:
 
 - **No decorative dots.** No dot next to the name, before labels, or under

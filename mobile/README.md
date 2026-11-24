@@ -42,7 +42,7 @@ TypeScript, Expo Router) and has its own API on the backend,
 
 | Folder | What |
 |---|---|
-| `src/app/` | The routes: `welcome/`, then one folder per role (`student/`, `parent/`, `staff/`, `admin/`), each with its tabs in `(tabs)/` |
+| `src/app/` | The routes: `welcome/`, then one folder per role (`student/`, `parent/`, `staff/`, `admin/`), each with its tabs in `(tabs)/`. A role's `_layout.tsx` draws the bottom bar under all its screens (`src/ui/RoleTabs.tsx`) |
 | `src/screens/` | The screens, shared by the roles that use them |
 | `src/api/` | The client (tokens, refresh, idempotency keys), the hooks, and the generated types |
 | `src/accounts/` | The accounts signed in on the phone and switching between them |
