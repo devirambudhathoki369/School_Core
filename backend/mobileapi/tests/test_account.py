@@ -1,5 +1,5 @@
 """Closing an account from the app, and the OpenAPI schema (mobile/SPEC.md §5)."""
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from account.models import StaffAccount, StudentAccount
 from main.models.Guardian import Guardian
@@ -56,6 +56,11 @@ class CloseAccountTests(MobileTestMixin, WriteMixin, TestCase):
 
 
 class SchemaTests(MobileTestMixin, TestCase):
+    def test_production_does_not_hand_out_the_schema(self):
+        # Tests run with DEBUG off, as production does.
+        self.assertEqual(self.api().get("/api/mobile/v1/schema", {"format": "json"}).status_code, 404)
+
+    @override_settings(DEBUG=True)
     def test_every_endpoint_is_in_the_schema_with_its_answer(self):
         from mobileapi import urls
 

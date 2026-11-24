@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils.cache import add_never_cache_headers
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
@@ -36,6 +37,14 @@ class MobileAPIView(APIView):
                 status.HTTP_426_UPGRADE_REQUIRED,
             )
         super().initial(request, *args, **kwargs)
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        # Every answer here is one person's records (marks, fees, attendance)
+        # or their tokens, errors included: no proxy, CDN or HTTP cache on
+        # the phone may keep a copy.
+        add_never_cache_headers(response)
+        return response
 
 
 class PublicMobileView(MobileAPIView):

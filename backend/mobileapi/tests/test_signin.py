@@ -186,3 +186,27 @@ class TokenTests(MobileTestMixin, TestCase):
         self.assertEqual(self.error(answer), "update_required")
         self.assertEqual(self.api(HTTP_X_APP_VERSION="2.0.0").get("/api/mobile/v1/schools/ONE001").status_code, 200)
 
+
+
+class NoCacheTests(MobileTestMixin, TestCase):
+    """Tokens and one person's records must not be kept by a proxy, a CDN or
+    the phone's HTTP cache: every answer says no-store, refusals included."""
+
+    @classmethod
+    def setUpTestData(cls):
+        MobileFixtures.build(cls)
+
+    def test_no_answer_may_be_cached(self):
+        signed_in = self.sign_in()
+        self.assertEqual(signed_in.status_code, 200, signed_in.content)
+        token = signed_in.json()["tokens"]["access_token"]
+        answers = {
+            "sign-in": signed_in,
+            "wrong password": self.sign_in(password="not the password at all"),
+            "me": self.get("me", token),
+            "no token": self.get("me"),
+            "school lookup": self.get("schools/ONE001"),
+            "unknown school": self.get("schools/NOPE99"),
+        }
+        for name, answer in answers.items():
+            self.assertIn("no-store", answer.get("Cache-Control", ""), name)

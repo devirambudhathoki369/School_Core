@@ -5,6 +5,8 @@ The app's TypeScript types are generated from this schema
 (`mobile/src/api/schema.d.ts`, `npm run api-types`), so the app and the
 server cannot drift apart unnoticed. Each answer here has its own serializer.
 """
+from django.conf import settings
+from django.http import Http404
 from django.urls import include, path
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from drf_spectacular.utils import extend_schema
@@ -138,8 +140,18 @@ class ClosedOut(serializers.Serializer):
     message = serializers.CharField()
 
 
+# Set on the request by `manage.py mobile_schema`. A client cannot send it:
+# headers reach the request only as HTTP_* keys.
+SCHEMA_COMMAND = "mobileapi.schema_command"
+
+
 class MobileSchemaView(SpectacularAPIView):
-    """The schema covers this API only, not the portal's."""
+    """The schema covers this API only, not the portal's.
+
+    Served over HTTP only while DEBUG is on. In production it is not handed
+    out: the app's types are made from `manage.py mobile_schema`, which asks
+    the view directly.
+    """
 
     authentication_classes = ()
     permission_classes = ()
@@ -161,6 +173,8 @@ class MobileSchemaView(SpectacularAPIView):
 
     @extend_schema(exclude=True)
     def get(self, request, *args, **kwargs):
+        if not (settings.DEBUG or request.META.get(SCHEMA_COMMAND)):
+            raise Http404()
         from . import urls
 
         self.patterns = [path("api/mobile/v1/", include(urls.urlpatterns))]
