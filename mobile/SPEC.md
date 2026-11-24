@@ -252,6 +252,27 @@ revoked_at IS NULL` allows one live code per guardian.
   gone loses its token. Other errors go to the log and Sentry. A ticket is
   dropped after 24 hours, as Expo drops its receipts by then.
 
+### `main_homeworkmessage`
+
+A short message about one homework, between one student and the teacher who
+set it. A thread is (homework, student).
+
+| Column | Type | Rules |
+|---|---|---|
+| `id` | `bigint` | primary key |
+| `homework_id` | `bigint` | not null, references `main_homework`, cascade |
+| `student_id` | `bigint` | not null, references `main_student`, cascade; the student of the thread |
+| `staff_id` | `bigint` null | references `main_staff`, cascade; the teacher who wrote it, empty when the student wrote it |
+| `body` | `varchar(500)` | not null, `CHECK (body ~ '\S')`: not blank |
+| `created_at` | `timestamptz` | not null |
+| `read_at` | `timestamptz` null | when the other side first opened it; `CHECK (read_at IS NULL OR read_at >= created_at)` |
+
+Index `(homework_id, student_id, id)` for a thread, newest first. A trigger
+(migration `main/0122`) refuses a row whose student is not in the
+homework's school, or whose teacher is not the one who set the homework.
+Multiplicity: homework 1 — 0..* message 0..* — 1 student; staff 1 — 0..*
+message. It lives in `main`, so a school's backup carries it.
+
 ### Filling `main_guardian` from student records
 
 `manage.py link_guardians [--school ID] [--apply]` prints a report first and
@@ -325,6 +346,7 @@ Base `/api/mobile/v1/`. These conventions hold everywhere:
 | `GET /students/{id}/homework?state=open\|past` | parent, student | Homework with this student's hand-in |
 | `POST /students/{id}/homework/{hw}/hand-in` | parent, student | Hand in files (multipart; refused after the due date) |
 | `GET /students/{id}/results` · `…/results/{exam}` | parent, student | Published exams; one exam's marks |
+| `GET /students/{id}/homework/{hw}/messages` · `POST …` | student (read and write), parent (read only) | The student's thread with the teacher who set the homework (see Homework messages below) |
 | `GET /students/{id}/timetable` | parent, student | The class's periods with subjects and teachers |
 | `GET /students/{id}/bus` · `PUT /students/{id}/bus` | parent, student | The school's buses, the one the student rides first with where it is now; choose that bus, or none (see Bus below) |
 | `GET /notices` · `GET /calendar?from=&to=` | signed in | The school's notices and events |
@@ -334,6 +356,7 @@ Base `/api/mobile/v1/`. These conventions hold everywhere:
 | `PUT /staff/classes/{id}/attendance?date=` | staff 1501 (new) / 1502 (change) | Save the day's marks; can be sent later from the offline queue |
 | `GET /staff/homework` · `POST /staff/homework` | staff | Homework set by me; set new homework with files |
 | `GET /staff/homework/{id}/hand-ins` · `PATCH …/hand-ins/{hid}` | staff | Hand-ins; mark one checked, with remarks |
+| `GET /staff/homework/{hw}/messages/{student}` · `POST …` | the teacher who set it | One student's thread; write to any student of the class |
 | `GET /staff/me/attendance?month=` | staff | Own attendance |
 | `POST /notices` | staff 1651, admin | Publish a notice |
 | `GET /admin/dashboard?date=` | admin | Students present, staff present, fees collected today and this month, dues |
@@ -345,6 +368,26 @@ Base `/api/mobile/v1/`. These conventions hold everywhere:
 
 The admin's dashboard and student data reuse the portal's existing queries.
 None of its business rules are written twice.
+
+**Homework messages.** Short notes about one homework, not a chat app. One
+thread per homework and student, between that student and the teacher who
+set the homework; text only, 1 to 500 characters, at most 30 a day from each
+side of a thread (`429 too_many_messages`).
+- The student reads and writes their thread on any open or past homework of
+  their class. Their parents may read it, never write in it, so a teacher's
+  messages to a child are not hidden from the family.
+- The teacher reads every thread on their own homework, and writes to any
+  student of its class now, also first (a reminder to hand in). A student
+  who has left the class keeps the thread, to read only (`409 left_class`).
+- Nobody else sees a thread: another student, another teacher or the office
+  get `404`, as for any homework that is not theirs.
+- Opening a thread (its first page) marks what the other side wrote as read.
+  A parent opening it marks nothing. The counts show as `unread_messages` on
+  the student's homework, `unread_messages` on the teacher's homework,
+  `threads` on its hand-ins, and `messages_to_read` on the teacher's Today.
+- Each message is pushed to the other side's phones only (not to parents),
+  as `homework_message` with the homework and student, and the tap opens the
+  thread. While a thread is open the app asks again every 15 seconds.
 
 **Bus.** The portal already reads the school's buses from the GPS provider
 (`main/methods/busTracking.py`): the operator's links, the provider's groups
@@ -381,9 +424,9 @@ app is in front, and says "Seen 3 h ago" for an old position.
 
 | Role | Screens |
 |---|---|
-| Parent | Child switcher · Home · Attendance · Fees and receipts · Homework (hand in) · Results · Bus · Notices · Calendar · Child profile · Settings |
-| Student | Home · Timetable · Attendance · Homework (hand in) · Results · Bus · Fees · Notices · Calendar · Profile · Settings |
-| Staff | Today · My classes → take attendance · Homework (set, check hand-ins) · Notices (with permission) · My attendance · Settings |
+| Parent | Child switcher · Home · Attendance · Fees and receipts · Homework (hand in, read the teacher's messages) · Results · Bus · Notices · Calendar · Child profile · Settings |
+| Student | Home · Timetable · Attendance · Homework (hand in, ask the teacher) · Results · Bus · Fees · Notices · Calendar · Profile · Settings |
+| Staff | Today · My classes → take attendance · Homework (set, check hand-ins, answer students) · Notices (with permission) · My attendance · Settings |
 | School admin | Dashboard · Students → student · Fees (dues, collections) · Staff (who is in) · Parents (review links, family codes) · Notices · Settings |
 
 Settings has the app lock, the phones signed in, sign out, sign out
