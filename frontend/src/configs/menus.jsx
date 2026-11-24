@@ -11,7 +11,7 @@ import {
     ChatBubbleLeftRightIcon, CreditCardIcon, TableCellsIcon, IdentificationIcon, UserIcon, CakeIcon,
     SquaresPlusIcon, ChartPieIcon, QuestionMarkCircleIcon, AcademicCapIcon, BanknotesIcon,
     BellAlertIcon, ReceiptPercentIcon, DevicePhoneMobileIcon, BuildingLibraryIcon,
-    CameraIcon, SwatchIcon, PaintBrushIcon,
+    CameraIcon, SwatchIcon,
     CheckBadgeIcon, QueueListIcon,
     CalendarIcon, ChartBarSquareIcon, DocumentMagnifyingGlassIcon,
     CircleStackIcon,
@@ -466,7 +466,6 @@ const superAdminMenu = [
             { name: "Library sharing", prefix: <BuildingLibraryIcon className="icon" />, view: 'library-access' },
         ]
     },
-    { section: "Schools", name: "Interface Theme", view: 'ui-theme', prefix: <PaintBrushIcon className="icon" /> },
     {
         section: "Schools",
         name: "ID Card", view: "cards",

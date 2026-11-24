@@ -98,7 +98,6 @@ const SCHOOL = {
 
 const SUPERADMIN = {
     'setup.client': "The schools on SchoolCore, and what each one has.",
-    'ui-theme': "The colours each school's screens are drawn in.",
     'database-backup': "Download a backup of a school's data.",
     'my-password': "Change your own password.",
 };

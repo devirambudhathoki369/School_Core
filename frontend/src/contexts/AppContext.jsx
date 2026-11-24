@@ -12,7 +12,7 @@ import { createContext, useContext, useCallback, useEffect, useState } from "rea
 import TempStateContextProvider from "./TempStateContext";
 import { options, gradeOptions2, yearOptions, semesterOptions } from "@/components/inputs/options/education";
 import { enableSentry, disableSentry } from "@/methods/sentry-setup";
-import { applyTheme, safeTheme, UI_THEME_CONSOLE } from "@/configs/uiThemes";
+import { applyTheme, UI_THEME_CLASSIC, UI_THEME_CONSOLE } from "@/configs/uiThemes";
 import { filterViewsByModules, menuAccessKey, moduleAllowed } from "@/configs/moduleGates";
 
 const AppContext = createContext({});
@@ -91,20 +91,13 @@ const AppContextProvider = ({ children }) => {
     const [facultyNames, setFacultyNames] = useState({});
     const [classes, setClasses] = useState([]); // formatted classes according to grade/faculties;
 
-    // The school's interface theme. It arrives with the profile rather than in
-    // a request of its own, so the first painted screen is already in the right
-    // colours instead of flashing one palette and correcting itself. A school
-    // on classic (the default, and anyone who has never been touched) resolves
-    // to no attribute at all, which is what keeps the stylesheet's themed rules
-    // from matching them.
-    // A superadmin has no school and therefore no profile theme. The console
-    // used to fall back to Classic (a per-operator localStorage preference that
-    // defaulted there), which meant the one screen that acts ACROSS schools was
-    // also the one screen wearing no design at all. It now has a palette of its
-    // own — graphite rail, indigo accent — applied permanently, so the console
-    // is instantly distinguishable from any school and cannot drift per machine.
+    // One look for every school: the Himalayan blue of the mobile app. A school
+    // no longer has a theme of its own, so nothing here waits for the profile.
+    // The superadmin's console keeps its own key -- the same blue on a deeper
+    // navy menu -- so the one screen that acts ACROSS schools is still told
+    // apart from any school at a glance.
     const isConsole = user?.role === "superuser" || user?.role === "superadmin";
-    const uiTheme = isConsole ? UI_THEME_CONSOLE : safeTheme(user?.profile?.ui_theme);
+    const uiTheme = isConsole ? UI_THEME_CONSOLE : UI_THEME_CLASSIC;
     useEffect(() => {
         if (typeof document === "undefined") return;
         applyTheme(document.documentElement, uiTheme);

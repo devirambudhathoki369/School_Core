@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SkeletonCards, SkeletonText } from "@/components/Skeleton";
 import Link from "@/components/PortalLink";
 import {
-    BuildingOffice2Icon, SwatchIcon, PaintBrushIcon, CalendarIcon, CalendarDaysIcon,
+    BuildingOffice2Icon, SwatchIcon, CalendarIcon, CalendarDaysIcon,
     UserIcon, CpuChipIcon, BellAlertIcon, AcademicCapIcon, ChartBarIcon, CheckCircleIcon,
     ArrowUturnLeftIcon, IdentificationIcon, BanknotesIcon, ExclamationTriangleIcon,
     DevicePhoneMobileIcon, ClockIcon,
@@ -10,7 +10,6 @@ import {
 
 import { useAppContext } from "@/contexts/AppContext";
 import { getSchoolAdmins } from "@/services/functions/schools";
-import { themeMeta, UI_THEMES } from "@/configs/uiThemes";
 import { SCHOOL_MODULES } from "@/configs/moduleGates";
 import { Tile, Meter, bsDateLong } from "@/components/views/reports/dashboards/school/Today";
 
@@ -36,7 +35,6 @@ const ROUTINE = [
     { name: "Splash Notice", view: "setup.splash", Icon: BellAlertIcon },
     { name: "Education Levels", view: "setup.education-levels", Icon: AcademicCapIcon },
     { name: "Grade sheet style", view: "setup.gradesheet-style", Icon: SwatchIcon },
-    { name: "Interface Theme", view: "ui-theme", Icon: PaintBrushIcon },
     { name: "Shareholders", view: "setup.shareholders", Icon: BanknotesIcon },
     { name: "ID Cards", view: "cards.download", Icon: IdentificationIcon },
     { name: "School Statistics", view: "analysis.statistics", Icon: ChartBarIcon },
@@ -77,7 +75,7 @@ function greeting(hour) {
 /** One series of counts, ranked: bars from a single baseline in the accent,
  *  the count and share at the tip. Every figure is printed — this list is
  *  its own table view. */
-function RankedBars({ id, title, sub, rows, total, swatch }) {
+function RankedBars({ id, title, sub, rows, total }) {
     const most = Math.max(1, ...rows.map((r) => r.n));
     return (
         <section aria-labelledby={id} className="app-panel flex h-full flex-col gap-4 rounded-xl bg-white p-5 sm:px-6">
@@ -97,7 +95,6 @@ function RankedBars({ id, title, sub, rows, total, swatch }) {
                             <tr key={r.key} className="app-dash-class">
                                 <th scope="row" className="w-[9.5rem] py-[5px] pr-3 text-left text-[0.8125rem] font-normal text-[var(--ink-700)]">
                                     <span className="flex min-w-0 items-center gap-2">
-                                        {swatch && <span className="h-3 w-3 shrink-0 rounded-[3px] border border-[rgb(17_24_39/.12)]" style={{ background: r.swatch }} aria-hidden="true" />}
                                         <span className="truncate" title={r.label}>{r.label}</span>
                                     </span>
                                 </th>
@@ -191,17 +188,8 @@ function SuperAdminDashboard() {
         const facilities = FACILITIES
             .map(({ flag, label }) => ({ key: flag, label, n: live.filter((s) => s[flag]).length }))
             .sort((a, b) => b.n - a.n);
-        // A key no theme names (hand-typed, or retired) is drawn as Core, as the app draws it.
-        const byTheme = live.reduce((acc, s) => {
-            const key = themeMeta(s.ui_theme).value;
-            acc[key] = (acc[key] || 0) + 1;
-            return acc;
-        }, {});
-        const themes = UI_THEMES
-            .map((t) => ({ key: t.value, label: t.name, n: byTheme[t.value] || 0, swatch: t.swatches[0] }))
-            .sort((a, b) => b.n - a.n);
         const onApp = live.filter((s) => s.uses_mobile_app).length;
-        return { live, tests: schools.length - live.length, lapsed, dueSoon, facilities, themes, onApp };
+        return { live, tests: schools.length - live.length, lapsed, dueSoon, facilities, onApp };
     }, [schools, today]);
 
     if (!facts) {
@@ -215,7 +203,7 @@ function SuperAdminDashboard() {
         );
     }
 
-    const { live, tests, lapsed, dueSoon, facilities, themes, onApp } = facts;
+    const { live, tests, lapsed, dueSoon, facilities, onApp } = facts;
     const nextDue = dueSoon[0];
     return (
         <div className="app-dash mb-5 flex flex-col gap-y-4">
@@ -269,10 +257,6 @@ function SuperAdminDashboard() {
                     <Renewals lapsed={lapsed} dueSoon={dueSoon} />
                 </div>
             </div>
-
-            <RankedBars id="sa-themes" title="Themes in use" swatch
-                sub={`Live schools on each interface theme, of ${live.length}`}
-                rows={themes} total={live.length} />
 
             <section className="app-panel rounded-xl bg-white p-5 sm:px-6" aria-labelledby="sa-links">
                 <h2 id="sa-links" className="mb-3 text-[1rem] font-semibold leading-6 text-[var(--ink-900)]">Quick links</h2>

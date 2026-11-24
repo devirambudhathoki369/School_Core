@@ -19,7 +19,6 @@ const SplashManagement = dynamic(() => import("@/components/views/superadmin/spl
 const EducationLevelVisibility = dynamic(() => import("@/components/views/superadmin/education_levels"));
 const GradesheetStyles = dynamic(() => import("@/components/views/superadmin/document_styles"));
 const IDCardDesigns = dynamic(() => import("@/components/views/superadmin/idcard_templates"));
-const InterfaceTheme = dynamic(() => import("@/components/views/superadmin/ui_theme"));
 const LibraryAccess = dynamic(() => import("@/components/views/superadmin/library_access"));
 const SchoolFiscalYears = dynamic(() => import("@/components/views/superadmin/fiscal_years"));
 const SupportDetails = dynamic(() => import("@/components/views/superadmin/support"));
@@ -60,7 +59,6 @@ const superAdminViews = {
     'setup.education-levels': <EducationLevelVisibility />,
     'setup.gradesheet-style': <GradesheetStyles />,
     'setup.idcard-design': <IDCardDesigns />,
-    'ui-theme': <InterfaceTheme />,
     // the signed-in superadmin's own password
     'my-password': <MyPassword />,
     // help centre content, read by every school
