@@ -20,13 +20,26 @@ class ResetUsersContextMiddleware:
         return self.get_response(request)
 
 
+# No page or answer of this server uses the camera, microphone, location or
+# payments; the mobile app asks the phone itself, not through this origin.
+PERMISSIONS_POLICY = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+# A JSON answer is data, never a page: nothing in it may load, run or frame.
+JSON_CSP = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+
+
 class AuthResponseSecurityMiddleware:
-    """Dynamic school records and credentials must never enter shared caches."""
+    """Dynamic school records and credentials must never enter shared caches,
+    and every answer carries the headers that keep a browser from doing more
+    with it than showing it."""
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
         response = self.get_response(request)
+        response.setdefault("Permissions-Policy", PERMISSIONS_POLICY)
+        response.setdefault("X-Content-Type-Options", "nosniff")
+        if response.get("Content-Type", "").startswith("application/json"):
+            response.setdefault("Content-Security-Policy", JSON_CSP)
         if request.path.startswith(("/auth/", "/api/", "/accounting/", "/library/",
                                     "/hostel/", "/canteen/", "/extra-billing/", "/rfid/", "/iclock/")):
             # A view that already said no-store keeps its own wording.
