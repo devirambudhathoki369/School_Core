@@ -312,6 +312,10 @@ Base `/api/mobile/v1/`. These conventions hold everywhere:
   `MOBILE_MIN_APP_VERSION` gets `426 update_required`.
 - Every POST, PUT and PATCH takes an `Idempotency-Key`. A repeat within 24
   hours returns the first answer.
+- Every path has a rate limit: 600 requests a minute per phone, of which 120
+  writes, and tighter ones on sign-ins, codes and homework messages
+  (`backend/docs/RATE_LIMITS.md`). Over it the answer is `429 rate_limited`
+  with `Retry-After`.
 - Every `/students/{id}/…` path checks access first: a parent needs a state-1
   link, and a student may open only their own record.
 - Every staff path checks the same permission ids the portal uses
