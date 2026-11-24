@@ -12,7 +12,7 @@ from django.db.models import DecimalField, OuterRef, Q, Subquery, Sum, Value
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework.response import Response
 
 from main.methods.collections import collection_totals
@@ -631,6 +631,15 @@ class GuardianFamilyCodeView(MobileAPIView):
         guardian = Guardian.objects.filter(pk=guardian_id, school=school_id, is_active=True).first()
         if guardian is None:
             raise not_found("That parent was not found.")
+        if guardian.email and "admin" not in perms:
+            # A code for a parent who has joined moves their sign-in to
+            # another email. That stays with the school office: staff who
+            # may update records (102) could otherwise take a parent's
+            # account and see the dues their own permissions don't (103).
+            raise MobileError(
+                "parent_joined", "This parent has already joined. Only the school office can move them to another email.",
+                status.HTTP_403_FORBIDDEN,
+            )
         if "admin" in perms:
             code = issue_family_code(guardian, admin=request.auth.account)
         else:

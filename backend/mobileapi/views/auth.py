@@ -19,7 +19,8 @@ from main.models.Guardian import Guardian
 from ..auth import linked_students, still_at_school
 from ..errors import MobileError
 from ..guardians import normalize_family_code
-from ..mail import CODE_MINUTES, send_code
+from .. import mail
+from ..mail import CODE_MINUTES, send_code, send_moved_notice
 from ..models import AppSession, EmailCode, FamilyCode
 from ..profiles import me_payload, school_payload
 from ..schema import CodeSentOut, ErrorOut, RefreshedOut, SchoolLookupOut, SignedInOut
@@ -111,11 +112,11 @@ def _code_sent(email):
     )
 
 
-def _new_code(guardian, email, purpose) -> str:
+def _new_code(guardian, email, purpose, family_code=None) -> str:
     code = f"{secrets.randbelow(10 ** 6):06d}"
     now = timezone.now()
     EmailCode.objects.create(
-        guardian=guardian, email=email, purpose=purpose, code_hash=code_hash(code),
+        guardian=guardian, email=email, purpose=purpose, code_hash=code_hash(code), family_code=family_code,
         created_at=now, expires_at=now + timedelta(minutes=CODE_MINUTES),
     )
     return code
@@ -136,7 +137,8 @@ class ParentCodeView(PublicMobileView):
         reserve_email_send(email)
         guardian = Guardian.objects.filter(school=school, email=email, is_active=True).first()
         if guardian is not None and linked_students(guardian).exists():
-            send_code(email, _new_code(guardian, email, EmailCode.SIGN_IN), school.name, adding_email=False)
+            mail.send_later(send_code, email, _new_code(guardian, email, EmailCode.SIGN_IN), school.name,
+                            adding_email=False)
         return _code_sent(email)
 
 
@@ -164,10 +166,11 @@ class FamilyCodeView(PublicMobileView):
             )
             .first()
         )
-        if entry is not None and entry.issued_by_student_id and entry.guardian.email:
-            # A student's invite is for a parent who has not joined. Once the
-            # parent has an email (the office or the backfill added one while
-            # the invite was still open), it must not move their sign-in.
+        if entry is not None and not entry.issued_by_admin_id and entry.guardian.email:
+            # A code from a student or staff is for a parent who has not
+            # joined. Once the parent has an email (the office or the backfill
+            # added one while the code was still open), only the school
+            # office's code may move their sign-in.
             entry = None
         if entry is None:
             raise MobileError(
@@ -179,7 +182,8 @@ class FamilyCodeView(PublicMobileView):
                 "email_taken", "Another parent at this school already uses this email.", status.HTTP_409_CONFLICT,
             )
         reserve_email_send(email)
-        send_code(email, _new_code(entry.guardian, email, EmailCode.ADD_EMAIL), school.name, adding_email=True)
+        mail.send_later(send_code, email, _new_code(entry.guardian, email, EmailCode.ADD_EMAIL, family_code=entry),
+                        school.name, adding_email=True)
         return _code_sent(email)
 
 
@@ -222,6 +226,25 @@ class ParentVerifyView(PublicMobileView):
         if entry.purpose == EmailCode.ADD_EMAIL:
             try:
                 with transaction.atomic():
+                    held = (
+                        Guardian.objects.select_for_update().filter(pk=guardian.pk)
+                        .values_list("email", flat=True).first()
+                    )
+                    # The family code this email code came from must still
+                    # stand: not used, replaced or cancelled since, and, unless
+                    # the school office made it, the parent must still have no
+                    # email.
+                    family_code = (
+                        FamilyCode.objects.select_for_update()
+                        .filter(pk=entry.family_code_id, guardian=guardian, used_at__isnull=True,
+                                revoked_at__isnull=True, expires_at__gt=now)
+                        .first()
+                    )
+                    if family_code is None or (not family_code.issued_by_admin_id and held):
+                        raise MobileError(
+                            "wrong_family_code",
+                            "That family code no longer works. Ask the school for a new one.",
+                        )
                     Guardian.objects.filter(pk=guardian.pk).update(email=email, updated_at=now)
                     FamilyCode.objects.filter(guardian=guardian, used_at__isnull=True, revoked_at__isnull=True).update(
                         used_at=now
@@ -234,6 +257,9 @@ class ParentVerifyView(PublicMobileView):
                     "email_taken", "Another parent at this school already uses this email.", status.HTTP_409_CONFLICT,
                 )
             guardian.email = email
+            if held and held != email:
+                # whoever had the old address hears that it no longer signs in
+                mail.send_later(send_moved_notice, held, school.name)
         if not guardian.is_active or not linked_students(guardian).exists():
             raise MobileError(
                 "no_children", "No student is linked to you yet. Please contact the school.",

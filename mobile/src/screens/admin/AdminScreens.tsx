@@ -153,6 +153,8 @@ export function AdminStudentsScreen({ root = true }: { root?: boolean }) {
 export function AdminStudentScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const write = useWrite();
+  // a parent who has joined is moved to another email by the school office only
+  const office = useActive().role === 'admin';
   const student = useApi<AdminStudent>(id ? `admin/students/${id}` : null);
   const [code, setCode] = useState<FamilyCode | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
@@ -207,15 +209,19 @@ export function AdminStudentScreen() {
                       tone={g.state === 'linked' ? 'ok' : g.state === 'review' ? 'warn' : 'bad'}
                     />
                   </View>
-                  {g.state === 'linked' ? (
+                  {g.state !== 'linked' ? null : g.email && !office ? (
+                    <T v="small" tone="quiet">
+                      Has joined with their email. Only the school office can move them to another email.
+                    </T>
+                  ) : (
                     <Button
-                      title={g.email ? 'Make a family code' : 'Make a family code (no email yet)'}
+                      title={g.email ? 'Move to a new email (family code)' : 'Make a family code (no email yet)'}
                       kind="secondary"
                       icon="key"
                       busy={busy === g.guardian_id}
                       onPress={() => void makeCode(g.guardian_id)}
                     />
-                  ) : null}
+                  )}
                 </Card>
               ))
             ) : (

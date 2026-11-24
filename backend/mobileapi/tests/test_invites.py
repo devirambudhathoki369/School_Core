@@ -61,6 +61,29 @@ class InviteTests(MobileTestMixin, WriteMixin, TestCase):
         self.assertEqual(self.error(answer), "wrong_family_code")
         self.assertEqual(Guardian.objects.get(pk=self.guardian.pk).email, "dad@example.com")
 
+    def test_the_invite_is_checked_again_when_the_email_code_is_used(self):
+        code = self.invite().json()["code"]
+        sent = self.post("auth/parent/family-code", {"school_code": "ONE001", "email": "kid@example.com",
+                                                     "family_code": code})
+        self.assertEqual(sent.status_code, 202)
+        emailed = re.search(r"\b(\d{6})\b", mail.outbox[-1].body).group(1)
+        # within those 10 minutes the office adds the parent's own email
+        Guardian.objects.filter(pk=self.guardian.pk).update(email="dad@example.com")
+        answer = self.post("auth/parent/verify", {"school_code": "ONE001", "email": "kid@example.com",
+                                                  "code": emailed, "device": DEVICE})
+        self.assertEqual(self.error(answer), "wrong_family_code")
+        self.assertEqual(Guardian.objects.get(pk=self.guardian.pk).email, "dad@example.com")
+
+    def test_a_replaced_family_code_takes_its_email_code_with_it(self):
+        code = self.invite().json()["code"]
+        self.post("auth/parent/family-code", {"school_code": "ONE001", "email": "mum@example.com", "family_code": code})
+        emailed = re.search(r"\b(\d{6})\b", mail.outbox[-1].body).group(1)
+        self.invite()  # a new invite cancels the one that code came from
+        answer = self.post("auth/parent/verify", {"school_code": "ONE001", "email": "mum@example.com",
+                                                  "code": emailed, "device": DEVICE})
+        self.assertEqual(self.error(answer), "wrong_family_code")
+        self.assertIsNone(Guardian.objects.get(pk=self.guardian.pk).email)
+
     def test_the_offices_code_moves_the_parent_to_a_new_email_and_signs_out_the_old_one(self):
         Guardian.objects.filter(pk=self.guardian.pk).update(email="old@example.com")
         old = session_token(AppSession.PARENT, self.guardian, self.school)
@@ -71,6 +94,10 @@ class InviteTests(MobileTestMixin, WriteMixin, TestCase):
         self.assertEqual(self.get("me", old).status_code, 401)
         self.assertEqual(AppSession.objects.filter(guardian=self.guardian, revoked_at__isnull=True).count(), 1)
         self.assertEqual(Guardian.objects.get(pk=self.guardian.pk).email, "new@example.com")
+        # the old address is told
+        notice = mail.outbox[-1]
+        self.assertEqual(notice.to, ["old@example.com"])
+        self.assertIn("was moved", notice.subject)
 
     def test_a_new_invite_cancels_the_last(self):
         self.invite()

@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.core.cache import cache
 from rest_framework.test import APIClient
 
@@ -69,6 +71,11 @@ class MobileTestMixin:
         cache.clear()
         self.addCleanup(cache.clear)
         self.addCleanup(users_context.set, None)
+        # emails go off the request thread in the server; here, at once, so
+        # a test can read them as soon as the request answers
+        patcher = mock.patch("mobileapi.mail.send_later", side_effect=lambda send, *a, **k: send(*a, **k))
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def api(self, token=None, **headers):
         client = APIClient(**headers)

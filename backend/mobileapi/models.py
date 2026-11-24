@@ -156,6 +156,12 @@ class EmailCode(Model):
     expires_at = DateTimeField()
     attempts = SmallIntegerField(default=0)
     consumed_at = DateTimeField(null=True, blank=True)
+    # The family code an "add this email" code came from. It must still stand
+    # when the emailed code is entered: one cancelled or replaced meanwhile
+    # (a leaked invite, say) takes its email codes with it.
+    family_code = ForeignKey(
+        "FamilyCode", on_delete=CASCADE, null=True, blank=True, related_name="email_codes"
+    )
 
     class Meta:
         db_table = "mobileapi_emailcode"
@@ -168,6 +174,11 @@ class EmailCode(Model):
             CheckConstraint(condition=Q(code_hash__regex=HASH_REGEX), name="mobileapi_emailcode_hash_format"),
             CheckConstraint(condition=Q(expires_at__gt=F("created_at")), name="mobileapi_emailcode_expiry"),
             CheckConstraint(condition=Q(attempts__gte=0, attempts__lte=5), name="mobileapi_emailcode_attempts"),
+            # a sign-in code has no family code; an add-this-email code has one
+            CheckConstraint(
+                condition=Q(purpose=1, family_code__isnull=True) | Q(purpose=2, family_code__isnull=False),
+                name="mobileapi_emailcode_family_code",
+            ),
         ]
 
 

@@ -202,12 +202,34 @@ class StaffFamilyCodeTests(AdminFixtures, TestCase):
         detail = self.get(f"admin/students/{self.student.id}", self.staff_token).json()
         self.assertIsNone(detail["dues"])  # dues stay with the payments permission
         self.assertEqual([g["guardian_id"] for g in detail["guardians"]], [self.guardian.id])
+        Guardian.objects.filter(pk=self.guardian.pk).update(email=None)  # not joined yet
         answer = self.write("post", f"admin/guardians/{self.guardian.id}/family-code", {}, self.staff_token)
         self.assertEqual(answer.status_code, 201, answer.content)
         entry = FamilyCode.objects.get(guardian=self.guardian, revoked_at__isnull=True)
         self.assertEqual((entry.issued_by_staff_id, entry.issued_by_admin_id), (self.staff_account.id, None))
         # the rest of the admin's screens stay the admin's
         self.assertEqual(self.get("admin/dashboard", self.staff_token).status_code, 403)
+
+    def test_moving_a_joined_parent_to_another_email_stays_with_the_office(self):
+        self.allow(102)  # may update records, but not see dues (103)
+        answer = self.write("post", f"admin/guardians/{self.guardian.id}/family-code", {}, self.staff_token)
+        self.assertEqual(answer.status_code, 403)
+        self.assertEqual(self.error(answer), "parent_joined")
+        self.assertFalse(FamilyCode.objects.filter(guardian=self.guardian).exists())
+        # the school office can
+        self.assertEqual(self.write("post", f"admin/guardians/{self.guardian.id}/family-code", {},
+                                    self.admin_token).status_code, 201)
+
+    def test_a_staff_code_stops_once_the_parent_has_an_email(self):
+        self.allow(102)
+        Guardian.objects.filter(pk=self.guardian.pk).update(email=None)
+        code = self.write("post", f"admin/guardians/{self.guardian.id}/family-code", {}, self.staff_token).json()["code"]
+        # while it is open, the backfill puts the parent's own email on record
+        Guardian.objects.filter(pk=self.guardian.pk).update(email="parent@example.com")
+        answer = self.post("auth/parent/family-code", {"school_code": "ONE001", "email": "staff@example.com",
+                                                       "family_code": code})
+        self.assertEqual(self.error(answer), "wrong_family_code")
+        self.assertEqual(Guardian.objects.get(pk=self.guardian.pk).email, "parent@example.com")
 
     def test_staff_with_103_as_well_see_the_dues(self):
         self.allow(102, 103)
