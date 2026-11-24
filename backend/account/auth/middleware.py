@@ -1,3 +1,5 @@
+from django.http import HttpResponseBadRequest
+
 from .context import users_context
 
 
@@ -35,7 +37,13 @@ class AuthResponseSecurityMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        response = self.get_response(request)
+        # A NUL character is never part of a real address or query, and
+        # PostgreSQL cannot store or compare one: refused here for every route
+        # instead of failing inside whichever view reads it.
+        if "\x00" in request.path or "%00" in request.META.get("QUERY_STRING", "").lower():
+            response = HttpResponseBadRequest("Invalid characters in the request.", content_type="text/plain")
+        else:
+            response = self.get_response(request)
         response.setdefault("Permissions-Policy", PERMISSIONS_POLICY)
         response.setdefault("X-Content-Type-Options", "nosniff")
         if response.get("Content-Type", "").startswith("application/json"):

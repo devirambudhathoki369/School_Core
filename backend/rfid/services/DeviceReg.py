@@ -102,7 +102,8 @@ class DeviceRegistry:
         if not body:
             return
         try:
-            text = body.decode("utf-8", errors="replace").strip()
+            # NUL never belongs in it, and PostgreSQL cannot store it
+            text = body.decode("utf-8", errors="replace").replace("\x00", "").strip()
         except Exception:
             return
         if not text:

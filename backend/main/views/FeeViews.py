@@ -104,9 +104,10 @@ class FeeView(SecuredAPIView):
                     {"message": "Failed duplicate setup!"},
                     status=status.HTTP_409_CONFLICT,
                 )
+        # what was sent did not make a fee: the caller's to fix, not the server's
         return Response(
-            {"message": "Fee save failed!"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            {"message": "Fee save failed!", "errors": s.errors},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
     @swagger_auto_schema(**FEES_API["put"], request_body=FeeSerializer)
@@ -204,7 +205,10 @@ class FeeTitleView(SecuredAPIView):
                     "title": {"id": ins.id, "title": ins.title, "months": ins.months},
                 }
             )
-        return Response({"message": "Fee title save failed!"})
+        return Response(
+            {"message": "Fee title save failed!", "errors": s.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     @swagger_auto_schema(**FEE_TITLES_API["put"], request_body=FeeTitleSerializer)
     def put(self, request):

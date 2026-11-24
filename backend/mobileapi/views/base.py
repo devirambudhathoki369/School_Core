@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.utils.cache import add_never_cache_headers
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import SAFE_METHODS, AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from main.models.SchoolAdmin import SchoolAdmin
@@ -37,6 +37,10 @@ class MobileAPIView(APIView):
                 status.HTTP_426_UPGRADE_REQUIRED,
             )
         super().initial(request, *args, **kwargs)
+        # Every write here takes one object (JSON, or a form with files): a
+        # list, a string or a number is refused before any view reads it.
+        if request.method not in SAFE_METHODS and not isinstance(request.data, dict):
+            raise MobileError("invalid", "Send the request as one JSON object.")
 
     def finalize_response(self, request, response, *args, **kwargs):
         response = super().finalize_response(request, response, *args, **kwargs)

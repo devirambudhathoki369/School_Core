@@ -122,7 +122,7 @@ def devicecmd(request):
         return HttpResponseBadRequest("missing SN")
     device = DeviceRegistry.touch(sn, request)
 
-    for raw in request.body.decode("utf-8", errors="replace").splitlines():
+    for raw in request.body.decode("utf-8", errors="replace").replace("\x00", "").splitlines():
         line = raw.strip()
         if not line:
             continue
@@ -228,14 +228,14 @@ def querydata(request):
         # how the device reports its own door and reader configuration, and
         # reading that back is the difference between diagnosing how a
         # controller is wired and guessing at it.
-        summary = {"options": (request.body or b"").decode("utf-8", "replace")[:1500]}
+        summary = {"options": (request.body or b"").decode("utf-8", "replace").replace("\x00", "")[:1500]}
     elif tablename:
         # Any other table a panel is asked for — reader/door properties, card
         # formats. We do not act on these, but keeping a bounded sample is what
         # makes a controller's own configuration readable instead of inferred.
         summary = {
             "table": tablename,
-            "sample": (request.body or b"").decode("utf-8", "replace")[:1200],
+            "sample": (request.body or b"").decode("utf-8", "replace").replace("\x00", "")[:1200],
         }
 
     # The panel splits big tables across packets and re-sends until every one

@@ -1,8 +1,11 @@
 """The helpers every endpoint leans on: BS dates, months, money and paging."""
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
 from mobileapi.access import _decode, _encode, bs_date, bs_month, month_names, paisa
 from mobileapi.errors import MobileError
+from mobileapi.models import AppSession
+
+from .helpers import MobileFixtures, MobileTestMixin, WriteMixin, session_token
 
 
 class BsDateTests(SimpleTestCase):
@@ -53,3 +56,19 @@ class MoneyAndPagingTests(SimpleTestCase):
         self.assertEqual(_decode(_encode(1234)), 1234)
         with self.assertRaises(MobileError):
             _decode("not-base64!!")
+
+
+class ObjectBodyTests(MobileTestMixin, WriteMixin, TestCase):
+    """Every write takes one object: a list, a string or a number is refused
+    before any view reads it (it was a 500 on setting homework)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        MobileFixtures.build(cls)
+        cls.teacher_token = session_token(AppSession.STAFF, cls.staff_account, cls.school)
+
+    def test_a_write_that_is_not_an_object_is_refused(self):
+        for body in ([], "x", 7):
+            with self.subTest(body=body):
+                answer = self.write("post", "staff/homework", body, self.teacher_token)
+                self.assertEqual((answer.status_code, self.error(answer)), (400, "invalid"))

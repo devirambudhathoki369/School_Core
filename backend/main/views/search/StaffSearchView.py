@@ -75,7 +75,7 @@ class StaffSearchView(BaseSearchView):
         class_info_id = request.data.get("class_info")
         include_images = request.data.pop("include_images", False)
         include_rfid_card = request.data.pop("include_rfid_card", False)
-        detailed = request.data.pop("detailed", False)
+        request.data.pop("detailed", None)  # no longer changes the answer; see below
         contact = request.data.pop("contact", False)
         address = request.data.pop("address", False)
         finance = request.data.pop("finance", False)
@@ -169,11 +169,11 @@ class StaffSearchView(BaseSearchView):
             RETURN_FIELDS += ("image",)
         if include_rfid_card:
             RETURN_FIELDS += ("rfid_card",)
-        if detailed:
-            pass
-        else:
-            RETURN_FIELDS += self.RETURN_FIELDS
-            staffs = staffs.values(*RETURN_FIELDS)
+        # Always the named fields only. `detailed` used to skip this and hand
+        # back whole Staff rows, which could not be turned into JSON (a 500)
+        # and would have sent every column if they could. No caller sends it.
+        RETURN_FIELDS += self.RETURN_FIELDS
+        staffs = staffs.values(*RETURN_FIELDS)
         return Response(staffs)
 
     def _includeBalance(self, school_id, staffs, economic_year):
@@ -211,10 +211,11 @@ class StaffSearchView(BaseSearchView):
             )
             .values("total")[:1]
         )
+        zero = Value(0, output_field=DecimalField())
         return staffs.annotate(
-            total_credit=Coalesce(ledger_total_sq, Value(0)),
-            total_debit=Coalesce(invoice_total_sq, Value(0)),
-            total_deductions=Coalesce(deduction_total_sq, Value(0)),
+            total_credit=Coalesce(ledger_total_sq, zero),
+            total_debit=Coalesce(invoice_total_sq, zero),
+            total_deductions=Coalesce(deduction_total_sq, zero),
             balance=Coalesce(
                 (F("total_credit") - F("total_debit") - F("total_deductions")),
                 Value(0),

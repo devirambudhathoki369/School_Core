@@ -36,6 +36,7 @@ class CharacterCertificateView(SecuredAPIView):
                 for cert in certificates
             ]
             return paginator.get_paginated_response(certificates)
+        return self.RESPONSE__INVALID_REQUEST
 
     def post(self, request):
         s = CharacterCertificateSerializer(data=request.data)

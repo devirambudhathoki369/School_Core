@@ -16,7 +16,8 @@ PANEL_TZ = ZoneInfo("Asia/Kathmandu")
 
 
 def _decode(body):
-    return body.decode("utf-8", errors="replace")
+    # NUL never belongs in a device's text, and PostgreSQL cannot store it
+    return body.decode("utf-8", errors="replace").replace("\x00", "")
 
 
 def decode_zk_packed_time(value):

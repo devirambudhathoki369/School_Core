@@ -107,7 +107,7 @@ def describe_rows(body):
     instead of inferred.
     """
     try:
-        text = body.decode("utf-8", errors="replace")
+        text = body.decode("utf-8", errors="replace").replace("\x00", "")
     except Exception:
         return None
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
