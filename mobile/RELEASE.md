@@ -28,6 +28,10 @@ npx eas-cli@latest credentials      # Android: upload the Firebase FCM V1 servic
                                     # iOS: let EAS make the push key and certificates
 ```
 
+Turn on two-factor authentication for the Expo account first. Whoever can
+sign in to it can publish an over-the-air update to every phone that has
+the app.
+
 Push notifications go through Expo's push service, which needs the Firebase
 key for Android and the Apple push key for iPhone. Both are kept by EAS. If
 you turn on "enhanced push security" at expo.dev, put its access token in
@@ -95,7 +99,7 @@ push token at all:
 
    ```sh
    python manage.py migrate canteen 0004_canteen_users --fake   # the tables exist and match
-   python manage.py migrate                                     # the rest, to mobileapi 0004
+   python manage.py migrate                                     # the rest, to mobileapi 0004 and main 0121
    ```
 
    On the copy the canteen tables matched this repo's column for column, and
@@ -104,6 +108,20 @@ push token at all:
    schools, they add the school-ownership keys unvalidated. They print each
    one; that is expected. Drop `uses_canteen` in a later release, once
    rolling back past this one is no longer needed.
+
+   Then give the files people uploaded before the random names new uploads
+   get: student and staff photos, photos waiting to be paired, and handed-in
+   homework. This renames them and points the database at the new names;
+   read its count first:
+
+   ```sh
+   python manage.py randomize_media_names           # report only
+   python manage.py randomize_media_names --apply
+   ```
+
+   Run it where the media folder is, as the user that owns it. It is safe to
+   run again. Links to the old names stop working, so screens load the
+   photos again under their new names.
 3. Settings, in the server's environment:
 
    | Name | What |

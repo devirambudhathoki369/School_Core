@@ -108,7 +108,13 @@ Rules:
   last child link is removed. Each ending is stored with its reason.
 - **App lock (on the phone only):** a 4–6 digit PIN or biometrics, required
   for staff and admins and optional for parents and students. Five wrong PINs
-  sign the phone out.
+  sign the phone out. On Android only strong biometrics count (a fingerprint
+  or a 3D face scan); a phone with only a camera face unlock uses the PIN.
+  While a PIN is set, the app covers its screen whenever it is not in front,
+  so the app switcher shows nothing behind the lock (fully on iPhone; on
+  Android the picture is taken as the app leaves, so the cover may miss it).
+  The lock guards the screens: the sign-in tokens themselves sit in the
+  phone's keystore (Keychain, Android Keystore), not under the PIN.
 
 ## 4. Database
 
@@ -218,6 +224,7 @@ live token per session.
 | `created_at`, `expires_at` | `timestamptz` | not null, `CHECK (expires_at > created_at)` |
 | `attempts` | `smallint` | not null, default 0, `CHECK (attempts BETWEEN 0 AND 5)` |
 | `consumed_at` | `timestamptz` null | |
+| `family_code_id` | `bigint` null | references `mobileapi_familycode`, cascade; set exactly when `purpose = 2` (`CHECK`). That family code must still be unused, uncancelled and unexpired when the emailed code is entered; and unless the school office made it, the parent must still have no email |
 
 Index `(email, created_at DESC)`; the email limits count rows in it.
 
@@ -319,7 +326,7 @@ Base `/api/mobile/v1/`. These conventions hold everywhere:
 | `POST /students/{id}/homework/{hw}/hand-in` | parent, student | Hand in files (multipart; refused after the due date) |
 | `GET /students/{id}/results` · `…/results/{exam}` | parent, student | Published exams; one exam's marks |
 | `GET /students/{id}/timetable` | parent, student | The class's periods with subjects and teachers |
-| `GET /students/{id}/bus` · `PUT /students/{id}/bus` | parent, student | The school's buses, where each is now, and the one the student rides first; choose that bus, or none (see Bus below) |
+| `GET /students/{id}/bus` · `PUT /students/{id}/bus` | parent, student | The school's buses, the one the student rides first with where it is now; choose that bus, or none (see Bus below) |
 | `GET /notices` · `GET /calendar?from=&to=` | signed in | The school's notices and events |
 | `GET /staff/today` | staff | Today's periods, attendance still to take, own check-in |
 | `GET /staff/classes` | staff | The classes the staff member teaches in the timetable, and no others |
@@ -345,7 +352,12 @@ named `<school>_<id>`, and buses followed from one school only. It keeps one
 shared answer a few seconds old, and the app reads that same answer, so
 phones add no load on the provider. The school comes from the session; a bus
 can be chosen only from the school's own list, and another school's bus is
-`400`. The bus a student rides is their `main_bustrackonalertinfo` row, the
+`400`. Only the bus the student says they ride comes with where it is
+(position, speed, address); the others carry their name and status, enough
+to choose. The choice is the family's own, so this keeps other buses off the
+screen rather than proving who rides what.
+The office's map, with every bus, stays with admins and staff with
+permission 511. The bus a student rides is their `main_bustrackonalertinfo` row, the
 one the old app and the "bus is near" alert job use, so all three agree.
 Choosing in the app keeps an alert set up before; a bus chosen in the app
 alone has no alert (no home spot, no range: the database keeps the three
