@@ -64,6 +64,16 @@ class BusTests(MobileTestMixin, WriteMixin, TestCase):
         self.assertNotIn("satellites", body["buses"][0])
         self.assertEqual(body["refresh_seconds"], 10)
 
+    def test_only_the_students_own_bus_says_where_it_is(self):
+        body = self.get(self.path(), self.student_token).json()
+        self.assertTrue(all(b["latitude"] is None and b["address"] is None and b["speed_kmh"] is None
+                            for b in body["buses"]))
+        self.assertEqual({b["status"] for b in body["buses"]}, {"Moving"})  # enough to choose
+        body = self.ride(7).json()
+        mine, other = body["buses"]
+        self.assertEqual((mine["id"], mine["latitude"], mine["address"]), (7, 27.7, "Ring Road"))
+        self.assertIsNone(other["latitude"])
+
     def test_choosing_a_bus_puts_it_first_and_tells_the_office_map(self):
         cache.set("web-bus-followed", {}, 120)
         answer = self.ride(7)
@@ -120,6 +130,13 @@ class BusTests(MobileTestMixin, WriteMixin, TestCase):
                                         "message": "No buses have been linked to your school yet."}
         body = self.get(self.path(), self.student_token).json()
         self.assertEqual((body["buses"], body["message"]), ([], "No buses have been linked to your school yet."))
+
+    def test_a_broken_tracking_config_does_not_break_signing_in(self):
+        with mock.patch("mobileapi.buses.has_buses", return_value=False), \
+                mock.patch("mobileapi.buses.load_config", side_effect=TrackingUnavailable("bad file")):
+            answer = self.get("me", self.student_token)
+        self.assertEqual(answer.status_code, 200, answer.content)
+        self.assertFalse(answer.json()["bus_tracking"])
 
     def test_me_says_whether_the_school_has_buses(self):
         with mock.patch("mobileapi.buses.has_buses", return_value=True):

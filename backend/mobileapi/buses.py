@@ -32,6 +32,10 @@ MIN_REFRESH_SECONDS = 10
 # What the app shows of a bus. The rest of the portal's answer (satellites,
 # signal, the odometer) is for the office.
 FIELDS = ("id", "name", "status", "latitude", "longitude", "updated_at", "stale", "speed_kmh", "address")
+# ...and where it is, only for the bus the student rides. The office's map
+# shows every bus to admins and staff with the tracking permission (511); a
+# family sees its own child's bus, and of the others just enough to choose.
+WHERE = ("latitude", "longitude", "speed_kmh", "address")
 WARM_EVERY_SECONDS = 60
 
 
@@ -52,7 +56,8 @@ def school_has_buses(school_id: int) -> bool:
     if cache.add("mobile-bus-warm", 1, WARM_EVERY_SECONDS):
         from main.methods.push import _in_background
 
-        _in_background(grouped_buses, load_config())
+        # the config is read there too: a broken file must not break sign-in
+        _in_background(lambda: grouped_buses(load_config()))
     return False
 
 
@@ -72,6 +77,9 @@ def student_bus(student) -> dict:
     mine = following(student)
     if mine not in {bus["id"] for bus in buses}:
         mine = None  # the school no longer has that bus
+    for bus in buses:
+        if bus["id"] != mine:
+            bus.update(dict.fromkeys(WHERE))
     buses.sort(key=lambda bus: (bus["id"] != mine, str(bus["name"]).lower()))
     return {
         "following": mine,
