@@ -35,8 +35,10 @@ school user out of the portal.
 
 - `/rfid/scan` (UHF controllers): an address that sends 30 unknown readers or
   wrong keys in 10 minutes is refused (429) for the rest of the 10 minutes.
-  Only failures count, so a busy gate is never slowed. The key is compared in
-  constant time.
+  Scans have their own budget of 3000 a minute per address, apart from the
+  default above, so a school's readers behind one address are never slowed
+  by a morning rush or by other traffic from the school. The key is compared
+  in constant time.
 - `/iclock/*` (ZKTeco terminals) are plain Django views without a limit: many
   terminals of a school share one address and push in bursts, and a limit
   there would drop attendance. Their protection is the per-device push key

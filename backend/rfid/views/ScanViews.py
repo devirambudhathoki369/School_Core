@@ -12,6 +12,7 @@ import hmac
 from django.utils import timezone
 from rest_framework import permissions, status
 from rest_framework.response import Response
+from rest_framework.throttling import SimpleRateThrottle
 from rest_framework.views import APIView
 
 from account.throttles import FailureCounter, client_address
@@ -23,11 +24,25 @@ from ..services.UHFIngest import UHFIngest, normalize_epc
 WRONG_KEYS = FailureCounter("reader-key", limit=30, seconds=10 * 60)
 
 
+class ReaderScanThrottle(SimpleRateThrottle):
+    """Scans per address, apart from every other limit. A school's readers
+    share its one address, and a morning rush through several gates must
+    never wait, so this only stops a flood. Wrong keys have their own,
+    tight count (WRONG_KEYS)."""
+
+    scope = "reader_scan"
+    rate = "3000/min"
+
+    def get_cache_key(self, request, view):
+        return self.cache_format % {"scope": self.scope, "ident": self.get_ident(request)}
+
+
 class ReaderScanView(APIView):
     """Unauthenticated in the DRF sense — the reader key is the credential."""
 
     authentication_classes = ()
     permission_classes = (permissions.AllowAny,)
+    throttle_classes = (ReaderScanThrottle,)
     swagger_schema = None
 
     def _device(self, request):

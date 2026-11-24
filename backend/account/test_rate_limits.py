@@ -105,6 +105,13 @@ class ReaderKeyLockoutTests(TestCase):
             self.assertEqual(self.scan("x", reader=f"UNKNOWN-{n}").status_code, 403)
         self.assertEqual(self.scan("k" * 40).status_code, 429)
 
+    def test_scans_have_their_own_budget_apart_from_anonymous_requests(self):
+        # a school's readers share its address with everything else it sends
+        with mock.patch.object(AnonymousIPThrottle, "rate", "2/min"):
+            for _ in range(3):
+                APIClient().get("/api/app/listing/public")
+            self.assertNotEqual(self.scan("k" * 40).status_code, 429)
+
     def test_a_key_with_other_characters_is_refused_not_an_error(self):
         self.assertEqual(self.scan("ключ").status_code, 403)
 
