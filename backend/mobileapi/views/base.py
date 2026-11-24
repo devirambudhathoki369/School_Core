@@ -8,7 +8,7 @@ from main.models.SchoolAdmin import SchoolAdmin
 
 from ..auth import MobileTokenAuthentication, school_takes_app
 from ..errors import MobileError, mobile_exception_handler
-from ..throttles import SessionThrottle
+from ..throttles import SessionThrottle, SessionWriteThrottle
 
 
 def _version(text) -> tuple:
@@ -23,7 +23,7 @@ class MobileAPIView(APIView):
 
     authentication_classes = (MobileTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
-    throttle_classes = (SessionThrottle,)
+    throttle_classes = (SessionThrottle, SessionWriteThrottle)
     swagger_schema = None  # documented by the mobile schema, not the portal's
 
     def get_exception_handler(self):

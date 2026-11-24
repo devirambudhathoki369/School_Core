@@ -13,6 +13,7 @@ from ..auth import STUDENT_RUNNING
 from ..errors import MobileError
 from ..idempotency import idempotent
 from ..models import AppSession
+from ..throttles import MessageSendThrottle
 from .base import MobileAPIView
 from .staff import MessageOut, _fields_error, _own_homework_or_404
 from .students import STUDENT_ID, _homework_for
@@ -55,6 +56,8 @@ def _students_homework(student, homework_id):
 class StudentThreadView(MobileAPIView):
     """The student's thread with the teacher; their parents read it too."""
 
+    throttle_classes = (*MobileAPIView.throttle_classes, MessageSendThrottle)
+
     @extend_schema(parameters=[STUDENT_ID, HOMEWORK_ID, CURSOR], responses=ThreadOut)
     def get(self, request, student_id, homework_id):
         student = student_for(request, student_id)
@@ -96,6 +99,8 @@ def _thread_student(homework, student_id) -> tuple[Student, bool]:
 
 class StaffThreadView(MobileAPIView):
     """The teacher's thread with one student on their own homework."""
+
+    throttle_classes = (*MobileAPIView.throttle_classes, MessageSendThrottle)
 
     @extend_schema(parameters=[HOMEWORK_ID, THREAD_STUDENT, CURSOR], responses=ThreadOut)
     def get(self, request, homework_id, student_id):

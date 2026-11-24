@@ -235,3 +235,22 @@ class MessageDatabaseTests(TestCase):
         now = timezone.now()
         self.refused(created_at=now, read_at=now - timedelta(minutes=1))
 
+
+
+@mock.patch("mobileapi.threads.push.on_homework_message")
+class MessageRateTests(ChildFixtures, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.homework = Homework.objects.create(
+            title="Chapter five", due_date=FUTURE, class_info=cls.school.klass, subject=subject(cls.school),
+            staff=cls.staff, school=cls.school, description="Read the chapter.",
+        )
+
+    def test_one_phone_sends_at_most_ten_messages_a_minute(self, push_):
+        path = f"students/{self.student.id}/homework/{self.homework.id}/messages"
+        answers = [self.write("post", path, {"body": f"m{i}"}, self.student_token).status_code for i in range(11)]
+        self.assertEqual(answers[:10], [201] * 10)
+        self.assertEqual(answers[10], 429)
+        # reading is not a write
+        self.assertEqual(self.get(path, self.student_token).status_code, 200)

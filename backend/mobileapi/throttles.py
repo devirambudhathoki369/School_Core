@@ -4,6 +4,7 @@ from hashlib import sha256
 
 from django.core.cache import cache
 from rest_framework import status
+from rest_framework.permissions import SAFE_METHODS
 from rest_framework.throttling import SimpleRateThrottle
 
 from .errors import MobileError
@@ -46,6 +47,24 @@ class SessionThrottle(SimpleRateThrottle):
         if session is None:
             return None
         return self.cache_format % {"scope": self.scope, "ident": str(session.pk)}
+
+
+class SessionWriteThrottle(SessionThrottle):
+    """Saves from one phone: a minute's worth of a class's attendance, hand-ins
+    or remarks is far below this; a loop is not."""
+
+    scope, rate = "mobile_session_write", "120/min"
+
+    def get_cache_key(self, request, view):
+        if request.method in SAFE_METHODS:
+            return None
+        return super().get_cache_key(request, view)
+
+
+class MessageSendThrottle(SessionWriteThrottle):
+    """Homework messages from one phone, on top of the 30 a day per thread."""
+
+    scope, rate = "mobile_message_send", "10/min"
 
 
 EMAIL_GAP_SECONDS = 60
