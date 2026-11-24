@@ -19,10 +19,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from account.admin_login import guarded_admin_login
 from monitor.views import live_system_monitor, server_home
 
 urlpatterns = [
     path("", server_home, name="server_home"),
+    # before admin.site.urls: the admin's sign-in, with a lock-out (account/admin_login.py)
+    path("admin/login/", guarded_admin_login, name="admin-login-guarded"),
     path("admin/", admin.site.urls),
     path("auth/", include("account.urls")),
     # the mobile app's own API (mobile/SPEC.md); before "api/" so nothing there shadows it

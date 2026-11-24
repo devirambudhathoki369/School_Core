@@ -14,8 +14,13 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from account.throttles import FailureCounter, client_address
+
 from ..models.Device import Device
 from ..services.UHFIngest import UHFIngest, normalize_epc
+
+
+WRONG_KEYS = FailureCounter("reader-key", limit=30, seconds=10 * 60)
 
 
 class ReaderScanView(APIView):
@@ -29,12 +34,23 @@ class ReaderScanView(APIView):
         """
         Resolve + authenticate the posting device.
 
+        An address that sends 30 unknown readers or wrong keys in 10 minutes
+        is refused for the rest of them (429), so keys cannot be guessed.
+        A gate that works is never slowed: only failures count.
+
         Returns (device, error_response). A device must be pre-registered (its
         school is what scans get attributed to) and must carry a reader_key —
         an unset key is treated as not-configured rather than as "no auth
         needed", so a half-set-up gate can't quietly post real attendance.
         """
-        reader_id = (request.data.get("reader_id") or "").strip()
+        address = client_address(request)
+        if WRONG_KEYS.blocked(address):
+            return None, Response(
+                {"detail": "too many failed attempts; try again later"},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+        reader_id = request.data.get("reader_id") if isinstance(request.data, dict) else None
+        reader_id = reader_id.strip() if isinstance(reader_id, str) else ""
         if not reader_id:
             return None, Response(
                 {"detail": "reader_id required"}, status=status.HTTP_400_BAD_REQUEST
@@ -44,6 +60,7 @@ class ReaderScanView(APIView):
             serial_number=reader_id, reader_kind=Device.KIND_UHF
         ).first()
         if device is None:
+            WRONG_KEYS.record(address)
             return None, Response(
                 {"detail": "reader not registered"}, status=status.HTTP_403_FORBIDDEN
             )
@@ -52,7 +69,8 @@ class ReaderScanView(APIView):
         expected = device.reader_key or ""
         # compare_digest to keep the check constant-time; a plain != leaks the
         # key a byte at a time to anyone who can time the response.
-        if not expected or not hmac.compare_digest(presented, expected):
+        if not expected or not hmac.compare_digest(presented.encode(), expected.encode()):
+            WRONG_KEYS.record(address)
             return None, Response(
                 {"detail": "invalid reader key"}, status=status.HTTP_403_FORBIDDEN
             )

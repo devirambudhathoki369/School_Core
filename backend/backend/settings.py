@@ -478,6 +478,14 @@ REST_FRAMEWORK = {
     # The mobile API's OpenAPI 3 schema (mobileapi/schema.py). The portal's
     # docs come from drf-yasg, which does not read this setting.
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # Every view that names no rate limit of its own still has one: per
+    # address while nobody is signed in, per account after
+    # (account/throttles.py). Sign-ins, sign-ups, OTPs, the portal's
+    # SecuredAPIView and the mobile API set their own, tighter ones.
+    "DEFAULT_THROTTLE_CLASSES": (
+        "account.throttles.AnonymousIPThrottle",
+        "account.throttles.AuthenticatedUserThrottle",
+    ),
 }
 
 # Per-client caps on the two endpoints that answer WITHOUT signing in.
