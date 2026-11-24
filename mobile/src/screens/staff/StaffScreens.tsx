@@ -122,7 +122,7 @@ export function StaffTodayScreen() {
               </>
             ) : (
               <T v="small" tone="quiet">
-                No periods are set for you in the timetable. Open any class from Classes.
+                No periods are set for you in the timetable yet. Your classes show here once the school puts you in it.
               </T>
             )}
             <Shortcuts>
