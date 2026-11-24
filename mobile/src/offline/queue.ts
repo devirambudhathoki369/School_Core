@@ -5,7 +5,8 @@
 // again, after a dropped connection, a restart or hours later, can never
 // save it twice. Jobs go one at a time, oldest first. A job the server
 // refuses (a 4xx) leaves the queue and is kept in `failed` so the person
-// can see what did not go.
+// can see what did not go; "too many at once" (429) only waits for the next
+// try, 30 seconds on.
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 
@@ -100,6 +101,7 @@ export async function flush(): Promise<void> {
           error.status === 0 || // no connection
           error.status === 401 || // signed out; the account's jobs go with it
           error.status === 426 || // the app must update first
+          error.status === 429 || // too many at once: the server takes it in a minute
           error.status >= 500 ||
           error.code === 'in_progress'; // the same key is still being saved
         if (!retryLater) {
